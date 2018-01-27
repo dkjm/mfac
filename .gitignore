@@ -1,0 +1,8 @@
+web/node_modules
+web/build
+
+api/bin
+api/include
+api/lib
+api/.Python
+api/pip-selfcheck.json

@@ -1,0 +1,15 @@
+.NotificationCard-container{
+	text-align: left;
+	border: gray solid 1px;
+	box-shadow: 12px 12px 2px 1px rgba(154, 159, 165, .2);
+	margin: auto;
+	margin-bottom: 20px;
+	padding: 20px;
+	max-width: 400px;
+}
+
+.NotificationCard-text{
+	font-size: 130%;
+	margin-bottom: 10px;
+
+}

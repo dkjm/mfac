@@ -1,0 +1,87 @@
+
+
+
+
+
+.TopicCard-container{
+	text-align: left;
+	border: gray solid 1px;
+	box-shadow: 12px 12px 2px 1px rgba(154, 159, 165, .2);
+	margin: auto;
+	margin-bottom: 20px;
+	padding: 20px;
+	max-width: 700px;
+	background-color: white;
+}
+
+.TopicCard-detail-button-container{
+	text-align: right;
+	margin-bottom: 10px;
+}
+
+.TopicCard-title{
+	font-size: 130%;
+	margin-bottom: 10px;
+
+}
+
+.TopicCard-body{
+	margin-bottom: 20px;
+}
+
+.TopicCard-votes-blocks{
+	display: flex;
+
+	justify-content: space-between;
+}
+
+.TopicCard-votes{
+	margin-right: 20px;
+	padding: 10px;
+	border: solid gray 1px;
+	width: 100px;
+}
+
+.TopicCard-votes:hover{
+	cursor: pointer;
+}
+
+.TopicCard-vote-block{
+	padding: 10px;
+	border: solid gray 1px;
+
+	min-width: 60px;
+	max-width: 100px;
+	display: flex;
+	justify-content: space-around;
+	border-radius: 10px;
+}
+
+
+.TopicCard-vote-type{
+	text-align: center;
+	padding-top: 5px;
+	padding-bottom: 10px;
+}
+
+.TopicCard-upTriangle{
+	width: 0; 
+  height: 0; 
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  
+  border-bottom: 10px solid black;
+}
+
+
+.TopicCard-vote-block-icon{
+
+}
+
+.TopicCard-vote-icon-container{
+
+}
+
+.TopicCard-block-child{
+
+}
