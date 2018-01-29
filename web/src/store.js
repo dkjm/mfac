@@ -3,12 +3,12 @@ import {
 	applyMiddleware, 
 	compose,
 	combineReducers,
-} from 'redux'
+} from 'redux';
 
-import thunk from 'redux-thunk'
-import { reducer as formReducer } from 'redux-form'
+import thunk from 'redux-thunk';
+import { reducer as formReducer } from 'redux-form';
 
-import topicReducer from './reducers'
+import {reducer as topicReducer} from './services/api';
 import {reducer as uiReducer} from './services/ui';
 
 
@@ -19,13 +19,15 @@ const rootReducer = combineReducers({
 })
 
 
-const configureStore = preloadedState => {
+const configureStore = (preloadedState) => {
 
   // doing below conditional because 
   // safari won't render app if redux devtools
   // is included in compose function.  Must
   // check for Chrome
-  let store
+  // ** 180127 - above is not applicable as 
+  // app is currently not using redux devtools.
+  let store;
 
   if (window.navigator.userAgent.includes('Chrome')) {
     store = createStore(
@@ -50,7 +52,7 @@ const configureStore = preloadedState => {
   }
   
 
-  return store
+  return store;
 }
 
-export default configureStore
+export default configureStore;

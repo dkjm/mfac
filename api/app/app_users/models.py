@@ -2,10 +2,7 @@ import datetime
 import os
 
 from django.db import models
-#from django.contrib.auth.models import User, Group
 from django.conf import settings
-
-# Create your models here.
 
 
 class AppUser(models.Model):
@@ -61,7 +58,7 @@ class AppUser(models.Model):
 
 	def get_full_name_reverse(self):
 		if self.last_name:	
-			s = '{0} {1}'.format(self.last_name, self.first_name)
+			s = '{0}, {1}'.format(self.last_name, self.first_name)
 			return s
 		else:
 			return self.first_name
@@ -71,23 +68,6 @@ class AppUser(models.Model):
 
 	def get_user_id(self):
 		return self.user.id
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

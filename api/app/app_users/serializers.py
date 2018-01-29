@@ -11,13 +11,9 @@ from .models import AppUser
 class AppUserSlz(serializers.ModelSerializer):
 
 	user_id = serializers.SerializerMethodField()
-
 	username = serializers.SerializerMethodField()
-
 	email = serializers.SerializerMethodField()
-
 	full_name = serializers.SerializerMethodField()
-
 	full_name_reverse = serializers.SerializerMethodField()
 
 	def get_user_id(self, obj):

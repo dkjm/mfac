@@ -1,4 +1,6 @@
 const COLORS = {
+	white: '#ffffff',
+	black: '#000000',
 	lightGray: '#9da6b5',
 	darkGray: '#777c84',
 	darkerGray: '#5c6677',
@@ -13,13 +15,13 @@ const COLORS = {
 	midnightGray: 'rgb(91, 91, 91)',
 }
 
-const HEADER_HEIGHT = 64
-const NAV_DRAWER_WIDTH = 242
+const HEADER_HEIGHT = 64;
+const NAV_DRAWER_WIDTH = 242;
 
-const COMPANY_NAME = 'Meetings App'
-const COMPANY_LOGO = ''
+const COMPANY_NAME = 'Meetings App';
+const COMPANY_LOGO = '';
 
-// using this to keep 
+// using this to temporarily keep 
 // consistency across data changes
 // Normally this val will come
 // from some session data
@@ -32,6 +34,8 @@ export {
 	NAV_DRAWER_WIDTH,
 	COMPANY_NAME,
 	COMPANY_LOGO,
+
+	// temp for early dev
 	USER_ID,
 	MEETING_ID,
 }

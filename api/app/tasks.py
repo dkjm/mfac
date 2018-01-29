@@ -19,9 +19,21 @@ app.conf.result_backend = settings.REDIS_URL
 
 meeting_id = 1
 
+
+# send_update will periodically send 
+# updated vote counts.  You can change the
+# period length at the bottom in the 
+# app.conf.beat_schedule object.  
+# "Schedule" is given in seconds
+# ** This task is just making random numbers
+# for vote counts but can be used to simulate
+# receiving live updates on client via websockets
 @app.task
 def send_update():
-	from st.models import Topic, Vote
+	# must do model imports inside function
+	# to prevent dependency loading issues
+	# for all celery tasks
+	from meetings.models import Topic, Vote
 
 	vote_types = [Vote.UP, Vote.DOWN, Vote.MEH]
 
@@ -60,7 +72,7 @@ def send_update():
 app.conf.beat_schedule = {
 	'send_update': {
 		'task': 'tasks.send_update',
-		'schedule': 4,	
+		'schedule': 5,	
 		#'schedule': crontab(minute='0', hour='20'),
 	},
 }

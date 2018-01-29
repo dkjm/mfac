@@ -1,7 +1,11 @@
 import random
 import copy
 from ..models import *
-from .factory_data import username_list, first_name_list, last_name_list
+from .factory_data import (
+	username_list, 
+	first_name_list, 
+	last_name_list,
+)
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
@@ -34,7 +38,7 @@ class UserFactory(object):
 				break
 
 		if len(indices) == 0 and not username:
-			raise Exception('User list exhausted')
+			raise Exception('username_list exhausted!!')
 		else:
 			return UserFactory.make(username=username, **kwargs)
 
@@ -44,14 +48,14 @@ class AppUserFactory(object):
 	@staticmethod
 	def make(*args, **kwargs):
 		k = kwargs
-		id = k.get('id')
 		user = k.get('user') if k.get('user') else UserFactory.make_fake()
 		app_user = AppUser.objects.create(
-			id=id,
+			id=k.get('id'),
 			first_name=k.get('first_name'),
 			last_name=k.get('last_name'),
 			user=user
 		)
+
 		if k.get('email'):
 			setattr(user, 'email', k.get('email'))
 			user.save()
