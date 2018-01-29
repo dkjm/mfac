@@ -40,10 +40,10 @@ python manage.py runserver
 ```
 
 #### Admin
-You should now be able to navigate to `http://localhost:8000/admin` and have an inteface for data.  Default admin username and pass are respectively: `admin asdf`
+You should now be able to navigate to `http://localhost:8000/admin` in browser and have an interface for data.  Default admin username and pass are respectively: `admin asdf`
 
 #### Run workers
-If you want, you can fire up some Celery workers and simulate receiving periodic live updates on the client.  ** Note that the updates are just randomly chosen vote counts created in the `send_update` function in tasks.py.  If you cast a vote from the client while you're receiving the random live updates, the number you see will look wrong because you're still receiving random updates.
+If you want, you can fire up some Celery workers and simulate receiving periodic live updates on the client.  ** Note that the updates are just randomly chosen vote counts created in the `send_update` function in `tasks.py`.  If you cast a vote from the client while you're receiving the random live updates, the number you see will look wrong because you're still receiving random updates.
 
 In one terminal run
 ```
@@ -60,7 +60,7 @@ For both of above commands, make sure you activate correct virtual environment u
 
 
 ### Client
-## Install dependencies and run dev server
+#### Install dependencies and run dev server
 ```
 cd web
 yarn install
