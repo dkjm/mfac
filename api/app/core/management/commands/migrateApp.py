@@ -16,6 +16,8 @@ from app_users.models import AppUser
 
 User = get_user_model()
 
+defaultEmail = 'mark.p.pare@gmail.com'
+defaultPassword = 'asdf'
 
 
 class Command(BaseCommand):
@@ -23,24 +25,20 @@ class Command(BaseCommand):
 	def add_arguments(self, parser):
 		parser.add_argument(
 			'--email',
-			dest='email')
+			dest='email',
+			default=defaultEmail)
 
 		parser.add_argument(
 			'--password',
-			dest='password')
+			dest='password',
+			default=defaultPassword)
 
 
 	def handle(self, *args, **options):
 
 		# handle options
-		email = options.get('email')
-		if not email:
-			email = 'mark.p.pare@gmail.com'
-
-		password = options.get('password')
-		if not password:
-			password = 'asdf'
-
+		email = options.get('email', defaultEmail)
+		password = options.get('password', defaultPassword)
 
 	# makemigrations and migrate
 		print('Performing migrations...')
@@ -48,7 +46,6 @@ class Command(BaseCommand):
 		subprocess.call('python manage.py migrate', shell=True)
 		print('Migrated successfully.')
 
-		print('Creating superuser and OAuth app...')
 	# create superuser
 		try:
 			admin = User.objects.get(username='admin')
@@ -57,6 +54,7 @@ class Command(BaseCommand):
 				'admin',
 				email,
 				password)
+			print('Created superuser with username and password: %s %s' % (admin.username, password))
 
 		try:
 			admin_app_user = AppUser.objects.get(user=admin)
@@ -76,7 +74,8 @@ class Command(BaseCommand):
 				authorization_grant_type=Application.GRANT_PASSWORD
 			)
 			app.save()
-
-		print('Superuser and OAuth app created successfully.\n')
-		print('Client ID: ', app.client_id)
-		print('Client Secret: ', app.client_secret)
+			print('Created OAuth app.')
+			print('Client ID: ', app.client_id)
+			print('Client Secret: ', app.client_secret)
+		
+		print()

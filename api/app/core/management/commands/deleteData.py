@@ -5,30 +5,16 @@ import subprocess
 from django.conf import settings
 sys.path.insert(0, settings.BASE_DIR)
 
-
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
-#from django.contrib.auth.models import User
-from oauth2_provider.models import get_application_model
-Application = get_application_model()
-
 
 User = get_user_model()
-
 from app_users.models import AppUser
-from st.models import Topic, TopicComment
-from app_users.factories.app_user_factory import UserFactory, AppUserFactory
+from meetings.models import Topic, TopicComment
 
 
 
 class Command(BaseCommand):
-
-	def add_arguments(self, parser):
-		parser.add_argument(
-			'--user_count',
-			dest='user_count')
-
-
 
 	def handle(self, *args, **options):
 		print('Deleting data...')

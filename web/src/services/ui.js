@@ -1,9 +1,13 @@
-export const TOGGLE_NAV_DRAWER = 'ui/TOGGLE_NAV_DRAWER'
-export const TOGGLE_SNACKBAR = 'ui/TOGGLE_SNACKBAR'
+import {COMPANY_NAME} from '../constants';
 
-export const toggleNavDrawer = () => (dispatch) => {
+export const TOGGLE_NAV_DRAWER = 'ui/TOGGLE_NAV_DRAWER';
+export const TOGGLE_SNACKBAR = 'ui/TOGGLE_SNACKBAR';
+export const SET_HEADER_TEXT = 'ui/SET_HEADER_TEXT';
+
+export const toggleNavDrawer = (params = {}) => (dispatch) => {
 	const action = {
 		type: TOGGLE_NAV_DRAWER,
+		open: params.open,
 	}
 	return dispatch(action)
 }
@@ -17,6 +21,14 @@ export const toggleSnackbar = (params = {}) => (dispatch) => {
 	return dispatch(action)
 }
 
+export const setHeaderText = (params = {}) => (dispatch) => {
+	const action = {
+		type: SET_HEADER_TEXT,
+		text: params.text,
+	}
+	return dispatch(action)
+}
+
 const initialState = {
 	navDrawer: {
 		open: false,
@@ -25,6 +37,10 @@ const initialState = {
 		open: false,
 		message: '',
 	},
+	header: {
+		open: true,
+		text: COMPANY_NAME,
+	}
 }
 
 
@@ -35,7 +51,7 @@ export const reducer = (state = initialState, action) => {
 				...state,
 				navDrawer: {
 					...state.navDrawer,
-					open: !state.navDrawer.open,
+					open: action.open,
 				},
 			}
 			return nextState;
@@ -48,6 +64,17 @@ export const reducer = (state = initialState, action) => {
 					...state.snackbar,
 					open: action.open,
 					message: action.message,
+				},
+			}
+			return nextState;
+		}
+
+		case SET_HEADER_TEXT: {
+			const nextState = {
+				...state,
+				header: {
+					...state.header,
+					text: action.text,
 				},
 			}
 			return nextState;

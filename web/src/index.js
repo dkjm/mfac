@@ -1,21 +1,17 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM, {render} from 'react-dom';
 import './index.css';
-import App from './App';
-
-// import { Router, BrowserRouter } from 'react-router'
-import { BrowserRouter, Router, Route } from 'react-router-dom'
+import App from './components/App';
+import { BrowserRouter, Router, Route } from 'react-router-dom';
 // using module to hold history object
 // so it can be accessed from anywhere in
 // app (e.g. in action creators)
 import history from './history';
-
-import { render } from 'react-dom'
-import { Provider } from 'react-redux'
 import configureStore from './store';
+import { Provider } from 'react-redux';
 
 
-let store = configureStore()
+let store = configureStore();
 
 render(
   <Provider store={store}>
