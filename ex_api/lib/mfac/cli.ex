@@ -51,6 +51,28 @@ defmodule Mfac.CLI do
     end)
   end
 
+  defp make_associations do 
+    users = Repo.all(User)
+    topics = Repo.all(Topic)
+    topic_comments = Repo.all(TopicComment)
+    stack = Repo.all(Stack)
+
+    Enum.each(topics, fn x ->
+      user = Enum.at(users, :rand.uniform(length(users) - 1))
+      Topic.changeset(x, %{user_id: user.id})
+      |> Repo.update!
+    end)
+
+    Enum.each(topic_comments, fn x ->
+      user = Enum.at(users, :rand.uniform(length(users) - 1))
+      topic = Enum.at(topic_comments, :rand.uniform(length(topic_comments) - 1)) |> IO.inspect(label: "TOPIC:   ")
+      TopicComment.changeset(x, %{user_id: user.id, topic_id: topic.id })
+      |>IO.inspect(label: "topic comment changeset")
+      |> Repo.update!
+    end)
+
+  end
+
 
   defp make_data(word) do
     IO.puts "Making data of type #{word}"
@@ -71,6 +93,13 @@ defmodule Mfac.CLI do
         insert_user_data()
         |> IO.inspect(label: "INSERTED USERS")
         "All Set, 10 users inserted"
+      "all" -> 
+        insert_topic_data()
+        insert_topic_comment_data()
+        insert_stack_data()
+        insert_user_data()
+        make_associations()
+        "All set, data made with associations"
       _ -> 
        "Whoops"  
 
@@ -93,6 +122,12 @@ defmodule Mfac.CLI do
       "users" ->
         {num, _} = Repo.delete_all(User)
         "All Set, deleted #{num} #{word}"
+      "all" ->
+        Repo.delete_all(Topic)
+        Repo.delete_all(TopicComment)
+        Repo.delete_all(Stack)
+        Repo.delete_all(User)
+        "All set, everything deleted"
       _ -> 
         "Whoops"
     end

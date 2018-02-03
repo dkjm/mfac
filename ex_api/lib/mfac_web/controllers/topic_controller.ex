@@ -7,7 +7,7 @@ defmodule MfacWeb.TopicController do
   action_fallback MfacWeb.FallbackController
 
   def index(conn, _params) do
-    topic = Meetings.list_topics()
+    topic = Meetings.list_topics() |> IO.inspect(label: "topic")
     render(conn, "index.json", topic: topic)
   end
 

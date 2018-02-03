@@ -18,7 +18,7 @@ defmodule Mfac.Meetings do
 
   """
   def list_topics do
-    Repo.all(Topic)
+    Repo.all(Topic) |> Repo.preload([:owner, topic_comments: [:owner]])
   end
 
   @doc """

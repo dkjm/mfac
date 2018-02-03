@@ -9,6 +9,7 @@ defmodule Mfac.Meetings.TopicComment do
     field :version, :integer
     field :parent_topic_coment_id, :id
     belongs_to :topic, Mfac.Meetings.Topic
+    belongs_to :owner, Mfac.Accounts.User, foreign_key: :user_id
 
     timestamps()
   end
@@ -16,7 +17,7 @@ defmodule Mfac.Meetings.TopicComment do
   @doc false
   def changeset(%TopicComment{} = topic_comment, attrs) do
     topic_comment
-    |> cast(attrs, [:body, :version, :topic_id, :parent_topic_coment_id])
+    |> cast(attrs, [:body, :version, :topic_id, :parent_topic_coment_id, :user_id])
     |> validate_required([:body, :version])
   end
 end

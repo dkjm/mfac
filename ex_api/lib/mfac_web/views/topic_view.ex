@@ -14,6 +14,9 @@ defmodule MfacWeb.TopicView do
     %{id: topic.id,
       title: topic.title,
       body: topic.body,
-      version: topic.version}
+      version: topic.version,
+      topic_comments: render_many(topic.topic_comments, MfacWeb.TopicCommentView, "show.json"),
+      owner: render_one(topic.owner, MfacWeb.UserView, "show.json")
+    }
   end
 end
