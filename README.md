@@ -72,7 +72,7 @@ mix ecto.migrate
 mix escripts.build()
 ./mfac --makedata [MODEL_NAME] 
 ```
-** Note: Seeding functions with relationships are still being worked on, so atm, the data wont have association. If you need to delete data and start over again, you can run `./mfac deletedata [MODEL_NAME]`
+** Note: Seeding functions with relationships are still being worked on, so atm, the data wont have associations. If you need to delete data and start over again, you can run `./mfac deletedata [MODEL_NAME]`
 
 #### Start development server
 ```
