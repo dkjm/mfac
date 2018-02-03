@@ -4,15 +4,20 @@ import './MeetingParticipants.css';
 import {withRouter} from 'react-router-dom';
 import FlipMove from 'react-flip-move';
 
-import * as selectors from '../../selectors';
-
 import CardListContainer from '../CardListContainer';
 import ParticipantCard from '../ParticipantCard';
+
+import {getMeetingParticipants} from '../../selectors';
+
 
 class MeetingParticipants extends Component {
 
   renderParticipants() {
-    const renderedParticipants = this.props.participants.map(p => <ParticipantCard key={p.id} participant={p} />)
+    const {participants} = this.props;
+    if (!participants.length) {
+      return <OnlyYou />
+    }
+    const renderedParticipants = participants.map(p => <ParticipantCard key={p.id} participant={p} />)
 
     return (
       <FlipMove
@@ -30,7 +35,7 @@ class MeetingParticipants extends Component {
 
   render() {
     return (
-    	<div className="MeetingParticipants-container">
+    	<div>
     		<CardListContainer>
     			{this.renderParticipants()}
     		</CardListContainer>
@@ -39,11 +44,20 @@ class MeetingParticipants extends Component {
   }
 }
 
+const OnlyYou = () => <div style={styles.onlyYou}>You're the only one here</div>
+
+const styles = {
+  onlyYou: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: '100px',
+  },
+}
 
 
 const mapStateToProps = (state) => {
   return {
-    
+    participants: getMeetingParticipants(state),
   }
 }
 

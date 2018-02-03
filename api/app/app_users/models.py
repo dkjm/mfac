@@ -4,11 +4,13 @@ import os
 from django.db import models
 from django.conf import settings
 
+User = settings.AUTH_USER_MODEL
+
 
 class AppUser(models.Model):
 
-	user = models.ForeignKey(
-		settings.AUTH_USER_MODEL,
+	user = models.OneToOneField(
+		User,
 		null=False,
 		blank=False,
 		on_delete=models.CASCADE)
@@ -70,4 +72,24 @@ class AppUser(models.Model):
 		return self.user.id
 
 
+
+class AuthToken(models.Model):
+	user = models.ForeignKey(
+		User,
+		null=False,
+		blank=False,
+		on_delete=models.CASCADE)
+
+	token = models.CharField(
+		max_length=100,
+		blank=False)
+
+	expiry = models.DateTimeField()
+
+
+	def __str__(self):
+		date = '{:%m-%d-%Y}'.format(self.expiry)
+		time = '{:%H:%M}'.format(self.expiry)
+		string = '%s -- %s -- %s %s' % (self.user.username, self.token, date, time)
+		return string
 

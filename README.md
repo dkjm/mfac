@@ -43,7 +43,7 @@ python manage.py runserver
 You should now be able to navigate to `http://localhost:8000/admin` in browser and have an interface for data.  Default admin username and pass are respectively: `admin asdf`
 
 #### Run workers
-If you want, you can fire up some Celery workers and simulate receiving periodic live updates on the client.  ** Note that the updates are just randomly chosen vote counts created in the `send_update` function in `tasks.py`.  If you cast a vote from the client while you're receiving the random live updates, the number you see will look wrong because you're still receiving random updates.
+If you want, you can fire up some Celery workers and simulate receiving periodic live updates on the client.  ** Note celery tasks may or may not work.  Need to retest with new API - MPP - 180203.
 
 In one terminal run
 ```
@@ -66,3 +66,9 @@ cd web
 yarn install
 yarn start
 ```
+
+#### Login and mess around
+You can login with username and password: Blade asdf
+Try opening up an incognito window and login with a different user (user django admin interface to find a user, all passwords are asdf), sending an invitation from the first user to the second user, and going from there.
+
+

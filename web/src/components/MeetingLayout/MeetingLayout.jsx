@@ -5,7 +5,7 @@ import {Route, Switch, Redirect} from 'react-router';
 import {withRouter} from 'react-router-dom' 
 import MeetingsDashboard from '../MeetingsDashboard/MeetingsDashboard';
 import MeetingDetail from '../MeetingDetail/MeetingDetail';
-import Stack from '../Stack/Stack';
+import MeetingForm from '../MeetingForm/MeetingForm';
 
 
 
@@ -23,12 +23,14 @@ class MeetingLayout extends Component {
 				  <Route exact path={`${match.url}/dashboard`} render={props => ( <MeetingsDashboard {...props} /> )} 
 				  />
 
-			  	<Route path={`${match.url}/:meeting_id`} render={props => ( <MeetingDetail {...props} /> )} 
+			  	<Route path={`${match.url}/:meeting_id(\\d+)`} render={props => ( <MeetingDetail {...props} /> )} 
+			  	/>
+
+			  	<Route path={`${match.url}/meeting_form/create`} render={props => ( <MeetingForm {...props} /> )} 
 			  	/>
 
 
-
-			  	<Redirect to={`${match.url}/dashboard`} />
+			  	{/*<Redirect to={`${match.url}/dashboard`} />*/}
 			  	
 
 
@@ -40,48 +42,3 @@ class MeetingLayout extends Component {
 
 //export default MeetingLayout
 export default withRouter(MeetingLayout);
-
-
-
-// const MeetingLayout = ({ match }) => (
-//   <Switch>
-//   	<Route exact path={`${match.url}/dashboard`} render={props => ( <MeetingsDashboard {...props} /> )} 
-//   	/>
-//   	<Route path={`${match.url}/:meeting_id`} render={props => ( <MeetingDetail {...props} /> )} 
-//   	/>
-//     <Redirect to={`${match.url}/dashboard`} />
-//   </Switch>
-// ) 
-
-// export default MeetingLayout;
-
-// class MeetingLayout extends Component {
-	
-// 	render() {
-// 		return (
-// 			<div>
-// 				MeetingLayout
-// 			</div>
-// 		)
-// 	}
-// }
-
-
-// const mapStateToProps = (state, ownProps) => {
-// 	return {
-		
-// 	}
-// }
-
-// const mapDispatchToProps = (dispatch) => {
-// 	return {
-// 		// key: bindActionCreators({
-// 		// 	...myActions,
-// 		// }, dispatch),
-// 	}
-// }
-
-// export default connect(
-// 	mapStateToProps,
-// 	mapDispatchToProps,
-// )(MeetingLayout)

@@ -16,9 +16,6 @@ import {submitTopicForm} from '../../services/api';
 import history from '../../history';
 import {getTopic} from '../../selectors';
 
-import {meeting} from '../../resources/testData';
-
-
 // InputContainer is just a simple
 // container for Fields.  Provides
 // some consistent spacing, etc.

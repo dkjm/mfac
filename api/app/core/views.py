@@ -7,7 +7,6 @@ from rest_framework.response import Response
 def health_check(request):
 	return Response(status=status.HTTP_200_OK)
 
-
 @api_view(['GET'])
 def health_check_json(request):
 	return Response({'message': 'Endpoint reached!'})
