@@ -42,6 +42,6 @@ config :mfac, Mfac.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
-  database: "mfac_dev",
+  database: "ex_mfac_dev",
   hostname: "localhost",
   pool_size: 10

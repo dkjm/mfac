@@ -14,6 +14,6 @@ config :mfac, Mfac.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
-  database: "mfac_test",
+  database: "ex_mfac_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox

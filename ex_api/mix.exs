@@ -10,8 +10,14 @@ defmodule Mfac.Mixfile do
       compilers: [:phoenix, :gettext] ++ Mix.compilers,
       start_permanent: Mix.env == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      escript: escript()
     ]
+  end
+
+
+  defp escript do
+    [main_module: Mfac.CLI]
   end
 
   # Configuration for the OTP application.
@@ -20,7 +26,7 @@ defmodule Mfac.Mixfile do
   def application do
     [
       mod: {Mfac.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :faker]
     ]
   end
 
@@ -38,7 +44,8 @@ defmodule Mfac.Mixfile do
       {:phoenix_ecto, "~> 3.2"},
       {:postgrex, ">= 0.0.0"},
       {:gettext, "~> 0.11"},
-      {:cowboy, "~> 1.0"}
+      {:cowboy, "~> 1.0"},
+      {:faker, "~> 0.9"}
     ]
   end
 
