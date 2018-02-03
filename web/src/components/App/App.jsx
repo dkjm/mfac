@@ -3,22 +3,30 @@ import {connect} from 'react-redux'
 import './App.css';
 import {Route, Switch, Redirect} from 'react-router';
 import {withRouter} from 'react-router-dom';
+import FlipMove from 'react-flip-move';
 
-import {toggleSnackbar} from '../../services/ui';
-import * as selectors from '../../selectors';
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
+import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
+import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import Snackbar from 'material-ui/Snackbar';
 
 import Header from '../Header/Header';
 import NavDrawer from '../NavDrawer';
 import Dashboard from '../Dashboard';
 import MeetingLayout from '../MeetingLayout';
+import LoginForm from '../LoginForm';
+import UserInvitations from '../UserInvitations';
+import UserInvitationDetail from '../UserInvitationDetail';
 
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
-import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
+import {COLORS, muiTheme} from '../../constants';
+import {toggleSnackbar} from '../../services/ui';
+import * as selectors from '../../selectors';
+import {connectUserSocket, loadUserData} from '../../services/session';
 
-import Snackbar from 'material-ui/Snackbar';
-import FlipMove from 'react-flip-move';
+import { Button, Select, notification } from 'antd';
+
+
 
 //import injectTapEventPlugin from 'react-tap-event-plugin';
 // must call injectTapEventPlugin 
@@ -29,33 +37,16 @@ import FlipMove from 'react-flip-move';
 // as problem has not come up - 180127 - MPP
 //injectTapEventPlugin();
 
-// set material UI theme options
-const muiTheme = getMuiTheme({
-  //spacing: spacing,
-  //fontFamily: 'Roboto, sans-serif',
-  fontFamily: 'Verdana, sans-serif',
-  palette: {
-    primary1Color: '#304f8e',
-    primary2Color: '#304f8e',
-    primary3Color: '#304f8e',
-    //primary2Color: cyan700,
-    //primary3Color: grey400,
-    accent1Color: '#fc6907',
-    //accent2Color: grey100,
-    //accent3Color: grey500,
-    //textColor: darkBlack,
-    //alternateTextColor: white,
-    //canvasColor: white,
-    //borderColor: grey300,
-    //disabledColor: fade(darkBlack, 0.3),
-    //pickerHeaderColor: cyan500,
-    //clockCircleColor: fade(darkBlack, 0.07),
-    //shadowColor: fullBlack,
-  }
-})
-
 
 class App extends Component {
+
+  componentWillMount() {
+    const {isUserLoggedIn, loadUserData, connectUserSocket} = this.props;
+    if (isUserLoggedIn) {
+      loadUserData();
+      connectUserSocket();
+    }
+  }
 
   handleRequestCloseSnackbar = () => {
     const params = {
@@ -76,6 +67,22 @@ class App extends Component {
           <Switch>
 
             <Route 
+              path="/login"
+              render={props => (<LoginForm {...props} />)}
+            />
+
+            <Route 
+              exact
+              path="/invitations"
+              render={props => (<UserInvitations {...props} />)}
+            />
+
+            <Route 
+              path="/invitations/:meeting_invitation_id"
+              render={props => (<UserInvitationDetail {...props} />)}
+            />
+
+            <Route 
               exact 
               path="/dashboard"
               render={props => (<Dashboard {...props} />)}
@@ -88,7 +95,7 @@ class App extends Component {
               )} 
             />
 
-            <Redirect to="/meetings/dashboard" />
+            <Redirect to="/login" />
 
             {/* 180127 - MPP - NoMatch will never
               be called with current routing setup  
@@ -125,14 +132,15 @@ const NoMatch = () => {
 const mapStateToProps = (state) => {
   return {
     snackbar: selectors.getSnackbar(state),
+    isUserLoggedIn: selectors.getIsUserLoggedIn(state),
   }
 }
 
 const mapDispatchToProps = dispatch => {
   return {
-    toggleSnackbar: (params) => {
-      dispatch(toggleSnackbar(params));
-    }
+    toggleSnackbar: (params) => dispatch(toggleSnackbar(params)),
+    connectUserSocket: (params) => dispatch(connectUserSocket(params)),
+    loadUserData: (params) => dispatch(loadUserData(params)),
   }
 }
 

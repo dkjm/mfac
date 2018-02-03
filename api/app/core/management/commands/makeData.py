@@ -14,20 +14,21 @@ Application = get_application_model()
 
 from app_users.models import AppUser
 from meetings.models import (
-	Topic, 
-	TopicComment, 
-	Vote,
+	Meeting,
+	MeetingInvitation,
+	MeetingParticipant,
+	AgendaItem,
+	AgendaItemVote,
+	AgendaItemStackEntry,
 )
 
 from app_users.factories.app_user_factory import (
 	UserFactory, 
 	AppUserFactory
 )
-from meetings.factories.topic_factory import (
-	TopicFactory, 
-	TopicCommentFactory, 
-	VoteFactory, 
-	make_vote_counts,
+from meetings.factories.factory import (
+	MeetingFactory, 
+	AgendaItemFactory, 
 )
 
 
@@ -44,21 +45,26 @@ class Command(BaseCommand):
 			dest='user_id',
 			default=2)
 		parser.add_argument(
-			'--topic-count',
-			dest='topic_count',
-			default=10)
+			'--username',
+			dest='username',
+			default='Blade')
 		parser.add_argument(
-			'--topic-comment-count',
-			dest='topic_comment_count',
-			default=10)
+			'--meeting-count',
+			dest='meeting_count',
+			default=5)
+		parser.add_argument(
+			'--agenda-item-count',
+			dest='agenda_item_count',
+			default=5)
 
 	def handle(self, *args, **options):
 		print('Making data...')
 
 		user_count = options.get('user_count')
-		topic_count = options.get('topic_count') 
-		topic_comment_count = options.get('topic_comment_count')
+		meeting_count = options.get('meeting_count') 
+		agenda_item_count = options.get('agenda_item_count')
 		user_id = options.get('user_id')
+		username = options.get('username')
 
 		# using user_id as a way of maintaining
 		# consistency in the event that you run
@@ -70,7 +76,7 @@ class Command(BaseCommand):
 		try:
 			chosen_app_user = AppUser.objects.get(id=user_id)
 		except AppUser.DoesNotExist:
-			chosen_app_user = AppUserFactory.make_fake(id=user_id)
+			chosen_app_user = AppUserFactory.make_fake(id=user_id, username=username)
 
 		for i in range(1, user_count + 1):
 			try:
@@ -78,68 +84,18 @@ class Command(BaseCommand):
 			except AppUser.DoesNotExist:
 				app_user = AppUserFactory.make_fake(id=i)
 		
-		topic_comment_counter = 0
-
 		# excluding admin user, assuming its used
 		# for internal purposes only
 		app_users = AppUser.objects.exclude(user__username='admin')
 
-		vote_count = 0
-
-		for _ in range(topic_count):
-			# make a copy of app_users query set
-			# as for each topic we will remove
-			# app_users from list as they "cast"
-			# their votes
-			copy1 = list(app_users)
-
-			topic = TopicFactory.make_fake()
-
-			up, down, meh = make_vote_counts(app_users.count())
-
-			# augment vote_count for each topic
-			vote_count += up + down + meh
-
-			chosen_app_user_vote_type = random.choice(Vote.VOTE_TYPES)[0]
-			chosen_app_user_has_voted = False
-
-		# up
-			for __ in range(up):
-				if chosen_app_user_vote_type == Vote.UP and not chosen_app_user_has_voted:
-					owner = chosen_app_user
-					chosen_app_user_has_voted = True
-				else:
-					owner = random.choice(copy1)
-				v = VoteFactory.make(topic=topic, owner=owner, vote_type=Vote.UP)
-				if owner in copy1: copy1.remove(owner)
-
-		# down
-			for __ in range(down):
-				if chosen_app_user_vote_type == Vote.DOWN and not chosen_app_user_has_voted:
-					owner = chosen_app_user
-					chosen_app_user_has_voted = True
-				else:
-					owner = random.choice(copy1)
-				v = VoteFactory.make(topic=topic, owner=owner, vote_type=Vote.DOWN)
-				if owner in copy1: copy1.remove(owner) 
-
-		# meh
-			for __ in range(meh):
-				if chosen_app_user_vote_type == Vote.MEH and not chosen_app_user_has_voted:
-					owner = chosen_app_user
-					chosen_app_user_has_voted = True
-				else:
-					owner = random.choice(copy1)
-				v = VoteFactory.make(topic=topic, owner=owner, vote_type=Vote.MEH)
-				if owner in copy1: copy1.remove(owner) 
-
-
-			for _ in range(random.randint(0, topic_comment_count)):
-				topic_comment = TopicCommentFactory.make_fake(topic=topic)
-				topic_comment_counter += 1
-
+		total = 0
+		for _ in range(meeting_count):
+			total += 1
+			meeting = MeetingFactory.make_fake(owner=chosen_app_user)
+			for __ in range(agenda_item_count):
+				agenda_item = AgendaItemFactory.make_fake(meeting=meeting, owner=chosen_app_user)
 
 		print("Created {0} users".format(user_count))
-		print("Created {0} topics".format(topic_count))
-		print("Created {0} votes".format(vote_count))
-		print("Created {0} topic comments".format(topic_comment_counter))
+		print("Created {0} meetings".format(meeting_count))
+		print("Created {0} agenda items".format(agenda_item_count))
+

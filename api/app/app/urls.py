@@ -11,5 +11,5 @@ urlpatterns = [
   url(r'^health_check/$', health_check),
   url(r'^health_check_json/$', health_check_json),
 
-  url(r'^topics/', include('meetings.urls')),
+  url(r'^api/', include('meetings.urls')),
 ]

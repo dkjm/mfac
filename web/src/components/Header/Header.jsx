@@ -11,6 +11,7 @@ import NavIcon from 'material-ui/svg-icons/navigation/menu';
 import {COLORS, COMPANY_NAME} from '../../constants';
 import {toggleNavDrawer} from '../../services/ui';
 import {getHeader} from '../../selectors';
+import {getUserData} from '../../selectors';
 
 // header is passed location prop from
 // app.js component and it should read
@@ -22,6 +23,10 @@ class Header extends Component {
 	}
 
 	render() {
+		const {userData, header} = this.props;
+		//return null;
+		if (!header.open) {return null};
+
 		const NavButton = (
 			<IconButton 
 				onClick={this.handleToggleNavDrawer}
@@ -31,14 +36,13 @@ class Header extends Component {
 		)
 
 		const appBarProps = {
-			title: COMPANY_NAME,
+			title: userData.full_name || COMPANY_NAME,
 			iconElementLeft: NavButton,
-			className: 'Header-AppBar',
+			//className: 'Header-AppBar',
 			style: {
-				//backgroundColor: COLORS.navy,
-				//backgroundColor: COLORS.blackGray,
-				//backgroundColor: COLORS.reactBlue,
-				backgroundColor: COLORS.midnightGray,
+				backgroundColor: COLORS.blackGray,
+				textAlign: 'center',
+				zIndex: '1',
 			},
 		}
 
@@ -53,6 +57,7 @@ class Header extends Component {
 const mapStateToProps = (state, ownProps) => {
 	return {
 		header: getHeader(state),
+		userData: getUserData(state),
 	}
 }
 

@@ -1,23 +1,26 @@
 import React from 'react';
 import ReactDOM, {render} from 'react-dom';
 import './index.css';
-import App from './components/App';
+import 'antd/dist/antd.css';
 import { BrowserRouter, Router, Route } from 'react-router-dom';
-// using module to hold history object
-// so it can be accessed from anywhere in
-// app (e.g. in action creators)
-import history from './history';
-import configureStore from './store';
 import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/lib/integration/react';
+
+import App from './components/App';
+
+import history from './history';
+import configureStore from './configureStore';
 
 
-let store = configureStore();
+let {store, persistor} = configureStore();
 
 render(
   <Provider store={store}>
-  	<Router history={history}>
-    	<App />
-    </Router>
+  	<PersistGate loading={null} persistor={persistor}>
+	  	<Router history={history}>
+	    	<App />
+	    </Router>
+	  </PersistGate>
   </Provider>,
   document.getElementById('root')
 )

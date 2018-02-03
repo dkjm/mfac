@@ -2,14 +2,34 @@ from django.contrib import admin
 from .models import *
 
 
-class TopicAdmin(admin.ModelAdmin):
+class MeetingAdmin(admin.ModelAdmin):
 	readonly_fields = ('id',)
-admin.site.register(Topic, TopicAdmin)
+admin.site.register(Meeting, MeetingAdmin)
 
-class TopicCommentAdmin(admin.ModelAdmin):
+class MeetingParticipantAdmin(admin.ModelAdmin):
 	readonly_fields = ('id',)
-admin.site.register(TopicComment, TopicCommentAdmin)
+admin.site.register(MeetingParticipant, MeetingParticipantAdmin)
 
-class VoteAdmin(admin.ModelAdmin):
+class MeetingInvitationAdmin(admin.ModelAdmin):
 	readonly_fields = ('id',)
-admin.site.register(Vote, VoteAdmin)
+admin.site.register(MeetingInvitation, MeetingInvitationAdmin)
+
+class AgendaItemAdmin(admin.ModelAdmin):
+	readonly_fields = ('id',)
+admin.site.register(AgendaItem, AgendaItemAdmin)
+
+class AgendaItemStackEntryAdmin(admin.ModelAdmin):
+	readonly_fields = ('id',)
+admin.site.register(AgendaItemStackEntry, AgendaItemStackEntryAdmin)
+
+class CommentAdmin(admin.ModelAdmin):
+	readonly_fields = ('id',)
+admin.site.register(Comment, CommentAdmin)
+
+class AgendaItemCommentAdmin(admin.ModelAdmin):
+	readonly_fields = ('id',)
+admin.site.register(AgendaItemComment, AgendaItemCommentAdmin)
+
+class AgendaItemVoteAdmin(admin.ModelAdmin):
+	readonly_fields = ('id',)
+admin.site.register(AgendaItemVote, AgendaItemVoteAdmin)
