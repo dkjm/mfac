@@ -16,6 +16,7 @@ export const POST_VOTE = 'POST_VOTE';
 export const loadTopics = (params = {}) => (dispatch, getState) => {
 
 	const endpoint = "http://localhost:8000/topics/";
+  // const endpoint = "http://localhost:4000/api/v0/topics/";
 
   return axios.get(endpoint)
   .then(response => {
