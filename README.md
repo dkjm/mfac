@@ -57,7 +57,34 @@ celery -A tasks worker --loglevel=info
 
 For both of above commands, make sure you activate correct virtual environment using `source bin/activate` or `source ../bin/activate` depending what your pwd is.
 
+### ExApi
+#### Postgres
+Start postgres service on your machine and create db called "ex_mfac_dev". If you have mix installed you can run `mix ecto.create`
 
+#### Install dependencies
+```
+mix do deps.get
+```
+
+#### Migrate and generate fake data for testing
+```
+mix ecto.migrate
+mix escripts.build()
+./mfac --makedata [MODEL_NAME] 
+```
+** Note: Seeding functions with relationships are still being worked on, so atm, the data wont have association. If you need to delete data and start over again, you can run `./mfac deletedata [MODEL_NAME]`
+
+#### Start development server
+```
+mix phx.server
+```
+
+Or, alternatively with an inline repl
+```
+iex -S mix phx.server
+```
+
+** Note: The api is not returning data in the structure expected by the client side app atm. This is actively being resolved. 
 
 ### Client
 #### Install dependencies and run dev server
