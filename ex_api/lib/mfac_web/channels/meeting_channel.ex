@@ -16,7 +16,7 @@ defmodule MfacWeb.MeetingChannel do
   # def handle_info({:update, type}, socket), do: socket |> push_update(type)
 
   defp push_update(socket, type) do
-    Process.send_after(self(), {:update, type}, 10000)
+    Process.send_after(self(), {:update, type}, 20000)
     time = NaiveDateTime.utc_now
     meeting = Mfac.Repo.get(Meeting, String.to_integer(type)) |> Mfac.Repo.preload([:invitations, :participants, agenda_items: [:votes]]) |> IO.inspect(label: "meeting")
     m = MfacWeb.MeetingView.render("socket_meeting.json", %{meeting: meeting})
