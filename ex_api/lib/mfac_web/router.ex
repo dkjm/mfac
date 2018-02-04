@@ -11,9 +11,6 @@ defmodule MfacWeb.Router do
     resources "/meetings", MeetingController
     resources "/agenda_items", AgendaItemController
     resources "/agenda_item_votes", AgendaItemVoteController
-    resources "/topics", TopicController, except: [:new, :edit]
-    resources "/topic_comments", TopicCommentController, except: [:new, :edit]
-    resources "/stacks", StackController, except: [:new, :edit]
     resources "/users", UserController, except: [:new, :edit]
     resources "/stack_entries", StackEntryController, except: [:new, :edit]
 
