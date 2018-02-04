@@ -248,159 +248,176 @@ export const deleteMeetingInvitation = (params = {}) => (dispatch, getState) => 
 }
 
 export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
+  const { Socket } = require('phoenix-channels')
   const {meeting_id} = params;
-  const token = localStorage.getItem('token');
-  //const endpoint = `${API_ENTRY_WS}/meetings/${meeting_id}/`;
-  const endpoint = `${API_ENTRY_WS}/meetings/${meeting_id}/token=${token}/`;
-  socket = new WebSocket(endpoint);
 
-  socket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
 
-    console.log('meetingSocket onmessage', data)
 
-    if (data.event === 'update_meeting') {
-      const action = {
-        type: LOAD_MEETING,
-        meeting: data.meeting,
-      }
-      dispatch(action);
-      // TODO: not sure if this is best
-      // approach, i.e. dispatching a second
-      // action so that "agendaItems" part 
-      // of state is updated
-      const actionLoadAgendaItems = {
-        type: LOAD_AGENDA_ITEMS,
-        agenda_items: data.meeting.agenda_items,
-      }
-      dispatch(actionLoadAgendaItems);
+  let socket = new Socket("ws://localhost:4000/socket")
 
-      const actionLoadMeetingInvitations = {
-        type: LOAD_MEETING_INVITATIONS,
-        meeting_invitations: data.meeting.meeting_invitations,
-      }
-      dispatch(actionLoadMeetingInvitations);
+  socket.connect()
 
-      const actionLoadMeetingParticipants = {
-        type: LOAD_MEETING_PARTICIPANTS,
-        participants: data.meeting.participants,
-      }
-      dispatch(actionLoadMeetingParticipants);
-    }
+  // Now that you are connected, you can join channels with a topic:
+  let channel = socket.channel("room:meeting/${meeting_id}", {})
+  channel.join()
+    .receive("ok", resp => { console.log("Joined successfully", resp) })
+    .receive("error", resp => { console.log("Unable to join", resp) })
 
-    else if (data.event === 'update_meeting_detail') {
-      const action = {
-        type: LOAD_MEETING,
-        meeting: data.meeting,
-      }
-      dispatch(action);
-    }
 
-    else if (data.event === 'update_agenda_item_vote_counts') {
-      const action = {
-        type: UPDATE_AGENDA_ITEM_VOTE_COUNTS,
-        data: data,
-      }
-      dispatch(action);
-    }
 
-    else if (data.event === 'add_agenda_item') {
-      const action = {
-        type: LOAD_AGENDA_ITEM,
-        agenda_item: data.agenda_item,
-      }
-      dispatch(action);
-    }
+  // const {meeting_id} = params;
+  // const token = localStorage.getItem('token');
+  // //const endpoint = `${API_ENTRY_WS}/meetings/${meeting_id}/`;
+  // const endpoint = `${API_ENTRY_WS}/meetings/${meeting_id}/token=${token}/`;
+  // socket = new WebSocket(endpoint);
 
-    else if (data.event === 'update_agenda_item_stack_entries') {
-      const action = {
-        type: UPDATE_AGENDA_ITEM_STACK_ENTRIES,
-        agenda_item_id: data.agenda_item_id,
-        agenda_item_stack_entries: data.agenda_item_stack_entries,
-      }
-      dispatch(action);
-    }
+  // socket.onmessage = function(e) {
+  //   const data = JSON.parse(e.data);
 
-    else if (data.event === 'add_meeting_invitation') {
-      const action = {
-        type: LOAD_MEETING_INVITATION,
-        meeting_invitation: data.meeting_invitation,
-      }
-      dispatch(action);
-    }
+  //   console.log('meetingSocket onmessage', data)
 
-    else if (data.event === 'remove_meeting_invitation') {
-      const action = {
-        type: REMOVE_MEETING_INVITATION,
-        data: data,
-      }
-      dispatch(action);
-    }
+  //   if (data.event === 'update_meeting') {
+  //     const action = {
+  //       type: LOAD_MEETING,
+  //       meeting: data.meeting,
+  //     }
+  //     dispatch(action);
+  //     // TODO: not sure if this is best
+  //     // approach, i.e. dispatching a second
+  //     // action so that "agendaItems" part 
+  //     // of state is updated
+  //     const actionLoadAgendaItems = {
+  //       type: LOAD_AGENDA_ITEMS,
+  //       agenda_items: data.meeting.agenda_items,
+  //     }
+  //     dispatch(actionLoadAgendaItems);
 
-    else if (data.event === 'update_meeting_invitations') {
-      const action = {
-        type: LOAD_MEETING_INVITATIONS,
-        meeting_id: data.meeting_id,
-        meeting_invitations: data.meeting_invitations,
-      }
-      dispatch(action);
-    }   
+  //     const actionLoadMeetingInvitations = {
+  //       type: LOAD_MEETING_INVITATIONS,
+  //       meeting_invitations: data.meeting.meeting_invitations,
+  //     }
+  //     dispatch(actionLoadMeetingInvitations);
 
-    else if (data.event === 'add_agenda_item_stack_entry') {
-      const action = {
-        type: LOAD_AGENDA_ITEM_STACK_ENTRY,
-        agenda_item_stack_entry: data.agenda_item_stack_entry,
-      }
-      dispatch(action);
-    }
+  //     const actionLoadMeetingParticipants = {
+  //       type: LOAD_MEETING_PARTICIPANTS,
+  //       participants: data.meeting.participants,
+  //     }
+  //     dispatch(actionLoadMeetingParticipants);
+  //   }
 
-    else if (data.event === 'add_meeting_participant') {
-      const action = {
-        type: ADD_MEETING_PARTICIPANT,
-        data: data,
-      }
-      dispatch(action);
-    }
+  //   else if (data.event === 'update_meeting_detail') {
+  //     const action = {
+  //       type: LOAD_MEETING,
+  //       meeting: data.meeting,
+  //     }
+  //     dispatch(action);
+  //   }
 
-    else if (data.event === 'remove_meeting_participant') {
-      const action = {
-        type: REMOVE_MEETING_PARTICIPANT,
-        data: data,
-      }
-      dispatch(action);
-    }
+  //   else if (data.event === 'update_agenda_item_vote_counts') {
+  //     const action = {
+  //       type: UPDATE_AGENDA_ITEM_VOTE_COUNTS,
+  //       data: data,
+  //     }
+  //     dispatch(action);
+  //   }
 
-    else if (data.event === 'load_meeting_participants') {
-      const action = {
-        type: LOAD_MEETING_PARTICIPANTS,
-        data: data,
-      }
-      dispatch(action);
-    }
+  //   else if (data.event === 'add_agenda_item') {
+  //     const action = {
+  //       type: LOAD_AGENDA_ITEM,
+  //       agenda_item: data.agenda_item,
+  //     }
+  //     dispatch(action);
+  //   }
 
-    // (MPP - 180131):  NOT USING
-    else if (data.event === 'add_topic') {
-      const action = {
-        type: RECEIVE_TOPIC,
-        data: data,
-      }
-      dispatch(action);
-    }
-  }
+  //   else if (data.event === 'update_agenda_item_stack_entries') {
+  //     const action = {
+  //       type: UPDATE_AGENDA_ITEM_STACK_ENTRIES,
+  //       agenda_item_id: data.agenda_item_id,
+  //       agenda_item_stack_entries: data.agenda_item_stack_entries,
+  //     }
+  //     dispatch(action);
+  //   }
 
-  socket.onopen = () => {
+  //   else if (data.event === 'add_meeting_invitation') {
+  //     const action = {
+  //       type: LOAD_MEETING_INVITATION,
+  //       meeting_invitation: data.meeting_invitation,
+  //     }
+  //     dispatch(action);
+  //   }
 
-  }
+  //   else if (data.event === 'remove_meeting_invitation') {
+  //     const action = {
+  //       type: REMOVE_MEETING_INVITATION,
+  //       data: data,
+  //     }
+  //     dispatch(action);
+  //   }
 
-  // TODO(MPP): handle socket errors, which
-  // can range from bad token, meeting not
-  // found, not invited to meeting, etc.
-  socket.onerror = (error) => {
-    console.log('MEETING SOCKET ERROR', error)
-  }
-  // Call onopen directly if socket is already open
-  if (socket.readyState === WebSocket.OPEN) socket.onopen();
-  return socket;
+  //   else if (data.event === 'update_meeting_invitations') {
+  //     const action = {
+  //       type: LOAD_MEETING_INVITATIONS,
+  //       meeting_id: data.meeting_id,
+  //       meeting_invitations: data.meeting_invitations,
+  //     }
+  //     dispatch(action);
+  //   }   
+
+  //   else if (data.event === 'add_agenda_item_stack_entry') {
+  //     const action = {
+  //       type: LOAD_AGENDA_ITEM_STACK_ENTRY,
+  //       agenda_item_stack_entry: data.agenda_item_stack_entry,
+  //     }
+  //     dispatch(action);
+  //   }
+
+  //   else if (data.event === 'add_meeting_participant') {
+  //     const action = {
+  //       type: ADD_MEETING_PARTICIPANT,
+  //       data: data,
+  //     }
+  //     dispatch(action);
+  //   }
+
+  //   else if (data.event === 'remove_meeting_participant') {
+  //     const action = {
+  //       type: REMOVE_MEETING_PARTICIPANT,
+  //       data: data,
+  //     }
+  //     dispatch(action);
+  //   }
+
+  //   else if (data.event === 'load_meeting_participants') {
+  //     const action = {
+  //       type: LOAD_MEETING_PARTICIPANTS,
+  //       data: data,
+  //     }
+  //     dispatch(action);
+  //   }
+
+  //   // (MPP - 180131):  NOT USING
+  //   else if (data.event === 'add_topic') {
+  //     const action = {
+  //       type: RECEIVE_TOPIC,
+  //       data: data,
+  //     }
+  //     dispatch(action);
+  //   }
+  // }
+
+  // socket.onopen = () => {
+
+  // }
+
+  // // TODO(MPP): handle socket errors, which
+  // // can range from bad token, meeting not
+  // // found, not invited to meeting, etc.
+  // socket.onerror = (error) => {
+  //   console.log('MEETING SOCKET ERROR', error)
+  // }
+  // // Call onopen directly if socket is already open
+  // if (socket.readyState === WebSocket.OPEN) socket.onopen();
+  // return socket;
 }
 
 export const disconnectMeetingSocket = (params = {}) => (dispatch, getState) => {

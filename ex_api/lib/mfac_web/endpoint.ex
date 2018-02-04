@@ -1,7 +1,7 @@
 defmodule MfacWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :mfac
 
-  plug CORSPlug
+  plug CORSPlug, origin: ["*"]
 
   socket "/socket", MfacWeb.UserSocket
 

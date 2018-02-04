@@ -15,7 +15,15 @@ defmodule MfacWeb.UserView do
       first_name: user.first_name,
       last_name: user.last_name,
       middle_name: user.middle_name,
-      suffix: user.suffix,
       is_active: user.is_active}
+  end
+
+  def render("user_data.json", %{user_data: data}) do
+    IO.inspect(data, label: "data ====")
+    %{
+      user_data: render_one(data.user_data, UserView, "user.json"), 
+      meeting_invitations: data.meeting_invitations,
+      contacts: data.contacts
+    }
   end
 end
