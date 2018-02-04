@@ -390,4 +390,196 @@ defmodule Mfac.Meetings do
   def change_stack_entry(%StackEntry{} = stack_entry) do
     StackEntry.changeset(stack_entry, %{})
   end
+
+  alias Mfac.Meetings.Invitation
+
+  @doc """
+  Returns the list of invitations.
+
+  ## Examples
+
+      iex> list_invitations()
+      [%Invitation{}, ...]
+
+  """
+  def list_invitations do
+    Repo.all(Invitation)
+  end
+
+  @doc """
+  Gets a single invitation.
+
+  Raises `Ecto.NoResultsError` if the Invitation does not exist.
+
+  ## Examples
+
+      iex> get_invitation!(123)
+      %Invitation{}
+
+      iex> get_invitation!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_invitation!(id), do: Repo.get!(Invitation, id)
+
+  @doc """
+  Creates a invitation.
+
+  ## Examples
+
+      iex> create_invitation(%{field: value})
+      {:ok, %Invitation{}}
+
+      iex> create_invitation(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_invitation(attrs \\ %{}) do
+    %Invitation{}
+    |> Invitation.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a invitation.
+
+  ## Examples
+
+      iex> update_invitation(invitation, %{field: new_value})
+      {:ok, %Invitation{}}
+
+      iex> update_invitation(invitation, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_invitation(%Invitation{} = invitation, attrs) do
+    invitation
+    |> Invitation.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a Invitation.
+
+  ## Examples
+
+      iex> delete_invitation(invitation)
+      {:ok, %Invitation{}}
+
+      iex> delete_invitation(invitation)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_invitation(%Invitation{} = invitation) do
+    Repo.delete(invitation)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking invitation changes.
+
+  ## Examples
+
+      iex> change_invitation(invitation)
+      %Ecto.Changeset{source: %Invitation{}}
+
+  """
+  def change_invitation(%Invitation{} = invitation) do
+    Invitation.changeset(invitation, %{})
+  end
+
+  alias Mfac.Meetings.Participant
+
+  @doc """
+  Returns the list of participants.
+
+  ## Examples
+
+      iex> list_participants()
+      [%Participant{}, ...]
+
+  """
+  def list_participants do
+    Repo.all(Participant)
+  end
+
+  @doc """
+  Gets a single participant.
+
+  Raises `Ecto.NoResultsError` if the Participant does not exist.
+
+  ## Examples
+
+      iex> get_participant!(123)
+      %Participant{}
+
+      iex> get_participant!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_participant!(id), do: Repo.get!(Participant, id)
+
+  @doc """
+  Creates a participant.
+
+  ## Examples
+
+      iex> create_participant(%{field: value})
+      {:ok, %Participant{}}
+
+      iex> create_participant(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_participant(attrs \\ %{}) do
+    %Participant{}
+    |> Participant.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a participant.
+
+  ## Examples
+
+      iex> update_participant(participant, %{field: new_value})
+      {:ok, %Participant{}}
+
+      iex> update_participant(participant, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_participant(%Participant{} = participant, attrs) do
+    participant
+    |> Participant.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a Participant.
+
+  ## Examples
+
+      iex> delete_participant(participant)
+      {:ok, %Participant{}}
+
+      iex> delete_participant(participant)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_participant(%Participant{} = participant) do
+    Repo.delete(participant)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking participant changes.
+
+  ## Examples
+
+      iex> change_participant(participant)
+      %Ecto.Changeset{source: %Participant{}}
+
+  """
+  def change_participant(%Participant{} = participant) do
+    Participant.changeset(participant, %{})
+  end
 end

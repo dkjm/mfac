@@ -452,4 +452,136 @@ defmodule Mfac.MeetingsTest do
       assert %Ecto.Changeset{} = Meetings.change_stack_entry(stack_entry)
     end
   end
+
+  describe "invitations" do
+    alias Mfac.Meetings.Invitation
+
+    @valid_attrs %{accepted_at: "2010-04-17 14:00:00.000000Z", declined_at: "2010-04-17 14:00:00.000000Z", status: "some status", verion: 42}
+    @update_attrs %{accepted_at: "2011-05-18 15:01:01.000000Z", declined_at: "2011-05-18 15:01:01.000000Z", status: "some updated status", verion: 43}
+    @invalid_attrs %{accepted_at: nil, declined_at: nil, status: nil, verion: nil}
+
+    def invitation_fixture(attrs \\ %{}) do
+      {:ok, invitation} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Meetings.create_invitation()
+
+      invitation
+    end
+
+    test "list_invitations/0 returns all invitations" do
+      invitation = invitation_fixture()
+      assert Meetings.list_invitations() == [invitation]
+    end
+
+    test "get_invitation!/1 returns the invitation with given id" do
+      invitation = invitation_fixture()
+      assert Meetings.get_invitation!(invitation.id) == invitation
+    end
+
+    test "create_invitation/1 with valid data creates a invitation" do
+      assert {:ok, %Invitation{} = invitation} = Meetings.create_invitation(@valid_attrs)
+      assert invitation.accepted_at == DateTime.from_naive!(~N[2010-04-17 14:00:00.000000Z], "Etc/UTC")
+      assert invitation.declined_at == DateTime.from_naive!(~N[2010-04-17 14:00:00.000000Z], "Etc/UTC")
+      assert invitation.status == "some status"
+      assert invitation.verion == 42
+    end
+
+    test "create_invitation/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Meetings.create_invitation(@invalid_attrs)
+    end
+
+    test "update_invitation/2 with valid data updates the invitation" do
+      invitation = invitation_fixture()
+      assert {:ok, invitation} = Meetings.update_invitation(invitation, @update_attrs)
+      assert %Invitation{} = invitation
+      assert invitation.accepted_at == DateTime.from_naive!(~N[2011-05-18 15:01:01.000000Z], "Etc/UTC")
+      assert invitation.declined_at == DateTime.from_naive!(~N[2011-05-18 15:01:01.000000Z], "Etc/UTC")
+      assert invitation.status == "some updated status"
+      assert invitation.verion == 43
+    end
+
+    test "update_invitation/2 with invalid data returns error changeset" do
+      invitation = invitation_fixture()
+      assert {:error, %Ecto.Changeset{}} = Meetings.update_invitation(invitation, @invalid_attrs)
+      assert invitation == Meetings.get_invitation!(invitation.id)
+    end
+
+    test "delete_invitation/1 deletes the invitation" do
+      invitation = invitation_fixture()
+      assert {:ok, %Invitation{}} = Meetings.delete_invitation(invitation)
+      assert_raise Ecto.NoResultsError, fn -> Meetings.get_invitation!(invitation.id) end
+    end
+
+    test "change_invitation/1 returns a invitation changeset" do
+      invitation = invitation_fixture()
+      assert %Ecto.Changeset{} = Meetings.change_invitation(invitation)
+    end
+  end
+
+  describe "participants" do
+    alias Mfac.Meetings.Participant
+
+    @valid_attrs %{joined_at: "2010-04-17 14:00:00.000000Z", left_at: "2010-04-17 14:00:00.000000Z", status: "some status", version: 42}
+    @update_attrs %{joined_at: "2011-05-18 15:01:01.000000Z", left_at: "2011-05-18 15:01:01.000000Z", status: "some updated status", version: 43}
+    @invalid_attrs %{joined_at: nil, left_at: nil, status: nil, version: nil}
+
+    def participant_fixture(attrs \\ %{}) do
+      {:ok, participant} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Meetings.create_participant()
+
+      participant
+    end
+
+    test "list_participants/0 returns all participants" do
+      participant = participant_fixture()
+      assert Meetings.list_participants() == [participant]
+    end
+
+    test "get_participant!/1 returns the participant with given id" do
+      participant = participant_fixture()
+      assert Meetings.get_participant!(participant.id) == participant
+    end
+
+    test "create_participant/1 with valid data creates a participant" do
+      assert {:ok, %Participant{} = participant} = Meetings.create_participant(@valid_attrs)
+      assert participant.joined_at == DateTime.from_naive!(~N[2010-04-17 14:00:00.000000Z], "Etc/UTC")
+      assert participant.left_at == DateTime.from_naive!(~N[2010-04-17 14:00:00.000000Z], "Etc/UTC")
+      assert participant.status == "some status"
+      assert participant.version == 42
+    end
+
+    test "create_participant/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Meetings.create_participant(@invalid_attrs)
+    end
+
+    test "update_participant/2 with valid data updates the participant" do
+      participant = participant_fixture()
+      assert {:ok, participant} = Meetings.update_participant(participant, @update_attrs)
+      assert %Participant{} = participant
+      assert participant.joined_at == DateTime.from_naive!(~N[2011-05-18 15:01:01.000000Z], "Etc/UTC")
+      assert participant.left_at == DateTime.from_naive!(~N[2011-05-18 15:01:01.000000Z], "Etc/UTC")
+      assert participant.status == "some updated status"
+      assert participant.version == 43
+    end
+
+    test "update_participant/2 with invalid data returns error changeset" do
+      participant = participant_fixture()
+      assert {:error, %Ecto.Changeset{}} = Meetings.update_participant(participant, @invalid_attrs)
+      assert participant == Meetings.get_participant!(participant.id)
+    end
+
+    test "delete_participant/1 deletes the participant" do
+      participant = participant_fixture()
+      assert {:ok, %Participant{}} = Meetings.delete_participant(participant)
+      assert_raise Ecto.NoResultsError, fn -> Meetings.get_participant!(participant.id) end
+    end
+
+    test "change_participant/1 returns a participant changeset" do
+      participant = participant_fixture()
+      assert %Ecto.Changeset{} = Meetings.change_participant(participant)
+    end
+  end
 end
