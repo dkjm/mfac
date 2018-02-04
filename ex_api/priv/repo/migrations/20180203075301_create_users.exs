@@ -12,18 +12,6 @@ defmodule Mfac.Repo.Migrations.CreateUsers do
       timestamps()
     end
 
-    alter table(:topics) do
-      add :user_id, references(:users, on_delete: :nothing)
-    end
-
-    alter table(:topic_comments) do
-      add :user_id, references(:users, on_delete: :nothing)
-    end
-
-    alter table(:stacks) do
-      add :user_id, references(:users, on_delete: :nothing)
-    end
-
   end
 end
 
