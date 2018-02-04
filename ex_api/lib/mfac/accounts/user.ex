@@ -11,8 +11,6 @@ defmodule Mfac.Accounts.User do
     field :middle_name, :string
     field :hashed_password, :string
     field :password, :string, virtual: true
-    has_many :topics, Mfac.Meetings.Topic 
-    has_many :topic_comments, Mfac.Meetings.TopicComment
 
     timestamps()
   end

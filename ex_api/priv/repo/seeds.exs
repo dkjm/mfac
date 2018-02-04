@@ -20,7 +20,6 @@ defmodule Seeds do
 			last_name: "Pare",
 			is_active: true,
 			middle_name: "Paul",
-			suffix: "",
 		}
 	end
 
