@@ -16,6 +16,16 @@ defmodule MfacWeb.AgendaItemView do
       body: agenda_item.body,
       status: agenda_item.status,
       allotted_duration: agenda_item.allotted_duration,
+      version: agenda_item.version
+    }
+  end
+
+  def render("agenda_item.json", %{agenda_item: agenda_item}) do
+    %{id: agenda_item.id,
+      title: agenda_item.title,
+      body: agenda_item.body,
+      status: agenda_item.status,
+      allotted_duration: agenda_item.allotted_duration,
       version: agenda_item.version,
       votes: agenda_item.votes
     }

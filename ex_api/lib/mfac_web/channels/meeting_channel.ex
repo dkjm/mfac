@@ -21,7 +21,7 @@ defmodule MfacWeb.MeetingChannel do
   # def handle_info({:update, type}, socket), do: socket |> push_update(type)
 
   defp push_update(socket, id) do
-    Process.send_after(self(), {:update, id}, 20000)
+    # Process.send_after(self(), {:update, id}, 20000)
     time = NaiveDateTime.utc_now
     meeting_id = String.to_integer(id)
     

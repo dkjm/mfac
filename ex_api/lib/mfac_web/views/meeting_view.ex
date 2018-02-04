@@ -25,7 +25,7 @@ defmodule MfacWeb.MeetingView do
       description: meeting.description,
       allotted_duration: meeting.allotted_duration,
       version: meeting.version,
-      agenda_items: render_many(meeting.agenda_items, MfacWeb.AgendaItemView, "agenda_item.json"),
+      agenda_items: render_many(meeting.agenda_items, MfacWeb.AgendaItemView, "meeting_update_agenda_item.json"),
       invitations: render_many(meeting.invitations, MfacWeb.InvitationView, "invitation.json"),
       participants: render_many(meeting.participants, MfacWeb.ParticipantView, "participant.json")
     }
