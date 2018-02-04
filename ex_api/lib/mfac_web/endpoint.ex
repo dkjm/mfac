@@ -1,6 +1,8 @@
 defmodule MfacWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :mfac
 
+  plug CORSPlug
+
   socket "/socket", MfacWeb.UserSocket
 
   # Serve at "/" the static files from "priv/static" directory.
