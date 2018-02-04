@@ -2,7 +2,7 @@ defmodule Mfac.Repo.Migrations.CreateAgendaitems do
   use Ecto.Migration
 
   def change do
-    create table(:agendaitems) do
+    create table(:agenda_items) do
       add :title, :string
       add :body, :string
       add :status, :string

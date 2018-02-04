@@ -15,6 +15,7 @@ defmodule MfacWeb.Router do
     resources "/topic_comments", TopicCommentController, except: [:new, :edit]
     resources "/stacks", StackController, except: [:new, :edit]
     resources "/users", UserController, except: [:new, :edit]
+    resources "/stack_entries", StackEntryController, except: [:new, :edit]
 
   end
 end

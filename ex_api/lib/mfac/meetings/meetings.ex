@@ -581,4 +581,100 @@ defmodule Mfac.Meetings do
   def change_agenda_item_vote(%AgendaItemVote{} = agenda_item_vote) do
     AgendaItemVote.changeset(agenda_item_vote, %{})
   end
+
+  alias Mfac.Meetings.StackEntry
+
+  @doc """
+  Returns the list of stack_entries.
+
+  ## Examples
+
+      iex> list_stack_entries()
+      [%StackEntry{}, ...]
+
+  """
+  def list_stack_entries do
+    Repo.all(StackEntry)
+  end
+
+  @doc """
+  Gets a single stack_entry.
+
+  Raises `Ecto.NoResultsError` if the Stack entry does not exist.
+
+  ## Examples
+
+      iex> get_stack_entry!(123)
+      %StackEntry{}
+
+      iex> get_stack_entry!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_stack_entry!(id), do: Repo.get!(StackEntry, id)
+
+  @doc """
+  Creates a stack_entry.
+
+  ## Examples
+
+      iex> create_stack_entry(%{field: value})
+      {:ok, %StackEntry{}}
+
+      iex> create_stack_entry(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_stack_entry(attrs \\ %{}) do
+    %StackEntry{}
+    |> StackEntry.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a stack_entry.
+
+  ## Examples
+
+      iex> update_stack_entry(stack_entry, %{field: new_value})
+      {:ok, %StackEntry{}}
+
+      iex> update_stack_entry(stack_entry, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_stack_entry(%StackEntry{} = stack_entry, attrs) do
+    stack_entry
+    |> StackEntry.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a StackEntry.
+
+  ## Examples
+
+      iex> delete_stack_entry(stack_entry)
+      {:ok, %StackEntry{}}
+
+      iex> delete_stack_entry(stack_entry)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_stack_entry(%StackEntry{} = stack_entry) do
+    Repo.delete(stack_entry)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking stack_entry changes.
+
+  ## Examples
+
+      iex> change_stack_entry(stack_entry)
+      %Ecto.Changeset{source: %StackEntry{}}
+
+  """
+  def change_stack_entry(%StackEntry{} = stack_entry) do
+    StackEntry.changeset(stack_entry, %{})
+  end
 end

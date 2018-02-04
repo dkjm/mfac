@@ -384,4 +384,72 @@ defmodule Mfac.MeetingsTest do
       assert %Ecto.Changeset{} = Meetings.change_agenda_item_vote(agenda_item_vote)
     end
   end
+
+  describe "stack_entries" do
+    alias Mfac.Meetings.StackEntry
+
+    @valid_attrs %{allotted_duration: 42, closed_at: "2010-04-17 14:00:00.000000Z", opened_at: "2010-04-17 14:00:00.000000Z", status: "some status", version: 42}
+    @update_attrs %{allotted_duration: 43, closed_at: "2011-05-18 15:01:01.000000Z", opened_at: "2011-05-18 15:01:01.000000Z", status: "some updated status", version: 43}
+    @invalid_attrs %{allotted_duration: nil, closed_at: nil, opened_at: nil, status: nil, version: nil}
+
+    def stack_entry_fixture(attrs \\ %{}) do
+      {:ok, stack_entry} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Meetings.create_stack_entry()
+
+      stack_entry
+    end
+
+    test "list_stack_entries/0 returns all stack_entries" do
+      stack_entry = stack_entry_fixture()
+      assert Meetings.list_stack_entries() == [stack_entry]
+    end
+
+    test "get_stack_entry!/1 returns the stack_entry with given id" do
+      stack_entry = stack_entry_fixture()
+      assert Meetings.get_stack_entry!(stack_entry.id) == stack_entry
+    end
+
+    test "create_stack_entry/1 with valid data creates a stack_entry" do
+      assert {:ok, %StackEntry{} = stack_entry} = Meetings.create_stack_entry(@valid_attrs)
+      assert stack_entry.allotted_duration == 42
+      assert stack_entry.closed_at == DateTime.from_naive!(~N[2010-04-17 14:00:00.000000Z], "Etc/UTC")
+      assert stack_entry.opened_at == DateTime.from_naive!(~N[2010-04-17 14:00:00.000000Z], "Etc/UTC")
+      assert stack_entry.status == "some status"
+      assert stack_entry.version == 42
+    end
+
+    test "create_stack_entry/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Meetings.create_stack_entry(@invalid_attrs)
+    end
+
+    test "update_stack_entry/2 with valid data updates the stack_entry" do
+      stack_entry = stack_entry_fixture()
+      assert {:ok, stack_entry} = Meetings.update_stack_entry(stack_entry, @update_attrs)
+      assert %StackEntry{} = stack_entry
+      assert stack_entry.allotted_duration == 43
+      assert stack_entry.closed_at == DateTime.from_naive!(~N[2011-05-18 15:01:01.000000Z], "Etc/UTC")
+      assert stack_entry.opened_at == DateTime.from_naive!(~N[2011-05-18 15:01:01.000000Z], "Etc/UTC")
+      assert stack_entry.status == "some updated status"
+      assert stack_entry.version == 43
+    end
+
+    test "update_stack_entry/2 with invalid data returns error changeset" do
+      stack_entry = stack_entry_fixture()
+      assert {:error, %Ecto.Changeset{}} = Meetings.update_stack_entry(stack_entry, @invalid_attrs)
+      assert stack_entry == Meetings.get_stack_entry!(stack_entry.id)
+    end
+
+    test "delete_stack_entry/1 deletes the stack_entry" do
+      stack_entry = stack_entry_fixture()
+      assert {:ok, %StackEntry{}} = Meetings.delete_stack_entry(stack_entry)
+      assert_raise Ecto.NoResultsError, fn -> Meetings.get_stack_entry!(stack_entry.id) end
+    end
+
+    test "change_stack_entry/1 returns a stack_entry changeset" do
+      stack_entry = stack_entry_fixture()
+      assert %Ecto.Changeset{} = Meetings.change_stack_entry(stack_entry)
+    end
+  end
 end
