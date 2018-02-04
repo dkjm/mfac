@@ -17,7 +17,7 @@ defmodule MfacWeb.AgendaItemView do
       status: agenda_item.status,
       allotted_duration: agenda_item.allotted_duration,
       version: agenda_item.version,
-      votes: render_many(agenda_item.votes, MfacWeb.AgendaItemVoteView, "agenda_item_vote.json")
+      votes: agenda_item.votes
     }
   end
 end

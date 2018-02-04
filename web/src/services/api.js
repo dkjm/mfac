@@ -4,6 +4,7 @@ import * as selectors from '../selectors';
 import {toggleSnackbar} from '../services/ui';
 import * as utils from '../utils';
 import history from '../history';
+import { isEmpty } from 'lodash';
 import {API_ENTRY, API_ENTRY_WS} from '../constants';
 
 export const SELECT_MEETING = 'SELECT_MEETING';
@@ -282,17 +283,21 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
 
     dispatch(actionLoadAgendaItems)
 
-    const actionLoadMeetingInvitations = {
+    if(!isEmpty(payload.meeting.invitations)){
+      const actionLoadMeetingInvitations = {
         type: LOAD_MEETING_INVITATIONS,
         meeting_invitations: payload.meeting.meeting_invitations,
       }
       dispatch(actionLoadMeetingInvitations);
+    }
 
+    if(!isEmpty(payload.meeting.participants)){
       const actionLoadMeetingParticipants = {
         type: LOAD_MEETING_PARTICIPANTS,
         participants: payload.meeting.participants,
       }
       dispatch(actionLoadMeetingParticipants);
+    }
 
   });
 
