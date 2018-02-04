@@ -279,7 +279,21 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
         type: LOAD_AGENDA_ITEMS,
         agenda_items: payload.meeting.agenda_items,
       }
+
     dispatch(actionLoadAgendaItems)
+
+    const actionLoadMeetingInvitations = {
+        type: LOAD_MEETING_INVITATIONS,
+        meeting_invitations: payload.meeting.meeting_invitations,
+      }
+      dispatch(actionLoadMeetingInvitations);
+
+      const actionLoadMeetingParticipants = {
+        type: LOAD_MEETING_PARTICIPANTS,
+        participants: payload.meeting.participants,
+      }
+      dispatch(actionLoadMeetingParticipants);
+
   });
 
 
