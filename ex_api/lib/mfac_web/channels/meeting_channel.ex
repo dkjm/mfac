@@ -2,10 +2,7 @@ defmodule MfacWeb.MeetingChannel do
   use Phoenix.Channel 
   alias Mfac.Meetings.Meeting
 
-  def join("meeting:" <> id, payload, socket) do
-    IO.puts "NEW MEETING IN: meeting:#{id}"
-    IO.inspect(socket, label: "socket ========")
-    IO.inspect(id, label: "meeting id")
+  def join("meeting:" <> id, _payload, socket) do
 
     send self(), {:update, id}
     {:ok, socket}
