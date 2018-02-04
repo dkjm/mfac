@@ -149,6 +149,7 @@ defmodule Mfac.Meetings do
   def create_agenda_item(attrs \\ %{}) do
     %AgendaItem{}
     |> AgendaItem.changeset(attrs)
+    |> IO.inspect(label: "AGENDA ITEM HERE")
     |> Repo.insert()
   end
 

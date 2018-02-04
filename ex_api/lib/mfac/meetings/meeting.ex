@@ -11,7 +11,7 @@ defmodule Mfac.Meetings.Meeting do
     field :version, :integer
     field :ended_at, :utc_datetime
     belongs_to :owner, Mfac.Accounts.User, foreign_key: :user_id
-
+    has_many :agenda_items, Mfac.Meetings.AgendaItem
     timestamps()
   end
 

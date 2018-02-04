@@ -15,7 +15,7 @@ defmodule MfacWeb.AgendaItemController do
     with {:ok, %AgendaItem{} = agenda_item} <- Meetings.create_agenda_item(agenda_item_params) do
       conn
       |> put_status(:created)
-      |> put_resp_header("location", agenda_item_path(conn, :show, agenda_item))
+      |> put_resp_header("location", agenda_item_path(conn, :show, Mfac.Repo.preload(agenda_item, :votes)))
       |> render("show.json", agenda_item: agenda_item)
     end
   end

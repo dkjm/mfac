@@ -258,10 +258,29 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   socket.connect()
 
   // Now that you are connected, you can join channels with a topic:
-  let channel = socket.channel("room:meeting/${meeting_id}", {})
+  let channel = socket.channel(`meeting:${meeting_id}`, {})
   channel.join()
     .receive("ok", resp => { console.log("Joined successfully", resp) })
     .receive("error", resp => { console.log("Unable to join", resp) })
+
+
+  channel.on('update_meeting', payload => {
+   console.log("got the message! : ", payload)
+   const action = {
+    type: LOAD_MEETING,
+    meeting: payload.meeting
+   }
+   dispatch(action);
+      // TODO: not sure if this is best
+      // approach, i.e. dispatching a second
+      // action so that "agendaItems" part 
+      // of state is updated
+    const actionLoadAgendaItems = {
+        type: LOAD_AGENDA_ITEMS,
+        agenda_items: payload.meeting.agenda_items,
+      }
+    dispatch(actionLoadAgendaItems)
+  });
 
 
 
@@ -564,7 +583,7 @@ export const submitAgendaItemForm = (params = {}) => (dispatch, getState) => {
     ? 'Agenda item updated successfully.'
     : 'Agenda item created successfully.'
 
-  return axios.post(endpoint, data)
+  return axios.post(endpoint, {agenda_item: data})
     .then(response => {
         // ** currently not handling response
         // here (i.e. not adding topic from

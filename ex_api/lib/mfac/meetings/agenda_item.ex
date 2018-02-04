@@ -13,7 +13,7 @@ defmodule Mfac.Meetings.AgendaItem do
     field :closed_at, :utc_datetime
     belongs_to :owner, Mfac.Accounts.User, foreign_key: :user_id
     belongs_to :meeting, Mfac.Meetings.Meeting, foreign_key: :meeting_id
-
+    has_many :votes, Mfac.Meetings.AgendaItemVote
     timestamps()
   end
 
@@ -21,6 +21,6 @@ defmodule Mfac.Meetings.AgendaItem do
   def changeset(%AgendaItem{} = agenda_item, attrs) do
     agenda_item
     |> cast(attrs, [:title, :body, :status, :allotted_duration, :version, :user_id, :meeting_id])
-    |> validate_required([:title, :body, :status, :allotted_duration, :version])
+    |> validate_required([:title, :body, :version])
   end
 end
