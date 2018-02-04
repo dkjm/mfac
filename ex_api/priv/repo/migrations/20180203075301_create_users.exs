@@ -6,8 +6,8 @@ defmodule Mfac.Repo.Migrations.CreateUsers do
       add :first_name, :string
       add :last_name, :string
       add :middle_name, :string
+      add :email, :string
       add :hashed_password, :string
-      add :password, :string, virtual: true
       add :is_active, :boolean, default: true, null: false
 
 
