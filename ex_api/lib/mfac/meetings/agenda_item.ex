@@ -4,7 +4,7 @@ defmodule Mfac.Meetings.AgendaItem do
   alias Mfac.Meetings.AgendaItem
 
 
-  schema "agendaitems" do
+  schema "agenda_items" do
     field :allotted_duration, :integer
     field :body, :string
     field :status, :string

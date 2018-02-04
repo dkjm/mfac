@@ -10,7 +10,6 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 alias Mfac.Repo
-alias Mfac.Meetings.Topic
 alias Mfac.Meetings.Meeting
 alias Mfac.Accounts.User
 
@@ -35,20 +34,11 @@ defmodule Seeds do
 		}
 	end
 
-	def make_topic(user_id) do
-		Repo.insert! %Topic{
-			title: "Title",
-			body: "Body",
-			version: 0,
-			user_id: user_id,
-		}
-	end
 
 	def make(index) do
 		user = make_user()
 		#IO.inspect user
 
-		topic = make_topic(user.id)
 
 		meeting = make_meeting(user.id)
 		IO.inspect meeting
