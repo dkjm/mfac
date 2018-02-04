@@ -8,6 +8,9 @@ defmodule MfacWeb.Router do
   scope "/api/v0", MfacWeb do
     pipe_through :api
 
+    resources "/meetings", MeetingController
+    resources "/agenda_items", AgendaItemController
+    resources "/agenda_item_votes", AgendaItemVoteController
     resources "/topics", TopicController, except: [:new, :edit]
     resources "/topic_comments", TopicCommentController, except: [:new, :edit]
     resources "/stacks", StackController, except: [:new, :edit]

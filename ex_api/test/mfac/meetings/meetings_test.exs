@@ -188,4 +188,200 @@ defmodule Mfac.MeetingsTest do
       assert %Ecto.Changeset{} = Meetings.change_topic_comment(topic_comment)
     end
   end
+
+  describe "meetings" do
+    alias Mfac.Meetings.Meeting
+
+    @valid_attrs %{allotted_duration: 42, description: "some description", title: "some title", version: 42}
+    @update_attrs %{allotted_duration: 43, description: "some updated description", title: "some updated title", version: 43}
+    @invalid_attrs %{allotted_duration: nil, description: nil, title: nil, version: nil}
+
+    def meeting_fixture(attrs \\ %{}) do
+      {:ok, meeting} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Meetings.create_meeting()
+
+      meeting
+    end
+
+    test "list_meetings/0 returns all meetings" do
+      meeting = meeting_fixture()
+      assert Meetings.list_meetings() == [meeting]
+    end
+
+    test "get_meeting!/1 returns the meeting with given id" do
+      meeting = meeting_fixture()
+      assert Meetings.get_meeting!(meeting.id) == meeting
+    end
+
+    test "create_meeting/1 with valid data creates a meeting" do
+      assert {:ok, %Meeting{} = meeting} = Meetings.create_meeting(@valid_attrs)
+      assert meeting.allotted_duration == 42
+      assert meeting.description == "some description"
+      assert meeting.title == "some title"
+      assert meeting.version == 42
+    end
+
+    test "create_meeting/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Meetings.create_meeting(@invalid_attrs)
+    end
+
+    test "update_meeting/2 with valid data updates the meeting" do
+      meeting = meeting_fixture()
+      assert {:ok, meeting} = Meetings.update_meeting(meeting, @update_attrs)
+      assert %Meeting{} = meeting
+      assert meeting.allotted_duration == 43
+      assert meeting.description == "some updated description"
+      assert meeting.title == "some updated title"
+      assert meeting.version == 43
+    end
+
+    test "update_meeting/2 with invalid data returns error changeset" do
+      meeting = meeting_fixture()
+      assert {:error, %Ecto.Changeset{}} = Meetings.update_meeting(meeting, @invalid_attrs)
+      assert meeting == Meetings.get_meeting!(meeting.id)
+    end
+
+    test "delete_meeting/1 deletes the meeting" do
+      meeting = meeting_fixture()
+      assert {:ok, %Meeting{}} = Meetings.delete_meeting(meeting)
+      assert_raise Ecto.NoResultsError, fn -> Meetings.get_meeting!(meeting.id) end
+    end
+
+    test "change_meeting/1 returns a meeting changeset" do
+      meeting = meeting_fixture()
+      assert %Ecto.Changeset{} = Meetings.change_meeting(meeting)
+    end
+  end
+
+  describe "agendaitems" do
+    alias Mfac.Meetings.AgendaItem
+
+    @valid_attrs %{allotted_duration: 42, body: "some body", status: "some status", title: "some title", version: 42}
+    @update_attrs %{allotted_duration: 43, body: "some updated body", status: "some updated status", title: "some updated title", version: 43}
+    @invalid_attrs %{allotted_duration: nil, body: nil, status: nil, title: nil, version: nil}
+
+    def agenda_item_fixture(attrs \\ %{}) do
+      {:ok, agenda_item} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Meetings.create_agenda_item()
+
+      agenda_item
+    end
+
+    test "list_agendaitems/0 returns all agendaitems" do
+      agenda_item = agenda_item_fixture()
+      assert Meetings.list_agendaitems() == [agenda_item]
+    end
+
+    test "get_agenda_item!/1 returns the agenda_item with given id" do
+      agenda_item = agenda_item_fixture()
+      assert Meetings.get_agenda_item!(agenda_item.id) == agenda_item
+    end
+
+    test "create_agenda_item/1 with valid data creates a agenda_item" do
+      assert {:ok, %AgendaItem{} = agenda_item} = Meetings.create_agenda_item(@valid_attrs)
+      assert agenda_item.allotted_duration == 42
+      assert agenda_item.body == "some body"
+      assert agenda_item.status == "some status"
+      assert agenda_item.title == "some title"
+      assert agenda_item.version == 42
+    end
+
+    test "create_agenda_item/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Meetings.create_agenda_item(@invalid_attrs)
+    end
+
+    test "update_agenda_item/2 with valid data updates the agenda_item" do
+      agenda_item = agenda_item_fixture()
+      assert {:ok, agenda_item} = Meetings.update_agenda_item(agenda_item, @update_attrs)
+      assert %AgendaItem{} = agenda_item
+      assert agenda_item.allotted_duration == 43
+      assert agenda_item.body == "some updated body"
+      assert agenda_item.status == "some updated status"
+      assert agenda_item.title == "some updated title"
+      assert agenda_item.version == 43
+    end
+
+    test "update_agenda_item/2 with invalid data returns error changeset" do
+      agenda_item = agenda_item_fixture()
+      assert {:error, %Ecto.Changeset{}} = Meetings.update_agenda_item(agenda_item, @invalid_attrs)
+      assert agenda_item == Meetings.get_agenda_item!(agenda_item.id)
+    end
+
+    test "delete_agenda_item/1 deletes the agenda_item" do
+      agenda_item = agenda_item_fixture()
+      assert {:ok, %AgendaItem{}} = Meetings.delete_agenda_item(agenda_item)
+      assert_raise Ecto.NoResultsError, fn -> Meetings.get_agenda_item!(agenda_item.id) end
+    end
+
+    test "change_agenda_item/1 returns a agenda_item changeset" do
+      agenda_item = agenda_item_fixture()
+      assert %Ecto.Changeset{} = Meetings.change_agenda_item(agenda_item)
+    end
+  end
+
+  describe "agendaitemvotes" do
+    alias Mfac.Meetings.AgendaItemVote
+
+    @valid_attrs %{version: 42, vote_type: "some vote_type"}
+    @update_attrs %{version: 43, vote_type: "some updated vote_type"}
+    @invalid_attrs %{version: nil, vote_type: nil}
+
+    def agenda_item_vote_fixture(attrs \\ %{}) do
+      {:ok, agenda_item_vote} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Meetings.create_agenda_item_vote()
+
+      agenda_item_vote
+    end
+
+    test "list_agendaitemvotes/0 returns all agendaitemvotes" do
+      agenda_item_vote = agenda_item_vote_fixture()
+      assert Meetings.list_agendaitemvotes() == [agenda_item_vote]
+    end
+
+    test "get_agenda_item_vote!/1 returns the agenda_item_vote with given id" do
+      agenda_item_vote = agenda_item_vote_fixture()
+      assert Meetings.get_agenda_item_vote!(agenda_item_vote.id) == agenda_item_vote
+    end
+
+    test "create_agenda_item_vote/1 with valid data creates a agenda_item_vote" do
+      assert {:ok, %AgendaItemVote{} = agenda_item_vote} = Meetings.create_agenda_item_vote(@valid_attrs)
+      assert agenda_item_vote.version == 42
+      assert agenda_item_vote.vote_type == "some vote_type"
+    end
+
+    test "create_agenda_item_vote/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Meetings.create_agenda_item_vote(@invalid_attrs)
+    end
+
+    test "update_agenda_item_vote/2 with valid data updates the agenda_item_vote" do
+      agenda_item_vote = agenda_item_vote_fixture()
+      assert {:ok, agenda_item_vote} = Meetings.update_agenda_item_vote(agenda_item_vote, @update_attrs)
+      assert %AgendaItemVote{} = agenda_item_vote
+      assert agenda_item_vote.version == 43
+      assert agenda_item_vote.vote_type == "some updated vote_type"
+    end
+
+    test "update_agenda_item_vote/2 with invalid data returns error changeset" do
+      agenda_item_vote = agenda_item_vote_fixture()
+      assert {:error, %Ecto.Changeset{}} = Meetings.update_agenda_item_vote(agenda_item_vote, @invalid_attrs)
+      assert agenda_item_vote == Meetings.get_agenda_item_vote!(agenda_item_vote.id)
+    end
+
+    test "delete_agenda_item_vote/1 deletes the agenda_item_vote" do
+      agenda_item_vote = agenda_item_vote_fixture()
+      assert {:ok, %AgendaItemVote{}} = Meetings.delete_agenda_item_vote(agenda_item_vote)
+      assert_raise Ecto.NoResultsError, fn -> Meetings.get_agenda_item_vote!(agenda_item_vote.id) end
+    end
+
+    test "change_agenda_item_vote/1 returns a agenda_item_vote changeset" do
+      agenda_item_vote = agenda_item_vote_fixture()
+      assert %Ecto.Changeset{} = Meetings.change_agenda_item_vote(agenda_item_vote)
+    end
+  end
 end

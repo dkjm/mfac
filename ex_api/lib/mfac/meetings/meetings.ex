@@ -293,4 +293,292 @@ defmodule Mfac.Meetings do
   def change_topic_comment(%TopicComment{} = topic_comment) do
     TopicComment.changeset(topic_comment, %{})
   end
+
+  alias Mfac.Meetings.Meeting
+
+  @doc """
+  Returns the list of meetings.
+
+  ## Examples
+
+      iex> list_meetings()
+      [%Meeting{}, ...]
+
+  """
+  def list_meetings do
+    Repo.all(Meeting)
+  end
+
+  @doc """
+  Gets a single meeting.
+
+  Raises `Ecto.NoResultsError` if the Meeting does not exist.
+
+  ## Examples
+
+      iex> get_meeting!(123)
+      %Meeting{}
+
+      iex> get_meeting!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_meeting!(id), do: Repo.get!(Meeting, id)
+
+  @doc """
+  Creates a meeting.
+
+  ## Examples
+
+      iex> create_meeting(%{field: value})
+      {:ok, %Meeting{}}
+
+      iex> create_meeting(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_meeting(attrs \\ %{}) do
+    %Meeting{}
+    |> Meeting.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a meeting.
+
+  ## Examples
+
+      iex> update_meeting(meeting, %{field: new_value})
+      {:ok, %Meeting{}}
+
+      iex> update_meeting(meeting, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_meeting(%Meeting{} = meeting, attrs) do
+    meeting
+    |> Meeting.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a Meeting.
+
+  ## Examples
+
+      iex> delete_meeting(meeting)
+      {:ok, %Meeting{}}
+
+      iex> delete_meeting(meeting)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_meeting(%Meeting{} = meeting) do
+    Repo.delete(meeting)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking meeting changes.
+
+  ## Examples
+
+      iex> change_meeting(meeting)
+      %Ecto.Changeset{source: %Meeting{}}
+
+  """
+  def change_meeting(%Meeting{} = meeting) do
+    Meeting.changeset(meeting, %{})
+  end
+
+  alias Mfac.Meetings.AgendaItem
+
+  @doc """
+  Returns the list of agendaitems.
+
+  ## Examples
+
+      iex> list_agendaitems()
+      [%AgendaItem{}, ...]
+
+  """
+  def list_agendaitems do
+    Repo.all(AgendaItem)
+  end
+
+  @doc """
+  Gets a single agenda_item.
+
+  Raises `Ecto.NoResultsError` if the Agenda item does not exist.
+
+  ## Examples
+
+      iex> get_agenda_item!(123)
+      %AgendaItem{}
+
+      iex> get_agenda_item!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_agenda_item!(id), do: Repo.get!(AgendaItem, id)
+
+  @doc """
+  Creates a agenda_item.
+
+  ## Examples
+
+      iex> create_agenda_item(%{field: value})
+      {:ok, %AgendaItem{}}
+
+      iex> create_agenda_item(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_agenda_item(attrs \\ %{}) do
+    %AgendaItem{}
+    |> AgendaItem.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a agenda_item.
+
+  ## Examples
+
+      iex> update_agenda_item(agenda_item, %{field: new_value})
+      {:ok, %AgendaItem{}}
+
+      iex> update_agenda_item(agenda_item, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_agenda_item(%AgendaItem{} = agenda_item, attrs) do
+    agenda_item
+    |> AgendaItem.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a AgendaItem.
+
+  ## Examples
+
+      iex> delete_agenda_item(agenda_item)
+      {:ok, %AgendaItem{}}
+
+      iex> delete_agenda_item(agenda_item)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_agenda_item(%AgendaItem{} = agenda_item) do
+    Repo.delete(agenda_item)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking agenda_item changes.
+
+  ## Examples
+
+      iex> change_agenda_item(agenda_item)
+      %Ecto.Changeset{source: %AgendaItem{}}
+
+  """
+  def change_agenda_item(%AgendaItem{} = agenda_item) do
+    AgendaItem.changeset(agenda_item, %{})
+  end
+
+  alias Mfac.Meetings.AgendaItemVote
+
+  @doc """
+  Returns the list of agendaitemvotes.
+
+  ## Examples
+
+      iex> list_agendaitemvotes()
+      [%AgendaItemVote{}, ...]
+
+  """
+  def list_agendaitemvotes do
+    Repo.all(AgendaItemVote)
+  end
+
+  @doc """
+  Gets a single agenda_item_vote.
+
+  Raises `Ecto.NoResultsError` if the Agenda item vote does not exist.
+
+  ## Examples
+
+      iex> get_agenda_item_vote!(123)
+      %AgendaItemVote{}
+
+      iex> get_agenda_item_vote!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_agenda_item_vote!(id), do: Repo.get!(AgendaItemVote, id)
+
+  @doc """
+  Creates a agenda_item_vote.
+
+  ## Examples
+
+      iex> create_agenda_item_vote(%{field: value})
+      {:ok, %AgendaItemVote{}}
+
+      iex> create_agenda_item_vote(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_agenda_item_vote(attrs \\ %{}) do
+    %AgendaItemVote{}
+    |> AgendaItemVote.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a agenda_item_vote.
+
+  ## Examples
+
+      iex> update_agenda_item_vote(agenda_item_vote, %{field: new_value})
+      {:ok, %AgendaItemVote{}}
+
+      iex> update_agenda_item_vote(agenda_item_vote, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_agenda_item_vote(%AgendaItemVote{} = agenda_item_vote, attrs) do
+    agenda_item_vote
+    |> AgendaItemVote.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a AgendaItemVote.
+
+  ## Examples
+
+      iex> delete_agenda_item_vote(agenda_item_vote)
+      {:ok, %AgendaItemVote{}}
+
+      iex> delete_agenda_item_vote(agenda_item_vote)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_agenda_item_vote(%AgendaItemVote{} = agenda_item_vote) do
+    Repo.delete(agenda_item_vote)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking agenda_item_vote changes.
+
+  ## Examples
+
+      iex> change_agenda_item_vote(agenda_item_vote)
+      %Ecto.Changeset{source: %AgendaItemVote{}}
+
+  """
+  def change_agenda_item_vote(%AgendaItemVote{} = agenda_item_vote) do
+    AgendaItemVote.changeset(agenda_item_vote, %{})
+  end
 end
