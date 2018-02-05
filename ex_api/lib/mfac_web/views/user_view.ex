@@ -19,7 +19,6 @@ defmodule MfacWeb.UserView do
   end
 
   def render("user_data.json", %{user_data: data}) do
-    IO.inspect(data, label: "data ====")
     %{
       user_data: render_one(data.user_data, UserView, "user.json"), 
       meeting_invitations: data.meeting_invitations,

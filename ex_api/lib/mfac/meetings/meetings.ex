@@ -146,11 +146,42 @@ defmodule Mfac.Meetings do
       {:error, %Ecto.Changeset{}}
 
   """
+  # def create_agenda_item(attrs \\ %{}) do
+  #   %AgendaItem{}
+  #   |> AgendaItem.changeset(attrs)
+  #   |> Repo.insert()
+  #   |> IO.inspect(label: "ITEM")
+  # end
+
+  # def create_agenda_item(attrs \\ %{}) do
+  #   %AgendaItem{}
+  #   |> AgendaItem.changeset(attrs)
+  #   |> Repo.insert()
+  #   |> IO.inspect(label: "REPO RESULT")
+  #   |> send_broadcast
+  # end
+
   def create_agenda_item(attrs \\ %{}) do
-    %AgendaItem{}
-    |> AgendaItem.changeset(attrs)
-    |> Repo.insert()
+    result = 
+      %AgendaItem{}
+      |> AgendaItem.changeset(attrs)
+      |> Repo.insert()
+      |> IO.inspect(label: "REPO RESULT")
+      |> send_broadcast
   end
+
+  defp send_broadcast(result) do
+    {status, agenda_item} = result
+    IO.inspect(status, label: "STATUS=======")
+    IO.inspect(status, label: "STATUS=======")
+    MfacWeb.MeetingChannel.broadcast_event(agenda_item)
+    result
+    # IO.inspect(agenda_item, label: "ITEM=======")
+  end
+  #   room = "meetings:#{agenda_item.meeting_id}"
+  #   agenda_item_json = MfacWeb.AgendaItemView.render("show.json", %{agenda_item: agenda_item})
+  #   MeetingChannel.Endpoint.broadcast(room, "add_agenda_item", agenda_item_json)
+  # end
 
   @doc """
   Updates a agenda_item.

@@ -92,7 +92,9 @@ export const acceptOrDeclineMeetingInvitation = (params = {}) => (dispatch, getS
 	})
 }
 
+// TODO(MPP - 180204): Disable for now
 export const connectUserSocket = (params = {}) => (dispatch, getState) => {
+	return;
   const state = getState();
   const user_id = selectors.getUserData(state).id;
   const token = localStorage.getItem('token');

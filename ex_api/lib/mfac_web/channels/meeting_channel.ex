@@ -19,6 +19,21 @@ defmodule MfacWeb.MeetingChannel do
   def handle_info({:update, type}, socket), do: socket |> push_update(type)
 
   # def handle_info({:update, type}, socket), do: socket |> push_update(type)
+  # def send_update(data) do
+  #   case data do
+  #     %AgendaItemVote{} -> 
+  #       agenda_item = MfacWeb.AgendaItemView.render("show.json", %{agenda_item: data})
+  #       push(socket, "add_agenda_item", %{agenda_item: agenda_item})
+  #     end
+  # end
+
+  def broadcast_event(agenda_item) do
+    #MeetingChannel.Endpoint.broadcast(room, "add_agenda_item", agenda_item_json)
+    room = "meeting:#{agenda_item.meeting_id}"
+    agenda_item_json = MfacWeb.AgendaItemView.render("show.json", %{agenda_item: agenda_item})
+    #Mfac.Endpoint.broadcast(room, "add_agenda_item", agenda_item_json)
+    MfacWeb.Endpoint.broadcast(room, "add_agenda_item", %{agenda_item: agenda_item_json})
+  end
 
   defp push_update(socket, id) do
     # Process.send_after(self(), {:update, id}, 20000)
@@ -36,8 +51,7 @@ defmodule MfacWeb.MeetingChannel do
 
     
     # TODO:(ja) this should be handled in the query if possible. reducing them now just to get it working
-    meeting = 
-      List.first(Mfac.Repo.all(query)) |> IO.inspect(label: "meeting")
+    meeting = List.first(Mfac.Repo.all(query)) #|> IO.inspect(label: "meeting")
 
     agenda_items = Enum.map(meeting.agenda_items, fn item -> 
       votes = Enum.reduce(item.votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
@@ -54,7 +68,7 @@ defmodule MfacWeb.MeetingChannel do
       Map.put(item, :votes, votes)
     end)
 
-    meeting_with_votes = Map.put(meeting, :agenda_items, agenda_items) |> IO.inspect(label: "with votes")
+    meeting_with_votes = Map.put(meeting, :agenda_items, agenda_items) #|> IO.inspect(label: "with votes")
     
     # user_vote_type = votes.filter(owner=requester)[0].vote_type
     #   result = {

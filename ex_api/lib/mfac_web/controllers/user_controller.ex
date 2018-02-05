@@ -40,8 +40,9 @@ defmodule MfacWeb.UserController do
     end
   end
 
+  # TODO(ja): I did this
   def user_data(conn, _params) do
-    user = Accounts.get_user!(1) |> IO.inspect(label: "what gives")
+    user = Accounts.get_user!(1)
     data = %{user_data: user, meeting_invitations: [], contacts: []}
     render(conn, "user_data.json", user_data: data)
   end

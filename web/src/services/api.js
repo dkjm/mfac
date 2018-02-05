@@ -249,6 +249,7 @@ export const deleteMeetingInvitation = (params = {}) => (dispatch, getState) => 
 }
 
 export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
+  console.log('connectMeetingSocket')
   const { Socket } = require('phoenix-channels')
   const {meeting_id} = params;
 
@@ -301,7 +302,16 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
 
   });
 
+  channel.on('add_agenda_item', payload => {
+    console.log('add_agenda_item', payload)
+    const action = {
+      type: LOAD_AGENDA_ITEM,
+      agenda_item: payload.agenda_item,
+    }
+    dispatch(action);
+  })
 
+  //     
 
   // const {meeting_id} = params;
   // const token = localStorage.getItem('token');
@@ -604,9 +614,7 @@ export const submitAgendaItemForm = (params = {}) => (dispatch, getState) => {
 
   return axios.post(endpoint, {agenda_item: data})
     .then(response => {
-        // ** currently not handling response
-        // here (i.e. not adding topic from
-        // response to store).  New data
+        // ** currently not handling response. New data
         // comes in via websocket as 
         // RECEIVE_TOPIC action
         history.goBack();

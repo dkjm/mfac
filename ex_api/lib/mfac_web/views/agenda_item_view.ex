@@ -7,7 +7,8 @@ defmodule MfacWeb.AgendaItemView do
   end
 
   def render("show.json", %{agenda_item: agenda_item}) do
-    %{data: render_one(agenda_item, AgendaItemView, "agenda_item.json")}
+    agenda_item = Map.put(agenda_item, "votes", %{up: 0, down: 0, meh: 0, user_vote: nil})
+    render_one(agenda_item, AgendaItemView, "agenda_item.json")
   end
 
   def render("agenda_item.json", %{agenda_item: agenda_item}) do
@@ -20,7 +21,7 @@ defmodule MfacWeb.AgendaItemView do
     }
   end
 
-  def render("agenda_item.json", %{agenda_item: agenda_item}) do
+  def render("meeting_update_agenda_item.json", %{agenda_item: agenda_item}) do
     %{id: agenda_item.id,
       title: agenda_item.title,
       body: agenda_item.body,
