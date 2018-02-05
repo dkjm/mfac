@@ -32,7 +32,8 @@ import CogIcon from 'material-ui/svg-icons/action/settings';
 import FlagIcon from 'material-ui/svg-icons/image/assistant-photo';
 
 import {toggleNavDrawer} from '../../services/ui';
-import {getNavDrawer} from '../../selectors';
+import {logout} from '../../services/session';
+import {getNavDrawer, getIsUserLoggedIn} from '../../selectors';
 
 import {
 	NAV_DRAWER_WIDTH,
@@ -68,7 +69,7 @@ class NavDrawer extends Component {
 	}
 
 	handleRequestLogout = () => {
-		// TODO
+		this.props.logout();
 	}
 
 	makeNavItems = () => {
@@ -89,9 +90,9 @@ class NavDrawer extends Component {
 		    value: 1,
 		  },
 		  {
-		    primaryText: 'Groups',
+		    primaryText: 'Invitations',
 		    leftIcon: <SupervisorAccount />,
-		    onClick: () => this.handleSelectItem('/groups'),
+		    onClick: () => this.handleSelectItem('/invitations'),
 		    widget: ListItem,
 		    value: 2,
 		  },
@@ -150,7 +151,9 @@ class NavDrawer extends Component {
 	}
 
 	renderNavItems() {
-		const items = this.makeNavItems();
+		const {isLoggedIn} = this.props;
+
+		const items = isLoggedIn ? this.makeNavItems() : [];
 
 		const style = {
 			textAlign: 'left',
@@ -235,6 +238,7 @@ NavDrawer.contextTypes = {
 const mapStateToProps = (state, ownProps) => {
   return {
     navDrawer: getNavDrawer(state),
+    isLoggedIn: getIsUserLoggedIn(state),
   }
 }
 
@@ -242,6 +246,9 @@ const mapDispatchToProps = (dispatch) => {
   return {
   	toggleNavDrawer: (params) => {
   		dispatch(toggleNavDrawer(params));
+  	},
+  	logout: () => {
+  		dispatch(logout());
   	}
   }
 }

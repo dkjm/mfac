@@ -6,24 +6,13 @@ defmodule Mfac.Repo.Migrations.CreateUsers do
       add :first_name, :string
       add :last_name, :string
       add :middle_name, :string
-      add :suffix, :string
-      add :is_active, :boolean, default: false, null: false
+      add :email, :string
+      add :hashed_password, :string
+      add :is_active, :boolean, default: true, null: false
+
 
       timestamps()
     end
 
-    alter table(:topics) do
-      add :user_id, references(:users, on_delete: :nothing)
-    end
-
-    alter table(:topic_comments) do
-      add :user_id, references(:users, on_delete: :nothing)
-    end
-
-    alter table(:stacks) do
-      add :user_id, references(:users, on_delete: :nothing)
-    end
-
   end
 end
-

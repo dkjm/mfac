@@ -24,14 +24,20 @@ class Dashboard extends Component {
 	
 	render() {
 		return (
-			<div>
+			<div style={styles.container}>
 				<LayoutBanner title="Dashboard" />
-				<CardListContainer>
-					{this.renderItems()}
-				</CardListContainer>
 			</div>
 		)
 	}
+}
+
+const styles = {
+	container: {
+		//textAlignt: 'center',
+		padding: '40px',
+		display: 'flex',
+		justifyContent: 'center',
+	},
 }
 
 

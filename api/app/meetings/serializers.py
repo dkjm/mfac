@@ -1,22 +1,133 @@
 import sys
 from django.conf import settings
-sys.path.insert(0, settings.BASE_DIR)
 from rest_framework import serializers
 
-from .models import Topic, TopicComment, Vote
+from .models import (
+	Meeting,
+	MeetingInvitation,
+	MeetingParticipant,
+	AgendaItem,
+	AgendaItemStackEntry,
+)
 from app_users.serializers import AppUserSlz
 
 
-class TopicSlz(serializers.ModelSerializer):
 
-	topic_comments = serializers.SerializerMethodField()
+class MeetingSlz(serializers.ModelSerializer):
+
+	agenda_items = serializers.SerializerMethodField()
+	meeting_invitations = serializers.SerializerMethodField()
+	owner = serializers.SerializerMethodField()
+	participants = serializers.SerializerMethodField()
+	resources = serializers.SerializerMethodField()
+
+	def get_agenda_items(self, obj):
+		items = obj.agendaitem_set.order_by('created_on')
+		slz = AgendaItemSlz(items, many=True, context=self.context)
+		return slz.data
+
+	def get_meeting_invitations(self, obj):
+		items = obj.meetinginvitation_set.order_by('created_on')
+		slz = MeetingInvitationSlz(items, many=True, context=self.context)
+		return slz.data
+
+	def get_owner(self, obj):
+		slz = AppUserSlz(obj.owner)
+		return slz.data
+
+	def get_participants(self, obj):
+		participants = obj.meetingparticipant_set.filter(status=MeetingParticipant.PRESENT)
+		slz = AppUserSlz([p.app_user for p in participants], many=True)
+		return slz.data
+
+	def get_resources(self, obj):
+		# TODO(MPP - 180131): implement
+		return []
+
+	class Meta:
+		model = Meeting
+		fields = (
+			'id',
+			'agenda_items',
+			'meeting_invitations',
+			'title',
+			'description',
+			'owner',
+			'allotted_duration',
+			'created_on',
+			'started_on',
+			'ended_on',
+			'version',
+
+			'participants',
+			'resources',
+			)
+
+
+class MeetingDetailSlz(serializers.ModelSerializer):
+
+	owner = serializers.SerializerMethodField()
+
+	def get_owner(self, obj):
+		slz = AppUserSlz(obj.owner)
+		return slz.data
+
+	class Meta:
+		model = Meeting
+		fields = (
+			'id',
+			'owner',
+			'title',
+			'description',
+			'owner',
+			'allotted_duration',
+			'created_on',
+			'started_on',
+			'ended_on',
+			'version',
+			)
+
+
+class MeetingInvitationSlz(serializers.ModelSerializer):
+
+	inviter = serializers.SerializerMethodField()
+	invitee = serializers.SerializerMethodField()
+	meeting = serializers.SerializerMethodField()
+
+	def get_inviter(self, obj):
+		slz = AppUserSlz(obj.inviter)
+		return slz.data
+
+	def get_invitee(self, obj):
+		slz = AppUserSlz(obj.invitee)
+		return slz.data
+
+	def get_meeting(self, obj):
+		m = obj.meeting
+		return {'id': m.id, 'title': m.title}
+
+
+	class Meta:
+		model = MeetingInvitation
+		fields = (
+			'id',
+			'inviter',
+			'invitee',
+			'meeting',
+			'status',
+			'created_on',
+			'accepted_on',
+			'declined_on',
+			'version',
+			)
+
+
+
+class AgendaItemSlz(serializers.ModelSerializer):
+
 	owner = serializers.SerializerMethodField()
 	votes = serializers.SerializerMethodField()
-
-	def get_topic_comments(self, obj):
-		topic_comments = obj.topiccomment_set.order_by('created_on')
-		slz = TopicCommentSlz(topic_comments, many=True)
-		return slz.data
+	stack_entries = serializers.SerializerMethodField()
 
 	def get_owner(self, obj):
 		slz = AppUserSlz(obj.owner)
@@ -24,65 +135,58 @@ class TopicSlz(serializers.ModelSerializer):
 
 	def get_votes(self, obj):
 		requester = self.context.get('requester')
-		all_votes = obj.vote_set.all()
-		up_votes = all_votes.filter(vote_type=Vote.UP)
-		down_votes = all_votes.filter(vote_type=Vote.DOWN)
-		meh_votes = all_votes.filter(vote_type=Vote.MEH)
+		votes = obj.get_vote_counts(requester=requester)
+		return votes
 
-		user_vote = None
-		if requester:
-			if up_votes.filter(owner_id=requester.id).exists():
-				user_vote = Vote.UP
-			elif down_votes.filter(owner_id=requester.id).exists():
-				user_vote = Vote.DOWN
-			elif meh_votes.filter(owner_id=requester.id).exists():
-				user_vote = Vote.MEH 
-
-		result = {
-			'up': up_votes.count(),
-			'down': down_votes.count(),
-			'meh': meh_votes.count(),
-			'user_vote': user_vote,
-		}
-
-		return result
-
+	def get_stack_entries(self, obj):
+		stack_entries = obj.agendaitemstackentry_set.order_by('created_on')
+		return AgendaItemStackEntrySlz(stack_entries, many=True).data
 
 	class Meta:
-		model = Topic
+		model = AgendaItem
 		fields = (
 			'id',
-			'topic_comments',
 			'title',
 			'body',
 			'owner',
 			'votes',
+			'status',
+			'allotted_duration',
 			'created_on',
-			'updated_on',
+			'opened_on',
+			'closed_on',
+			'version',
+			'stack_entries',
 			)
 
 
-class TopicCommentSlz(serializers.ModelSerializer):
+class AgendaItemStackEntrySlz(serializers.ModelSerializer):
 
-	owner = serializers.SerializerMethodField()
+	agenda_item_id = serializers.SerializerMethodField()
+	owner_id = serializers.SerializerMethodField()
+	owner_full_name = serializers.SerializerMethodField()
 
-	def get_owner(self, obj):
-		slz = AppUserSlz(obj.owner)
-		return slz.data
+	def agenda_item_id(self, obj):
+		return obj.agenda_item.id
+
+	def get_owner_id(self, obj):
+		return obj.owner.id
+
+	def get_owner_full_name(self, obj):
+		return obj.owner.get_full_name()
 
 	class Meta:
-		model = TopicComment
+		model = AgendaItemStackEntry
 		fields = (
 			'id',
-			'owner',
-			'body',
+			'agenda_item_id',
+			'owner_id',
+			'owner_full_name',
+			'status',
+			'allotted_duration',
 			'created_on',
-			'updated_on',
+			'opened_on',
+			'closed_on',
+			'version',
 			)
-
-
-
-
-
-
 

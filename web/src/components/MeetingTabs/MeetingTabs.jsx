@@ -45,19 +45,11 @@ class MeetingTabs extends Component {
 			<div style={style.container}>
 
 				<div style={style.buttonsContainer}>
-					{/* Removing "Home" tab for now in interest
-						of saving space */}
-					{/*
+
 					<Button
 						title='Home' 
 						onClick={() => this.navigateToPath('home')} 
 						active={activeTab === 'home'}
-					/>
-					*/}
-					<Button
-						title='Stack' 
-						onClick={() => this.navigateToPath('stack')} 
-						active={activeTab === 'stack'}
 					/>
 					<Button
 						title='Agenda' 
@@ -70,9 +62,9 @@ class MeetingTabs extends Component {
 						active={activeTab === 'participants'}
 					/>
 					<Button
-						title='Resources' 
-						onClick={() => this.navigateToPath('resources')} 
-						active={activeTab === 'resources'}
+						title='Invitations' 
+						onClick={() => this.navigateToPath('invitations')} 
+						active={activeTab === 'invitations'}
 					/>
 				</div>
 
@@ -89,7 +81,7 @@ const Button = (props) => {
 	const style = {
 		padding: '10px',
 		textAlign: 'center',
-		backgroundColor: props.color || COLORS.midnightGray,
+		backgroundColor: props.color || COLORS.blackGray,
 		borderRadius: '2px',
 		minWidth: props.width || '70px',
 		boxShadow: '5px 5px 5px gray',

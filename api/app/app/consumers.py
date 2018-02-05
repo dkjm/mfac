@@ -1,121 +1,160 @@
 import sys
 import json
 from django.conf import settings
-sys.path.insert(0, settings.BASE_DIR)
 from channels import Channel, Group
 from channels.sessions import channel_session
-from app_users.models import AppUser
-from meetings.models import Topic, Vote
-from meetings.serializers import TopicSlz
+sys.path.insert(0, settings.BASE_DIR)
+from app_users.models import AppUser, AuthToken
+from meetings.models import (
+  Meeting,
+  MeetingParticipant,
+  MeetingInvitation,
+  )
+from app_users.utils import isValidToken, getRequesterFromToken
+from app_users.serializers import AppUserSlz
+from meetings.serializers import MeetingSlz
 
 
 # Connected to websocket.connect
 @channel_session
 def meetings_connect(message, **kwargs):
   meeting_id = int(kwargs.get('meeting_id'))
-  # Save room in session and add us to the group
+  tokenStr = kwargs.get('token')
+  # TODO(MPP): make 1. token check and 2. getting requester
+  # into one streamlined action instead
+  # of multiple queries it uses in its current state
+  if not isValidToken(tokenStr):
+    message.reply_channel.send({"accept": False})
+  requester = getRequesterFromToken(tokenStr)
+  if requester == None:
+    message.reply_channel.send({"accept": False})
+  # if meeting doesn't exist, reject conn
+  try:
+    meeting = Meeting.objects.get(id=meeting_id)
+  except Meeting.DoesNotExist:
+    message.reply_channel.send({"accept": False})
+  
+  # if requester is not owner, check that they have invitation
+  if meeting.owner != requester:
+    # check that requester has indeed received an invite
+    # to this meeting
+    try:
+      meeting_invitation = MeetingInvitation.objects.get(meeting=meeting, invitee=requester)
+    except MeetingInvitation.DoesNotExist:
+      message.reply_channel.send({"accept": False})
+
+  # get meeting participant, or if does not exist yet
+  # create one
+  try:
+    participant = MeetingParticipant.objects.get(meeting=meeting, app_user=requester)
+  except MeetingParticipant.DoesNotExist:
+    participant = MeetingParticipant.objects.create(meeting=meeting, app_user=requester)
+  
+  # set to present
+  setattr(participant, 'status', MeetingParticipant.PRESENT)
+  participant.save()
+
+  # Save room and token in session, add conn to the group
   message.channel_session['meeting_id'] = meeting_id
-  Group("meetings-%d" % meeting_id).add(message.reply_channel)
-  # Accept the connection request
+  message.channel_session['token'] = tokenStr
+  Group('meetings-%d' % meeting_id).add(message.reply_channel)
+    # Accept the connection request and send back
+    # serial rep of meeting
+  data = {
+    'event': 'update_meeting',
+    'meeting': MeetingSlz(meeting, context={'requester': requester}).data,
+  }
   message.reply_channel.send({"accept": True})
+
+  message.reply_channel.send({"text": json.dumps(data)})
+
+  # Broadcast to all current listeners that 
+  # new participant has joined
+  data = {
+    'event': 'add_meeting_participant',
+    'meeting_id': meeting_id,
+    'participant': AppUserSlz(participant.app_user).data,
+  }
+  Group('meetings-%d' % meeting_id).send({
+    "text": json.dumps(data),
+    })
 
 # Connected to websocket.receive
 @channel_session
 def meetings_message(message, **kwargs):
   # Stick the message onto the processing queue
-  Channel("meetings").send({
-      "meeting_id": message.channel_session['meeting_id'],
-      "message": message['text'],
+  Channel('meetings').send({
+      'meeting_id': message.channel_session['meeting_id'],
+      'message': message['text'],
   })
+
+# Connected to websocket.disconnect
+# @channel_session
+# def meetings_disconnect(message, **kwargs):
+#   meeting_id = int(kwargs.get('meeting_id'))
+#   Group('meetings-%d' % message.channel_session['meeting_id']).discard(message.reply_channel)
 
 # Connected to websocket.disconnect
 @channel_session
 def meetings_disconnect(message, **kwargs):
-  Group("meetings-%d" % message.channel_session['meeting_id']).discard(message.reply_channel)
+  meeting_id = int(kwargs.get('meeting_id'))
+  # not sure why can't get token from channel_session
+  # as I'm storing it in the connect func
+  #tokenStr = message.channel_session['token']
+  tokenStr = kwargs.get('token')
+  requester = getRequesterFromToken(tokenStr)
+  if requester == None:
+    Group('meetings-%d' % message.channel_session['meeting_id']).discard(message.reply_channel)
+    return
+  # TODO(MPP): ugly i know
+  if Meeting.objects.filter(id=meeting_id).exists():
+    meeting = Meeting.objects.get(id=meeting_id)
+    try:
+      participant = MeetingParticipant.objects.get(meeting=meeting, app_user=requester)
+      setattr(participant, 'status', MeetingParticipant.ABSENT)
+      participant.save()
+    except MeetingParticipant.DoesNotExist:
+      pass
+
+  data = {
+    'event': 'remove_meeting_participant',
+    'meeting_id': meeting_id,
+    'participant': AppUserSlz(requester).data,
+  }
+  Group('meetings-%d' % message.channel_session['meeting_id']).discard(message.reply_channel)
+  Group('meetings-%d' % meeting_id).send({
+    "text": json.dumps(data),
+    })
 
 
 
 
-
-
-#############
-### ** Not using any of the below consumers
-#############
-
-
-# Connected to chat-messages
-def topic_consumer(message):
-  # Save to model
-  print('message: ', message)
-  room = message.content['room']
-  topic = Topic.objects.first()
-  topic.save()
-  # Broadcast to listening sockets
-  Group("topics-%d" % topic.id).send({
-      "topic": TopicSlz(topic).data,
-  })
 
 # Connected to websocket.connect
 @channel_session
-def ws_connect(message, **kwargs):
-  # Work out room name from path (ignore slashes)
-  #topic_id = message.content['path'].strip("/")
-  topic_id = int(kwargs.get('topic_id'))
-  print('TOPIC ID', topic_id)
+def user_connect(message, **kwargs):
+  user_id = int(kwargs.get('user_id'))
+  tokenStr = kwargs.get('token')
+  if not isValidToken(tokenStr):
+    message.reply_channel.send({"accept": False})
   # Save room in session and add us to the group
-  message.channel_session['topic_id'] = topic_id
-  Group("topics-%d" % topic_id).add(message.reply_channel)
+  message.channel_session['user_id'] = user_id
+  Group('users-%d' % user_id).add(message.reply_channel)
   # Accept the connection request
   message.reply_channel.send({"accept": True})
 
+
 # Connected to websocket.receive
 @channel_session
-def ws_message(message, **kwargs):
+def user_message(message, **kwargs):
   # Stick the message onto the processing queue
-  print('message', message['text'])
-  Channel("topics").send({
-      "topic_id": message.channel_session['topic_id'],
-      "message": message['text'],
+  Channel('users').send({
+      'user_id': message.channel_session['user_id'],
+      'message': message['text'],
   })
-
-  user_id = 2
-
-  data = json.loads(message['text'])
-  vote_type = data.get('vote_type')
-  topic_id = message.channel_session['topic_id']
-  topic = Topic.objects.get(id=topic_id)
-  user_votes = topic.vote_set.filter(owner__id=user_id)
-
-  if user_votes.count():
-  	# get first item because filter
-  	# returns an array.  There
-  	# should only every be one vote
-  	# for each user per topic
-  	vote = user_votes[0]
-  	# if vote_type is the same as
-  	# the already-cast-vote,
-  	# delete it,
-  	# otherwise, change vote_type
-  	if vote.vote_type == vote_type:
-  		vote.delete()
-  	else:
-  		old_vote_type = vote.vote_type
-  		setattr(vote, 'vote_type', vote_type)
-  		# need get value of vote_type before changing it,
-  		# then pass into save method.
-  		# This way, channels can be alerted of change
-  		vote.save(old_vote_type=old_vote_type)
-  # if user has not cast a vote
-  # for this topic, create new vote
-  else:
-  	vote = Vote.objects.create(
-  		owner=AppUser.objects.get(id=user_id),
-  		topic=topic,
-  		vote_type=vote_type)
-
-
 
 # Connected to websocket.disconnect
 @channel_session
-def ws_disconnect(message, **kwargs):
-  Group("topic-%d" % message.channel_session['topic_id']).discard(message.reply_channel)
+def user_disconnect(message, **kwargs):
+  print('USER DISCONNECT =======')
+  Group('users-%d' % message.channel_session['user_id']).discard(message.reply_channel)

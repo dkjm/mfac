@@ -11,61 +11,59 @@ import MeetingParticipants from '../MeetingParticipants';
 import MeetingAgenda from '../MeetingAgenda';
 import MeetingResources from '../MeetingResources';
 import TopicForm from '../TopicForm';
+import AgendaItemForm from '../AgendaItemForm';
+import AgendaItemDetail from '../AgendaItemDetail';
 import MeetingTabs from '../MeetingTabs';
 import CardListContainer from '../CardListContainer';
 import Section from '../Section';
+import MeetingForm from '../MeetingForm';
+import MeetingInvitations from '../MeetingInvitations';
+import MeetingInvitationDetail from '../MeetingInvitationDetail';
+import MeetingInvitationForm from '../MeetingInvitationForm';
 
 import CheckIcon from 'material-ui/svg-icons/navigation/check'
 
 
-import {connectMeetingSocket} from '../../services/api';
-
-import {meeting} from '../../resources/testData';
+import {
+	connectMeetingSocket, 
+	disconnectMeetingSocket,
+} from '../../services/api';
+import {getMeeting} from '../../selectors';
 
 
 
 class MeetingDetail extends Component {
 
 	componentWillMount() {
-		// TODO: use actual meeting id
-		this.props.connectMeetingSocket(meeting.id);
+		const {meeting_id} = this.props.match.params;
+		this.props.connectMeetingSocket(meeting_id);
 	}
 
-	renderAgendaItems() {
-		const items = meeting.agenda.items;
-		const renderedItems = items.map((item, index) => {
-			
-			return (
-				<AgendaItemCard key={item.id} item={item} />
-			)
-		})
-
-		// override default padding of CardListContainer
-		const style = {
-			padding: '10px',
-		}
-		return (
-			<CardListContainer style={style}>
-				{renderedItems}
-			</CardListContainer>
-		)
+	componentWillUnmount() {
+		this.props.disconnectMeetingSocket();
 	}
 
 	render() {
+		const {meeting, match, location} = this.props;
 		const m = meeting;
-
-		const {match, location} = this.props;
+		if (!m) {return null};
 
 		return (
 			<div>
-				<LayoutBanner title={m.title} />
+				{/*<LayoutBanner title={m.title} />*/}
 				<MeetingTabs />
 				<Switch>
-					<Route exact path={`${match.url}/stack`} render={props => ( <Stack {...props} /> )}
+					<Route path={`${match.url}/meeting_form/:intent`} render={props => ( <MeetingForm meeting={m} {...props} /> )}
+					/>
+					<Route exact path={`${match.url}/invitations`} render={props => ( <MeetingInvitations meeting={m} {...props} /> )}
+					/>
+					<Route exact path={`${match.url}/invitations/:meeting_invitation_id`} render={props => ( <MeetingInvitationDetail meeting={m} {...props} /> )}
+					/>
+					<Route exact path={`${match.url}/invitations/invitation_form/:intent`} render={props => ( <MeetingInvitationForm meeting={m} {...props} /> )}
 					/>
 					<Route path={`${match.url}/participants`} render={props => ( <MeetingParticipants participants={m.participants} {...props} /> )}
 					/>
-					<Route path={`${match.url}/agenda`} render={props => ( <MeetingAgenda agenda={m.agenda} {...props} /> )}
+					<Route path={`${match.url}/agenda`} render={props => ( <MeetingAgenda {...props} /> )}
 					/>
 					<Route path={`${match.url}/resources`} render={props => ( <MeetingResources resources={m.resources} {...props} /> )}
 					/>
@@ -75,8 +73,16 @@ class MeetingDetail extends Component {
 					/>
 					<Route path={`${match.url}/topic_form/:intent`} render={props => ( <TopicForm meeting={m} {...props} /> )}
 					/>
-					<Route path='/' render={props => ( <MeetingHome meeting={m} {...props} /> )}
+				{/* Passing meeting to AgendaItemForm as a prop because I can't get a hold of meeting_id inside that comp from match prop via react router*/}
+					<Route path={`${match.url}/agenda_item_form/:intent/:agenda_item_id`} render={props => ( <AgendaItemForm meeting={m} {...props} /> )}
 					/>
+					<Route path={`${match.url}/agenda_item_form/:intent`} render={props => ( <AgendaItemForm meeting={m} {...props} /> )}
+					/>
+					<Route path={`${match.url}/agenda_item/:agenda_item_id`} render={props => ( <AgendaItemDetail meeting={m} {...props} /> )}
+					/>
+					{/*<Route path='/' render={props => ( <MeetingHome meeting={m} {...props} /> )}
+					/>*/}
+					<Redirect from='/' to={`${match.url}/home`} />
 
 				</Switch>
 			</div>
@@ -87,15 +93,19 @@ class MeetingDetail extends Component {
 
 
 const mapStateToProps = (state, ownProps) => {
+	const {meeting_id} = ownProps.match.params;
 	return {
-		
+		meeting: getMeeting(state, {meeting_id}),
 	}
 }
 
 const mapDispatchToProps = (dispatch) => {
 	return {
 		connectMeetingSocket: (meeting_id) => {
-      dispatch(connectMeetingSocket(meeting_id));
+      dispatch(connectMeetingSocket({meeting_id}));
+    },
+    disconnectMeetingSocket: () => {
+      dispatch(disconnectMeetingSocket());
     },
 	}
 }
