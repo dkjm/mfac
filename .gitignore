@@ -2,6 +2,7 @@ web/node_modules
 web/build
 
 **/__pycache__/**
+**/*.pyc
 **/dump.rdb
 api/bin
 api/include
