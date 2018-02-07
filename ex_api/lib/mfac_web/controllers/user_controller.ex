@@ -64,7 +64,7 @@ defmodule MfacWeb.UserController do
           jwt = Accounts.Guardian.Plug.current_token(auth_conn) 
 
           auth_conn
-          |> put_resp_header("authorization", "Bearer #{jwt}")
+          # |> put_resp_header("authorization", "Bearer #{jwt}")
           |> render(MfacWeb.UserView, "sign_in.json", user: user, token: jwt)
         false ->
           conn

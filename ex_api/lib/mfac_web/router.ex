@@ -3,6 +3,7 @@ defmodule MfacWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug Mfac.Accounts.Guardian.AuthPipeline
   end
 
   scope "/api/v0", MfacWeb do

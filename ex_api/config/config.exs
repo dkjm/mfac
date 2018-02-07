@@ -24,6 +24,7 @@ config :logger, :console,
 
 config :mfac, Mfac.Accounts.Guardian,
        issuer: "mfac",
+       serializer: Mfac.Accounts.Guardian,
        secret_key: "XHX1lVl+3gdEAjABvx0+hdUwKCjZ49p9zk4KFaFo4tdQE1GHY0A7sJAvkAnA9Uwa"
 
 # Import environment specific config. This must remain at the bottom
