@@ -28,9 +28,10 @@ defmodule MfacWeb.MeetingChannel do
   # end
 
   def broadcast_event(agenda_item) do
+    agenda_item = Mfac.Meetings.get_formatted_agenda_item_votes(Mfac.Repo.preload(agenda_item, :votes))
     #MeetingChannel.Endpoint.broadcast(room, "add_agenda_item", agenda_item_json)
     room = "meeting:#{agenda_item.meeting_id}"
-    agenda_item_json = MfacWeb.AgendaItemView.render("show.json", %{agenda_item: agenda_item})
+    agenda_item_json = MfacWeb.AgendaItemView.render("meeting_update_agenda_item.json", %{agenda_item: agenda_item})
     #Mfac.Endpoint.broadcast(room, "add_agenda_item", agenda_item_json)
     MfacWeb.Endpoint.broadcast(room, "add_agenda_item", %{agenda_item: agenda_item_json})
   end
@@ -53,22 +54,8 @@ defmodule MfacWeb.MeetingChannel do
     # TODO:(ja) this should be handled in the query if possible. reducing them now just to get it working
     meeting = List.first(Mfac.Repo.all(query)) #|> IO.inspect(label: "meeting")
 
-    agenda_items = Enum.map(meeting.agenda_items, fn item -> 
-      votes = Enum.reduce(item.votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
-        case vote.vote_type do
-          "UP" -> 
-            Map.put(acc, :up, Map.get(acc, :up) + 1)
-          "DOWN" ->
-            Map.put(acc, :down, Map.get(acc, :down) + 1)
-          "MEH" ->
-            Map.put(acc, :meh, Map.get(acc, :meh) + 1)
-        end  
-      end)
 
-      Map.put(item, :votes, votes)
-    end)
-
-    meeting_with_votes = Map.put(meeting, :agenda_items, agenda_items) #|> IO.inspect(label: "with votes")
+    meeting_with_votes = Map.put(meeting, :agenda_items, Mfac.Meetings.get_formatted_agenda_item_votes(meeting.agenda_items)) #|> IO.inspect(label: "with votes")
     
     # user_vote_type = votes.filter(owner=requester)[0].vote_type
     #   result = {

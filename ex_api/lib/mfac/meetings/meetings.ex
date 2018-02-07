@@ -230,6 +230,35 @@ defmodule Mfac.Meetings do
     AgendaItem.changeset(agenda_item, %{})
   end
 
+
+  defp format_votes(votes) do
+    Enum.reduce(votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
+      case vote.vote_type do
+        "UP" -> 
+          Map.put(acc, :up, Map.get(acc, :up) + 1)
+        "DOWN" ->
+          Map.put(acc, :down, Map.get(acc, :down) + 1)
+        "MEH" ->
+          Map.put(acc, :meh, Map.get(acc, :meh) + 1)
+      end  
+    end)
+  end
+
+
+  def get_formatted_agenda_item_votes(agenda_item) when is_list(agenda_item) do
+    Enum.map(agenda_item, fn item -> 
+      Map.put(item, :votes, format_votes(item.votes))
+    end)
+  end
+
+  def get_formatted_agenda_item_votes(agenda_item) when is_map(agenda_item) do
+    Map.put(agenda_item, :votes, format_votes(agenda_item.votes))
+  end
+
+
+
+
+
   alias Mfac.Meetings.AgendaItemVote
 
   @doc """
