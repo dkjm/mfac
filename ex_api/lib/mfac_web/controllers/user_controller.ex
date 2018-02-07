@@ -3,6 +3,7 @@ defmodule MfacWeb.UserController do
 
   alias Mfac.Accounts
   alias Mfac.Accounts.User
+  import Ecto.Query
 
   action_fallback MfacWeb.FallbackController
 
@@ -83,10 +84,33 @@ defmodule MfacWeb.UserController do
     end
   end
 
-  # TODO(ja): I did this
+  # TODO(mp - 2/6): contacts returned from this
+  # controller are currently just all users
+  # excluding the requester.  Need to establish
+  # some concept of "contacts" still 
   def user_data(conn, _params) do
-    user = Accounts.get_user!(1)
-    data = %{user_data: user, meeting_invitations: [], contacts: []}
+    user = Mfac.Accounts.Guardian.Plug.current_resource(conn)
+    invitations_query = 
+      from i in Mfac.Meetings.Invitation,
+        left_join: m in Mfac.Meetings.Meeting, on: i.meeting_id == m.id,
+        left_join: inviter in Mfac.Accounts.User, on: i.inviter_id == inviter.id,
+        left_join: invitee in Mfac.Accounts.User, on: i.invitee_id == invitee.id,
+        where: i.invitee_id == ^user.id,
+        preload: [
+          meeting: m,
+          inviter: inviter,
+          invitee: invitee,
+        ]
+    invitations = Mfac.Repo.all(invitations_query)
+
+    contacts_query = from u in User, where: u.id != ^user.id
+    contacts = Mfac.Repo.all(contacts_query)
+
+    data = %{
+      user_data: user, 
+      meeting_invitations: invitations, 
+      contacts: contacts}
+
     render(conn, "user_data.json", user_data: data)
   end
 

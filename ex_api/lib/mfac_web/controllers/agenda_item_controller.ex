@@ -12,7 +12,7 @@ defmodule MfacWeb.AgendaItemController do
   end
 
   def create(conn, %{"agenda_item" => agenda_item_params}) do
-    user = Mfac.Accounts.Guardian.Plug.current_resource(conn) |> IO.inspect(label: "=== user")
+    user = Mfac.Accounts.Guardian.Plug.current_resource(conn)
     with {:ok, %AgendaItem{} = agenda_item} <- Meetings.create_agenda_item(Map.put(agenda_item_params, "user_id", user.id)) do
       conn
       |> put_status(:created)

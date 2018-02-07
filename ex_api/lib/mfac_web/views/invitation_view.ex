@@ -7,14 +7,21 @@ defmodule MfacWeb.InvitationView do
   end
 
   def render("show.json", %{invitation: invitation}) do
-    %{data: render_one(invitation, InvitationView, "invitation.json")}
+    render_one(invitation, InvitationView, "invitation.json")
   end
 
   def render("invitation.json", %{invitation: invitation}) do
     %{id: invitation.id,
-      status: invitation.status,
+      inserted_at: invitation.inserted_at,
+      updated_at: invitation.updated_at,
       accepted_at: invitation.accepted_at,
       declined_at: invitation.declined_at,
-      verion: invitation.verion}
+      status: invitation.status,
+      version: invitation.version,
+      meeting: render_one(invitation.meeting, MfacWeb.MeetingView, "meeting.json"),
+      inviter: render_one(invitation.inviter, MfacWeb.UserView, "user_simple.json"),
+      invitee: render_one(invitation.invitee, MfacWeb.UserView, "user_simple.json"),
+
+    }
   end
 end

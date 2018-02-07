@@ -45,7 +45,7 @@ class MeetingHome extends Component {
         <LabelValue label="Meeting title" value={m.title} />
         <LabelValue label="Description" value={m.description} />
         <LabelValue label="Created by" value={m.owner.full_name} />
-        <LabelValue label="Created on" value={m.created_on} />
+        <LabelValue label="Created on" value={m.inserted_at} />
       </div>
     )
   }
