@@ -167,14 +167,14 @@ defmodule Mfac.Meetings do
       |> AgendaItem.changeset(attrs)
       |> Repo.insert()
       |> IO.inspect(label: "REPO RESULT")
-      |> send_broadcast
+      |> send_broadcast("add_agenda_item")
   end
 
-  defp send_broadcast(result) do
+  defp send_broadcast(result, val) do
     {status, agenda_item} = result
     IO.inspect(status, label: "STATUS=======")
     IO.inspect(status, label: "STATUS=======")
-    MfacWeb.MeetingChannel.broadcast_event(agenda_item)
+    MfacWeb.MeetingChannel.broadcast_event(agenda_item, val)
     result
     # IO.inspect(agenda_item, label: "ITEM=======")
   end
@@ -404,9 +404,14 @@ defmodule Mfac.Meetings do
 
   """
   def create_stack_entry(attrs \\ %{}) do
-    %StackEntry{}
-    |> StackEntry.changeset(attrs)
-    |> Repo.insert()
+    # TODO(ja): this needs to handle errors. just testing the socket stuff right now
+    {:ok, se} =
+      %StackEntry{}
+      |> StackEntry.changeset(attrs)
+      |> Repo.insert()
+
+    send_broadcast({:ok, get_agenda_item!(se.agenda_item_id)}, "update_agenda_item")
+    {:ok, se}
   end
 
   @doc """

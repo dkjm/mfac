@@ -21,6 +21,7 @@ export const UPDATE_AGENDA_ITEM_USER_VOTE_TYPE = 'UPDATE_AGENDA_ITEM_USER_VOTE_T
 export const UPDATE_AGENDA_ITEM_VOTE_COUNTS = 'UPDATE_AGENDA_ITEM_VOTE_COUNTS';
 export const LOAD_AGENDA_ITEM_STACK_ENTRY = 'LOAD_AGENDA_ITEM_STACK_ENTRY';
 export const UPDATE_AGENDA_ITEM_STACK_ENTRIES = 'UPDATE_AGENDA_ITEM_STACK_ENTRIES';
+export const UPDATE_AGENDA_ITEM = 'UPDATE_AGENDA_ITEM';
 export const LOAD_MEETINGS = 'LOAD_MEETINGS';
 export const LOAD_MEETING = 'LOAD_MEETING';
 export const UPDATE_MEETING_DETAIL = 'UPDATE_MEETING_DETAIL';
@@ -311,11 +312,11 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
     dispatch(action);
   })
 
-  channel.on('update_agenda_item_stack_entries', payload => {
+  channel.on('update_agenda_item', payload => {
+    console.log("made it to update")
     const action = {
-      type: UPDATE_AGENDA_ITEM_STACK_ENTRIES,
-      agenda_item_id: data.agenda_item_id,
-      agenda_item_stack_entries: data.agenda_item_stack_entries,
+      type: UPDATE_AGENDA_ITEM,
+      agenda_item: payload.agenda_item,
     }
     dispatch(action);
   })
@@ -1123,6 +1124,21 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
         },
       }
       return nextState;   
+    }
+
+    case (UPDATE_AGENDA_ITEM): {
+      const { agenda_item } = action;
+      const agendaItem = state.cache[agenda_item.id];
+      if (!agendaItem) {return state};
+
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agenda_item.id]: agenda_item,
+        },
+      }
+      return nextState;
     }
 
     case (LOAD_AGENDA_ITEM_STACK_ENTRY): {

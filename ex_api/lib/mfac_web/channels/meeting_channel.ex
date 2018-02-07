@@ -29,13 +29,15 @@ defmodule MfacWeb.MeetingChannel do
   #     end
   # end
 
-  def broadcast_event(agenda_item) do
+  def broadcast_event(agenda_item, val) do
+    IO.inspect(agenda_item, label: "agendat")
+    IO.puts val
     agenda_item = Mfac.Meetings.get_formatted_agenda_item_votes(Mfac.Repo.preload(agenda_item, [:votes, :stack_entries, :owner]))
     #MeetingChannel.Endpoint.broadcast(room, "add_agenda_item", agenda_item_json)
     room = "meeting:#{agenda_item.meeting_id}"
     agenda_item_json = MfacWeb.AgendaItemView.render("meeting_update_agenda_item.json", %{agenda_item: agenda_item})
     #Mfac.Endpoint.broadcast(room, "add_agenda_item", agenda_item_json)
-    MfacWeb.Endpoint.broadcast(room, "add_agenda_item", %{agenda_item: agenda_item_json})
+    MfacWeb.Endpoint.broadcast(room, val, %{agenda_item: agenda_item_json})
   end
 
   defp push_update(socket, id) do
