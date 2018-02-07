@@ -9,7 +9,7 @@ defmodule Mfac.Meetings.StackEntry do
     field :closed_at, :utc_datetime
     field :opened_at, :utc_datetime
     field :status, :string
-    field :version, :integer
+    field :version, :integer, default: 0
     field :user_id, :id
     belongs_to :agenda_item, Mfac.Meetings.AgendaItem, foreign_key: :agenda_item_id
 
@@ -20,6 +20,6 @@ defmodule Mfac.Meetings.StackEntry do
   def changeset(%StackEntry{} = stack_entry, attrs) do
     stack_entry
     |> cast(attrs, [:agenda_item_id, :status, :allotted_duration, :version, :opened_at, :closed_at])
-    |> validate_required([:status, :allotted_duration, :version, :opened_at, :closed_at])
+    |> validate_required([:agenda_item_id, :opened_at])
   end
 end

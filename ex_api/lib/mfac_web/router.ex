@@ -15,7 +15,7 @@ defmodule MfacWeb.Router do
     resources "/users", UserController, except: [:new, :edit]
     get "/user_data", UserController, :user_data
     post "/login", UserController, :sign_in_user
-    resources "/stack_entries", StackEntryController, except: [:new, :edit]
+    resources "/agenda_item_stack_entries", StackEntryController, except: [:new, :edit]
     resources "/invitations", InvitationController, except: [:new, :edit]
     resources "/participants", ParticipantController, except: [:new, :edit]
   end

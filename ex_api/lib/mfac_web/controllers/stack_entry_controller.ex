@@ -3,6 +3,7 @@ defmodule MfacWeb.StackEntryController do
 
   alias Mfac.Meetings
   alias Mfac.Meetings.StackEntry
+  import Timex 
 
   action_fallback MfacWeb.FallbackController
 
@@ -11,8 +12,11 @@ defmodule MfacWeb.StackEntryController do
     render(conn, "index.json", stack_entries: stack_entries)
   end
 
-  def create(conn, %{"stack_entry" => stack_entry_params}) do
-    with {:ok, %StackEntry{} = stack_entry} <- Meetings.create_stack_entry(stack_entry_params) do
+
+  #TODO(ja): these params should be changed back to the default. 
+  # swapping now to get working with existing client app
+  def create(conn, stack_entry_params) do
+    with {:ok, %StackEntry{} = stack_entry} <- Meetings.create_stack_entry(Map.put(stack_entry_params, "opened_at", Timex.now)) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", stack_entry_path(conn, :show, stack_entry))
