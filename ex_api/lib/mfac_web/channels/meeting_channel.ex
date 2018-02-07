@@ -47,6 +47,7 @@ defmodule MfacWeb.MeetingChannel do
     
     query = 
       from m in Meeting,
+      left_join: o in User, on: o.id == m.user_id,
       left_join: i in Invitation, on: i.meeting_id == ^id,
       left_join: p in Participant, on: p.meeting_id == ^id,
       left_join: a in AgendaItem, on: a.meeting_id == ^id,
@@ -54,7 +55,16 @@ defmodule MfacWeb.MeetingChannel do
       left_join: s in StackEntry, on: s.agenda_item_id == a.id,
       left_join: u in User, on: u.id == a.user_id,
       where: m.id == ^id,
-      preload: [invitations: i, participants: p, agenda_items: {a, [votes: v, stack_entries: s, owner: u]}]
+      preload: [
+        owner: o, 
+        invitations: i, 
+        participants: p, 
+        agenda_items: {a, [
+          votes: v, 
+          stack_entries: s, 
+          owner: u
+        ]}
+      ]
 
     
     # TODO:(ja) this should be handled in the query if possible. reducing them now just to get it working

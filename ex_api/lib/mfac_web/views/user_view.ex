@@ -21,10 +21,12 @@ defmodule MfacWeb.UserView do
   end
 
   def render("user.json", %{user: user}) do
+    full_name = "#{user.first_name} #{user.last_name}"
     %{id: user.id,
       first_name: user.first_name,
       last_name: user.last_name,
       middle_name: user.middle_name,
+      full_name: full_name,
       is_active: user.is_active}
   end
 
@@ -34,5 +36,11 @@ defmodule MfacWeb.UserView do
       meeting_invitations: data.meeting_invitations,
       contacts: data.contacts
     }
+  end
+
+  def render("user_simple.json", %{user: user}) do
+    full_name = "#{user.first_name} #{user.last_name}"
+    %{id: user.id,
+      full_name: full_name}
   end
 end

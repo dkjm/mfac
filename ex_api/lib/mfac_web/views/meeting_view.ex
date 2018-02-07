@@ -15,7 +15,10 @@ defmodule MfacWeb.MeetingView do
       title: meeting.title,
       description: meeting.description,
       allotted_duration: meeting.allotted_duration,
-      version: meeting.version}
+      version: meeting.version,
+      inserted_at: meeting.inserted_at,
+      updated_at: meeting.updated_at,
+      ended_at: meeting.ended_at}
   end
 
   def render("socket_meeting.json", %{meeting: meeting}) do
@@ -25,9 +28,13 @@ defmodule MfacWeb.MeetingView do
       description: meeting.description,
       allotted_duration: meeting.allotted_duration,
       version: meeting.version,
+      inserted_at: meeting.inserted_at,
+      updated_at: meeting.updated_at,
+      ended_at: meeting.ended_at,
       agenda_items: render_many(meeting.agenda_items, MfacWeb.AgendaItemView, "meeting_update_agenda_item.json"),
       invitations: render_many(meeting.invitations, MfacWeb.InvitationView, "invitation.json"),
-      participants: render_many(meeting.participants, MfacWeb.ParticipantView, "participant.json")
+      participants: render_many(meeting.participants, MfacWeb.ParticipantView, "participant.json"),
+      owner: render_one(meeting.owner, MfacWeb.UserView, "user_simple.json")
     }
   end
 end

@@ -167,8 +167,8 @@ export const reducer = (state = initialState, action) => {
 				contacts,
 			} = action.data;
 			const meetingInvitationsObj = {};
-			meeting_invitations.forEach(i => meetingInvitationsObj[i.id] = i);
 			const contactsObj = {};
+			meeting_invitations.forEach(i => meetingInvitationsObj[i.id] = i);
 			contacts.forEach(i => contactsObj[i.id] = i);
 			const nextState = {
 				...state,
