@@ -47,16 +47,21 @@ defmodule MfacWeb.UserController do
     end
   end
 
+  # TODO(mp - 2/7): commenting out downcase call
+  # because using case sensitive user_name 
   defp trim_user_name(user_name) do
     user_name
       |> String.trim
-      |> String.downcase
+      #|> String.downcase
   end
 
+  # TODO(mp): Need to implement response for user not
+  # found.  Right now, I think client just gets
+  # a 500
   def sign_in_user(conn, %{"username" => user_name, "password" => password}) do
-    
     try do
       user = Mfac.Repo.get_by(User, user_name: trim_user_name(user_name)) |> Mfac.Repo.preload(:invitations)
+      IO.inspect(user, label: "User ====")
 
       case is_binary(user.hashed_password) and authenticate(user, password) do
         true ->

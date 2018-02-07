@@ -27,7 +27,7 @@ axios.interceptors.request.use((config) => {
 
 
 export const submitLoginForm = (params = {}) => (dispatch, getState) => {
-	const endpoint = `${API_ENTRY}/login/`;
+	const endpoint = `${API_ENTRY}/auth/login/`;
 	const data = {
 		username: params.username,
 		password: params.password,
