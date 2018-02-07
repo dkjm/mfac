@@ -230,6 +230,7 @@ export const reducer = (state = initialState, action) => {
 				meeting_invitations,
 				contacts,
 			} = action.data;
+			//console.log('LOAD_USER_DATA', action.data)
 			const meetingInvitationsObj = {};
 			meeting_invitations.forEach(i => meetingInvitationsObj[i.id] = i);
 			const contactsObj = {};

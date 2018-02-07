@@ -3,6 +3,7 @@ defmodule MfacWeb.UserController do
 
   alias Mfac.Accounts
   alias Mfac.Accounts.User
+
   import Ecto.Query
 
   action_fallback MfacWeb.FallbackController
@@ -61,17 +62,36 @@ defmodule MfacWeb.UserController do
   # a 500
   def sign_in_user(conn, %{"username" => user_name, "password" => password}) do
     try do
-      user = Mfac.Repo.get_by(User, user_name: trim_user_name(user_name)) |> Mfac.Repo.preload(:invitations)
-      IO.inspect(user, label: "User ====")
+      user = Mfac.Repo.get_by(User, user_name: trim_user_name(user_name))
+
+      invitations_query = 
+      from i in Mfac.Meetings.Invitation,
+        left_join: m in Mfac.Meetings.Meeting, on: i.meeting_id == m.id,
+        left_join: inviter in User, on: i.inviter_id == inviter.id,
+        left_join: invitee in User, on: i.invitee_id == invitee.id,
+        where: i.invitee_id == ^user.id,
+        preload: [
+          meeting: m,
+          inviter: inviter,
+          invitee: invitee,
+        ]
+      invitations = Mfac.Repo.all(invitations_query)
+
+      contacts_query = from u in User, where: u.id != ^user.id
+      contacts = Mfac.Repo.all(contacts_query)
+
+      data = %{
+        user_data: user, 
+        meeting_invitations: invitations, 
+        contacts: contacts}
 
       case is_binary(user.hashed_password) and authenticate(user, password) do
         true ->
-          auth_conn = Accounts.Guardian.Plug.sign_in(conn, user) #|> IO.inspect(label: "AUTH CONN====")
+          auth_conn = Accounts.Guardian.Plug.sign_in(conn, user)
           jwt = Accounts.Guardian.Plug.current_token(auth_conn) 
 
           auth_conn
-          # |> put_resp_header("authorization", "Bearer #{jwt}")
-          |> render(MfacWeb.UserView, "sign_in.json", user: user, token: jwt)
+          |> render(MfacWeb.UserView, "sign_in.json", user_data: data, token: jwt)
         false ->
           conn
           |> put_status(401)
@@ -93,8 +113,8 @@ defmodule MfacWeb.UserController do
     invitations_query = 
       from i in Mfac.Meetings.Invitation,
         left_join: m in Mfac.Meetings.Meeting, on: i.meeting_id == m.id,
-        left_join: inviter in Mfac.Accounts.User, on: i.inviter_id == inviter.id,
-        left_join: invitee in Mfac.Accounts.User, on: i.invitee_id == invitee.id,
+        left_join: inviter in User, on: i.inviter_id == inviter.id,
+        left_join: invitee in User, on: i.invitee_id == invitee.id,
         where: i.invitee_id == ^user.id,
         preload: [
           meeting: m,
