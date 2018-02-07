@@ -12,7 +12,17 @@ defmodule MfacWeb.MeetingController do
   end
 
   def create(conn, %{"meeting" => meeting_params}) do
-    with {:ok, %Meeting{} = meeting} <- Meetings.create_meeting(meeting_params) do
+    # get user from conn and merge params with defaults
+    # Not sure if it's better to handle how the changeset
+    # takes attrs, e.g. maybe have a creation changeset that
+    # does not require allotted_duration or version
+    user = Mfac.Accounts.Guardian.Plug.current_resource(conn)
+    defaults = %{
+      "version" => 0, 
+      "allotted_duration" => 0, 
+      "user_id" => user.id}
+    updated_params = Map.merge(meeting_params, defaults)
+    with {:ok, %Meeting{} = meeting} <- Meetings.create_meeting(updated_params) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", meeting_path(conn, :show, meeting))

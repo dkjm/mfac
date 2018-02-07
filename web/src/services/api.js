@@ -152,7 +152,7 @@ export const submitMeetingForm = (params = {}) => (dispatch, getState) => {
   const config = {
     url: endpoint,
     method,
-    data: values,
+    data: {meeting: values},
   }
 
   return axios(config)
@@ -593,7 +593,6 @@ export const submitTopicForm = (params = {}) => (dispatch, getState) => {
 
 
 
-// TODO: implement submitAgendaItemForm
 export const submitAgendaItemForm = (params = {}) => (dispatch, getState) => {
   const {
     agenda_item_id,
@@ -609,14 +608,6 @@ export const submitAgendaItemForm = (params = {}) => (dispatch, getState) => {
   // <intent> will be either "update"
   // or "create".  Endpoint depends on which
 
-  // TODO: enpdoint urls need to be fixed
-  // to work with Django url scheme.  
-  // Notice that 'update' url has no trailing slash,
-  // but 'create' does.  Django will complain
-  // if you don't send requests like this,
-  // mainly because the current routing setup
-  // for handling params is fucked up.
-  // see in Django project st/urls.py
   const endpoint = intent === 'update'
     ? API_ENTRY + `/agenda_items/${agenda_item_id}/`
     : API_ENTRY + '/agenda_items/'
@@ -628,8 +619,6 @@ export const submitAgendaItemForm = (params = {}) => (dispatch, getState) => {
   return axios.post(endpoint, {agenda_item: data})
     .then(response => {
         // ** currently not handling response. New data
-        // comes in via websocket as 
-        // RECEIVE_TOPIC action
         history.goBack();
         const snackbarParams = {
           open: true,
