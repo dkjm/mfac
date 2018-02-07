@@ -7,7 +7,8 @@ defmodule MfacWeb.MeetingController do
   action_fallback MfacWeb.FallbackController
 
   def index(conn, _params) do
-    meetings = Meetings.list_meetings()
+    user = Mfac.Accounts.Guardian.Plug.current_resource(conn)
+    meetings = Meetings.list_user_meetings(user.id)
     render(conn, "index.json", meetings: meetings)
   end
 

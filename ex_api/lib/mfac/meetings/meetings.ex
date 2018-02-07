@@ -8,6 +8,7 @@ defmodule Mfac.Meetings do
 
 
   alias Mfac.Meetings.Meeting
+  alias Mfac.Meetings.Invitation
 
   @doc """
   Returns the list of meetings.
@@ -20,6 +21,21 @@ defmodule Mfac.Meetings do
   """
   def list_meetings do
     Repo.all(Meeting)
+  end
+
+  @doc """
+  Returns list of meetings for which:
+  1. meeting.user_id == user_id or
+  2. user has related invitations that 
+    have been accepted
+  """
+  # TODO(mp 2/7): replace invitation status string value 
+  # check with enum value
+  def list_user_meetings(user_id) do
+    owned_meetings = Repo.all(from m in Meeting, where: m.user_id == ^user_id)
+    accepted_invitations = Repo.all(from i in Invitation, where: i.invitee_id == ^user_id and i.status == "ACCEPTED")
+    invited_meetings = Enum.map(accepted_invitations, fn i -> Repo.get(Meeting, i.meeting_id) end)
+    owned_meetings ++ invited_meetings
   end
 
   @doc """
