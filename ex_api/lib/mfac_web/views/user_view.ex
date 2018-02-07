@@ -10,11 +10,14 @@ defmodule MfacWeb.UserView do
     %{data: render_one(user, UserView, "user.json")}
   end
 
-  def render("sign_in.json", %{user: user, jwt: jwt}) do
-    %{
-      user: render_one(user, UserView, "user.json"),
-      token: jwt
+  def render("sign_in.json", %{user: user, token: token}) do
+   %{
+      user_data: render_one(user, UserView, "user.json"),
+      token: token,
+      meeting_invitations: user.invitations,
+      contacts: []
     }
+    
   end
 
   def render("user.json", %{user: user}) do

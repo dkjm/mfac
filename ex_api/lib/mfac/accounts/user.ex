@@ -12,6 +12,7 @@ defmodule Mfac.Accounts.User do
     field :user_name, :string
     field :hashed_password, :string
     field :password, :string, virtual: true
+    has_many :invitations, Mfac.Meetings.Invitation, foreign_key: :invitee_id
 
     timestamps()
   end

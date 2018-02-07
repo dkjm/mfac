@@ -56,21 +56,20 @@ defmodule MfacWeb.UserController do
   def sign_in_user(conn, %{"username" => user_name, "password" => password}) do
     
     try do
-      user = Mfac.Repo.get_by(User, user_name: trim_user_name(user_name))
+      user = Mfac.Repo.get_by(User, user_name: trim_user_name(user_name)) |> Mfac.Repo.preload(:invitations)
 
       case is_binary(user.hashed_password) and authenticate(user, password) do
         true ->
-
-          auth_conn = Accounts.Guardian.Plug.api_sign_in(conn, user)
-          jwt = Accounts.Guardian.Plug.current_token(auth_conn)
+          auth_conn = Accounts.Guardian.Plug.sign_in(conn, user) #|> IO.inspect(label: "AUTH CONN====")
+          jwt = Accounts.Guardian.Plug.current_token(auth_conn) 
 
           auth_conn
           |> put_resp_header("authorization", "Bearer #{jwt}")
-          |> render(Mfac.UserView, "show.json", user: user, token: jwt)
+          |> render(MfacWeb.UserView, "sign_in.json", user: user, token: jwt)
         false ->
           conn
           |> put_status(401)
-          |> render(Mfac.ErrorView, "401.json-api")
+          |> render(MfacWeb.ErrorView, "401.json-api")
       end
 
     rescue
