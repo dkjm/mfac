@@ -231,6 +231,7 @@ defmodule Mfac.Meetings do
   end
 
 
+  # TODO(JA): ask mark what the user_vote key should return and handle that formatting here
   defp format_votes(votes) do
     Enum.reduce(votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
       case vote.vote_type do
@@ -244,7 +245,11 @@ defmodule Mfac.Meetings do
     end)
   end
 
-
+  @doc """
+    Accepts agenda_item or agenda_items with preloaded votes as and argument
+    and returns the same struct or structs with the votes key set to the
+    formatted votes accumulation needed by the client side application.
+  """
   def get_formatted_agenda_item_votes(agenda_item) when is_list(agenda_item) do
     Enum.map(agenda_item, fn item -> 
       Map.put(item, :votes, format_votes(item.votes))
