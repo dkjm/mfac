@@ -238,7 +238,7 @@ export const deleteMeetingInvitation = (params = {}) => (dispatch, getState) => 
     meeting_invitation_id,
   } = params
 
-  const endpoint = `${API_ENTRY}/meeting_invitations/${meeting_invitation_id}/`;
+  const endpoint = `${API_ENTRY}/invitations/${meeting_invitation_id}/`;
 
   const config = {
     url: endpoint,
