@@ -157,11 +157,20 @@ export const submitMeetingForm = (params = {}) => (dispatch, getState) => {
 
   return axios(config)
     .then(response => {
-      const action = {
-        type: LOAD_MEETING,
-        meeting: response.data,
-      }
-      dispatch(action);
+      // TODO(mp 2/7): explicitly not dispatching
+      // LOAD_MEETING action type because the returned
+      // data will not have all the necessary vals,
+      // e.g. owner, etc.  This will throw an error when
+      // rendering MeetingDetail component, because meeting
+      // is not null in state, but it doesn't have the expected
+      // props.  Rather than use the returned response, just
+      // using meeting_id and pushing to correct url, then let
+      // connectMeetingSocket provide necessary data
+      // const action = {
+      //   type: LOAD_MEETING,
+      //   meeting: response.data,
+      // }
+      // dispatch(action);
       if (intent === 'update') {
         history.goBack();
       }
