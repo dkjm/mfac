@@ -11,12 +11,16 @@ defmodule MfacWeb.InvitationController do
     render(conn, "index.json", invitations: invitations)
   end
 
-  def create(conn, %{"invitation" => invitation_params}) do
-    with {:ok, %Invitation{} = invitation} <- Meetings.create_invitation(invitation_params) do
+  # Returning empty response here.  Data
+  # should be returned via meeting channel
+  def create(conn, invitation_params) do
+    requester = Mfac.Accounts.Guardian.Plug.current_resource(conn)
+    updated_params = Map.put(invitation_params, "inviter_id", requester.id)
+    with {:ok, %Invitation{} = invitation} <- Meetings.create_invitation(updated_params) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", invitation_path(conn, :show, invitation))
-      |> render("show.json", invitation: invitation)
+      |> send_resp(201, "")
     end
   end
 

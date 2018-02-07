@@ -7,7 +7,7 @@ defmodule Mfac.Meetings.Invitation do
   schema "invitations" do
     field :accepted_at, :utc_datetime
     field :declined_at, :utc_datetime
-    field :status, :string
+    field :status, :string, default: "PENDING"
     field :version, :integer, default: 0
     belongs_to :inviter, Mfac.Accounts.User, foreign_key: :inviter_id
     belongs_to :invitee, Mfac.Accounts.User, foreign_key: :invitee_id

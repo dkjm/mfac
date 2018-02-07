@@ -198,12 +198,12 @@ export const submitMeetingInvitationForm = (params = {}) => (dispatch, getState)
 
   let endpoint, method, successMessage;
   if (intent === 'update') {
-    endpoint = API_ENTRY + `/meeting_invitations/${meeting_invitation_id}/`;
+    endpoint = API_ENTRY + `/invitations/${meeting_invitation_id}/`;
     method = 'PATCH';
     successMessage = 'Invitation updated successfully.';
   }
   else {
-    endpoint = API_ENTRY + `/meeting_invitations/`;
+    endpoint = API_ENTRY + `/invitations/`;
     method = 'POST';
     successMessage = 'Invitation sent.';
   }
