@@ -12,10 +12,8 @@ defmodule MfacWeb.AgendaItemController do
   end
 
   def create(conn, %{"agenda_item" => agenda_item_params}) do
-    IO.inspect(conn, label: "CONN===========")
-    token = Mfac.Accounts.Guardian.Plug.current_token(conn) |> IO.inspect(label: "=== token")
     user = Mfac.Accounts.Guardian.Plug.current_resource(conn) |> IO.inspect(label: "=== user")
-    with {:ok, %AgendaItem{} = agenda_item} <- Meetings.create_agenda_item(agenda_item_params) do
+    with {:ok, %AgendaItem{} = agenda_item} <- Meetings.create_agenda_item(Map.put(agenda_item_params, "user_id", user.id)) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", agenda_item_path(conn, :show, Mfac.Repo.preload(agenda_item, :votes)))
