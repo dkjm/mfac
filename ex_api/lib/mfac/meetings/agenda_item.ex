@@ -14,6 +14,7 @@ defmodule Mfac.Meetings.AgendaItem do
     belongs_to :owner, Mfac.Accounts.User, foreign_key: :user_id
     belongs_to :meeting, Mfac.Meetings.Meeting, foreign_key: :meeting_id
     has_many :votes, Mfac.Meetings.AgendaItemVote
+    has_many :stack_entries, Mfac.Meetings.StackEntry
     timestamps()
   end
 

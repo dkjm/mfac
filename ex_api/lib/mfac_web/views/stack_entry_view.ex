@@ -16,6 +16,8 @@ defmodule MfacWeb.StackEntryView do
       allotted_duration: stack_entry.allotted_duration,
       version: stack_entry.version,
       opened_at: stack_entry.opened_at,
-      closed_at: stack_entry.closed_at}
+      closed_at: stack_entry.closed_at,
+      owner_id: stack_entry.user_id
+    }
   end
 end

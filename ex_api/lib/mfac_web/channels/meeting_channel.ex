@@ -5,6 +5,7 @@ defmodule MfacWeb.MeetingChannel do
   alias Mfac.Meetings.Invitation 
   alias Mfac.Meetings.AgendaItem
   alias Mfac.Meetings.Participant
+  alias Mfac.Meetings.StackEntry
   import Ecto.Query
 
   def join("meeting:" <> id, _payload, socket) do
@@ -28,7 +29,7 @@ defmodule MfacWeb.MeetingChannel do
   # end
 
   def broadcast_event(agenda_item) do
-    agenda_item = Mfac.Meetings.get_formatted_agenda_item_votes(Mfac.Repo.preload(agenda_item, :votes))
+    agenda_item = Mfac.Meetings.get_formatted_agenda_item_votes(Mfac.Repo.preload(agenda_item, [:votes, :stack_entries]))
     #MeetingChannel.Endpoint.broadcast(room, "add_agenda_item", agenda_item_json)
     room = "meeting:#{agenda_item.meeting_id}"
     agenda_item_json = MfacWeb.AgendaItemView.render("meeting_update_agenda_item.json", %{agenda_item: agenda_item})
@@ -47,8 +48,9 @@ defmodule MfacWeb.MeetingChannel do
       left_join: p in Participant, on: p.meeting_id == ^id,
       left_join: a in AgendaItem, on: a.meeting_id == ^id,
       left_join: v in AgendaItemVote, on: v.agenda_item_id == a.id,
+      left_join: s in StackEntry, on: s.agenda_item_id == a.id,
       where: m.id == ^id,
-      preload: [invitations: i, participants: p, agenda_items: {a, votes: v}]
+      preload: [invitations: i, participants: p, agenda_items: {a, [votes: v, stack_entries: s]}]
 
     
     # TODO:(ja) this should be handled in the query if possible. reducing them now just to get it working
