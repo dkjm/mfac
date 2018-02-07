@@ -49,7 +49,8 @@ defmodule Mfac.Mixfile do
       {:faker, "~> 0.9"},
       {:comeonin, "~> 4.0"},
       {:bcrypt_elixir, "~> 1.0"},
-      {:cors_plug, "~> 1.2"}
+      {:cors_plug, "~> 1.2"},
+      {:guardian, "~> 1.0"}
     ]
   end
 
