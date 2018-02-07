@@ -49,6 +49,8 @@ defmodule MfacWeb.MeetingChannel do
       from m in Meeting,
       left_join: o in User, on: o.id == m.user_id,
       left_join: i in Invitation, on: i.meeting_id == ^id,
+      left_join: inviter in User, on: inviter.id == i.inviter_id,
+      left_join: invitee in User, on: invitee.id == i.invitee_id,
       left_join: p in Participant, on: p.meeting_id == ^id,
       left_join: a in AgendaItem, on: a.meeting_id == ^id,
       left_join: v in AgendaItemVote, on: v.agenda_item_id == a.id,
@@ -57,13 +59,17 @@ defmodule MfacWeb.MeetingChannel do
       where: m.id == ^id,
       preload: [
         owner: o, 
-        invitations: i, 
         participants: p, 
         agenda_items: {a, [
           votes: v, 
           stack_entries: s, 
           owner: u
-        ]}
+        ]},
+        invitations: {i, [
+          inviter: inviter,
+          invitee: invitee,
+          meeting: m,
+        ]},
       ]
 
     

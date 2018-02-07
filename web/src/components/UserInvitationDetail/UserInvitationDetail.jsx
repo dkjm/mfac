@@ -100,7 +100,7 @@ class UserInvitationDetail extends Component {
           <div style={styles.fieldsContainer}>
             <LabelValue label="Meeting" value={mi.meeting.title} />
             <LabelValue label="Inviter" value={mi.inviter.full_name} />
-            <LabelValue label="Sent on" value={mi.created_on} />
+            <LabelValue label="Sent on" value={mi.inserted_at} />
             <LabelValue label="Status" value={mi.status} />
           </div>
       
@@ -145,7 +145,7 @@ const Button = (props) => {
 
 const NotFound = () => (
   <div style={styles.notFound}>
-    Inivitation not found
+    Invitation not found
   </div>
 )
 

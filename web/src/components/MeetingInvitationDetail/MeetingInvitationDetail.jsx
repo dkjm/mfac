@@ -52,7 +52,7 @@ class MeetingInvitationDetail extends Component {
         <LabelValue label="Invitee" value={m.invitee.full_name} />
         <LabelValue label="Status" value={m.status} />
         <LabelValue label="Created by" value={m.inviter.full_name} />
-        <LabelValue label="Created on" value={m.created_on} />
+        <LabelValue label="Sent on" value={m.inserted_at} />
       </div>
     )
   }

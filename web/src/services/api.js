@@ -268,38 +268,31 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
 
 
   channel.on('update_meeting', payload => {
-   console.log("got the message! : ", payload)
-   const action = {
-    type: LOAD_MEETING,
-    meeting: payload.meeting
-   }
-   dispatch(action);
-      // TODO: not sure if this is best
-      // approach, i.e. dispatching a second
-      // action so that "agendaItems" part 
-      // of state is updated
-    const actionLoadAgendaItems = {
-        type: LOAD_AGENDA_ITEMS,
-        agenda_items: payload.meeting.agenda_items,
-      }
+   console.log('update_meeting', payload)
 
+     const actionLoadMeeting = {
+      type: LOAD_MEETING,
+      meeting: payload.meeting
+     }
+     dispatch(actionLoadMeeting);
+
+    const actionLoadAgendaItems = {
+      type: LOAD_AGENDA_ITEMS,
+      agenda_items: payload.meeting.agenda_items,
+    }
     dispatch(actionLoadAgendaItems)
 
-    if(!isEmpty(payload.meeting.invitations)){
-      const actionLoadMeetingInvitations = {
-        type: LOAD_MEETING_INVITATIONS,
-        meeting_invitations: payload.meeting.meeting_invitations,
-      }
-      dispatch(actionLoadMeetingInvitations);
+    const actionLoadMeetingInvitations = {
+      type: LOAD_MEETING_INVITATIONS,
+      meeting_invitations: payload.meeting.invitations,
     }
+    dispatch(actionLoadMeetingInvitations);
 
-    if(!isEmpty(payload.meeting.participants)){
-      const actionLoadMeetingParticipants = {
-        type: LOAD_MEETING_PARTICIPANTS,
-        participants: payload.meeting.participants,
-      }
-      dispatch(actionLoadMeetingParticipants);
+    const actionLoadMeetingParticipants = {
+      type: LOAD_MEETING_PARTICIPANTS,
+      participants: payload.meeting.participants,
     }
+    dispatch(actionLoadMeetingParticipants);
 
   });
 
