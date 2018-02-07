@@ -23,4 +23,11 @@ defmodule Mfac.Meetings.Meeting do
     |> cast(attrs, [:title, :description, :allotted_duration, :version, :user_id, :ended_at])
     |> validate_required([:title, :description, :allotted_duration, :version])
   end
+
+  @doc false
+  def creation_changeset(%Meeting{} = meeting, attrs) do
+    meeting
+    |> cast(attrs, [:title, :description, :allotted_duration, :user_id])
+    |> validate_required([:title, :description, :user_id])
+  end
 end

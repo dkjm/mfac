@@ -52,7 +52,7 @@ defmodule Mfac.Meetings do
   """
   def create_meeting(attrs \\ %{}) do
     %Meeting{}
-    |> Meeting.changeset(attrs)
+    |> Meeting.creation_changeset(attrs)
     |> Repo.insert()
   end
 
