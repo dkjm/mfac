@@ -24,9 +24,6 @@ import {toggleSnackbar} from '../../services/ui';
 import * as selectors from '../../selectors';
 import {connectUserSocket, loadUserData} from '../../services/session';
 
-import { Button, Select, notification } from 'antd';
-
-
 
 //import injectTapEventPlugin from 'react-tap-event-plugin';
 // must call injectTapEventPlugin 
@@ -41,8 +38,27 @@ import { Button, Select, notification } from 'antd';
 class App extends Component {
 
   componentWillMount() {
-    const {isUserLoggedIn, loadUserData, connectUserSocket} = this.props;
+    const {
+      isUserLoggedIn, 
+      loadUserData, 
+      connectUserSocket,
+    } = this.props;
+
     if (isUserLoggedIn) {
+      loadUserData();
+      connectUserSocket();
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const {
+      isUserLoggedIn, 
+      loadUserData, 
+      connectUserSocket,
+    } = this.props;
+
+    // if user wasn't logged in and now is, loadData
+    if (nextProps.isUserLoggedIn && !isUserLoggedIn) {
       loadUserData();
       connectUserSocket();
     }
