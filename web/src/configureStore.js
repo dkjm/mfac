@@ -45,8 +45,9 @@ export default () => {
     persistedReducer,
     compose(
       applyMiddleware(
-        thunk,
-      )
+        thunk
+      ),
+      window.devToolsExtension ? window.devToolsExtension() : f => f
     )
   );
   let persistor = persistStore(store);

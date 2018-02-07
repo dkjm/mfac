@@ -311,6 +311,15 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
     dispatch(action);
   })
 
+  channel.on('update_agenda_item_stack_entries', payload => {
+    const action = {
+      type: UPDATE_AGENDA_ITEM_STACK_ENTRIES,
+      agenda_item_id: data.agenda_item_id,
+      agenda_item_stack_entries: data.agenda_item_stack_entries,
+    }
+    dispatch(action);
+  })
+
   //     
 
   // const {meeting_id} = params;
@@ -376,6 +385,8 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   //     }
   //     dispatch(action);
   //   }
+
+// ======================== Above is Done =====================
 
   //   else if (data.event === 'update_agenda_item_stack_entries') {
   //     const action = {
