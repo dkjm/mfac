@@ -9,6 +9,7 @@ defmodule Mfac.Accounts.User do
     field :is_active, :boolean, default: false
     field :last_name, :string
     field :middle_name, :string
+    field :user_name, :string
     field :hashed_password, :string
     field :password, :string, virtual: true
 
@@ -18,7 +19,7 @@ defmodule Mfac.Accounts.User do
   @doc false
   def changeset(%User{} = user, attrs) do
     user
-    |> cast(attrs, [:first_name, :last_name, :middle_name, :is_active, :hashed_password])
+    |> cast(attrs, [:first_name, :last_name, :middle_name, :is_active, :hashed_password, :user_name])
     |> validate_required([:first_name, :last_name, :is_active])
   end
 

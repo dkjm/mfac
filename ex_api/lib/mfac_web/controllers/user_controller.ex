@@ -53,16 +53,16 @@ defmodule MfacWeb.UserController do
       |> String.downcase
   end
 
-  def sign_in_user(conn, %{"user_name" => user_name, "password" => password}) do
+  def sign_in_user(conn, %{"username" => user_name, "password" => password}) do
     
     try do
-      user = Repo.get_by(User, user_name: trim_user_name(user_name))
+      user = Mfac.Repo.get_by(User, user_name: trim_user_name(user_name))
 
       case is_binary(user.hashed_password) and authenticate(user, password) do
         true ->
 
-          auth_conn = Guardian.Plug.api_sign_in(conn, user)
-          jwt = Guardian.Plug.current_token(auth_conn)
+          auth_conn = Accounts.Guardian.Plug.api_sign_in(conn, user)
+          jwt = Accounts.Guardian.Plug.current_token(auth_conn)
 
           auth_conn
           |> put_resp_header("authorization", "Bearer #{jwt}")
