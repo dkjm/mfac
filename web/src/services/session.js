@@ -82,12 +82,17 @@ export const loadUserData = (params = {}) => (dispatch, getState) => {
 }
 
 export const acceptOrDeclineMeetingInvitation = (params = {}) => (dispatch, getState) => {
-	const {meeting_invitation_id, action} = params;
-	const endpoint = `${API_ENTRY}/meeting_invitations/${meeting_invitation_id}/${action}/`;
+	const {meeting_invitation_id, status} = params;
+	const endpoint = `${API_ENTRY}/invitations/${meeting_invitation_id}/`;
 
-	return axios.get(endpoint)
+	const config = {
+		url: endpoint,
+		method: 'PATCH',
+		data: {status},
+	}
+	return axios(config)
 	.then(response => {
-		const message = action === 'accept'
+		const message = status === 'ACCEPTED'
 			? 'Accepted.  You can now view meeting.'
 			: 'Invitation declined.'
 		dispatch(toggleSnackbar({open: true, message}))

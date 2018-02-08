@@ -30,7 +30,7 @@ class UserInvitationDetail extends Component {
     history.push(path);
   }
 
-  handleAction = (action) => {
+  handleAction = (status) => {
     const {
       match,
       acceptOrDeclineMeetingInvitation,
@@ -39,7 +39,7 @@ class UserInvitationDetail extends Component {
     const {meeting_invitation_id} = match.params;
     const params = {
       meeting_invitation_id,
-      action,
+      status,
     }
     acceptOrDeclineMeetingInvitation(params);
   }
@@ -51,11 +51,11 @@ class UserInvitationDetail extends Component {
         <div style={styles.buttonsContainer}>
           <Button
             label="Accept"
-            onClick={() => this.handleAction('accept')}
+            onClick={() => this.handleAction('ACCEPTED')}
           />
           <Button
             label="Decline"
-            onClick={() => this.handleAction('decline')}
+            onClick={() => this.handleAction('DECLINED')}
           />
         </div>
       )
@@ -69,7 +69,7 @@ class UserInvitationDetail extends Component {
           />
           <Button
             label="Decline"
-            onClick={() => this.handleAction('decline')}
+            onClick={() => this.handleAction('DECLINED')}
           />
         </div>
       )
@@ -79,7 +79,7 @@ class UserInvitationDetail extends Component {
         <div style={styles.buttonsContainer}>
           <Button
             label="Accept"
-            onClick={() => this.handleAction('accept')}
+            onClick={() => this.handleAction('ACCEPTED')}
           />
         </div>
       )

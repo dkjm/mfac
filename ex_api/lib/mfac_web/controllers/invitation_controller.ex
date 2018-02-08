@@ -28,15 +28,14 @@ defmodule MfacWeb.InvitationController do
     render(conn, "show.json", invitation: invitation)
   end
 
-  # MP 2/8 - Haven't implemented update for
-  # invitation because I don't think it's
-  # necessary.  Just create and delete funcs
-  # are needed.
-  def update(conn, %{"id" => id, "invitation" => invitation_params}) do
+  def update(conn, %{"id" => id, "status" => status}) do
+    requester = Mfac.Accounts.Guardian.Plug.current_resource(conn)
     invitation = Meetings.get_invitation!(id)
-
-    with {:ok, %Invitation{} = invitation} <- Meetings.update_invitation(invitation, invitation_params) do
-      render(conn, "show.json", invitation: invitation)
+    params = %{status: status}
+    with {:ok, %Invitation{} = invitation} <- Meetings.update_invitation(invitation, params) do
+      conn
+      |> put_status(:ok)
+      |> send_resp(:no_content, "")
     end
   end
 

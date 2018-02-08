@@ -426,6 +426,15 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
     dispatch(action);
   })
 
+  channel.on('update_invitation', payload => {
+    console.log('channel - update_invitation', payload)
+    const action = {
+      type: LOAD_MEETING_INVITATION,
+      invitation: payload.invitation,
+    }
+    dispatch(action);
+  })
+
   channel.on('remove_invitation', payload => {
     console.log('channel - remove_invitation', payload)
     const action = {

@@ -485,9 +485,21 @@ defmodule Mfac.Meetings do
 
   """
   def update_invitation(%Invitation{} = invitation, attrs) do
-    invitation
-    |> Invitation.changeset(attrs)
-    |> Repo.update()
+    result = 
+      invitation
+      |> Invitation.changeset(attrs)
+      |> Repo.update()
+
+    invitation = Repo.get(Invitation, invitation.id)
+      |> Repo.preload([:inviter, :invitee, :meeting])
+    json = MfacWeb.InvitationView.render("invitation.json", %{invitation: invitation})
+    # broadcast to meeting
+    send_broadcast("update_invitation", invitation.meeting_id, %{invitation: json})
+    # broadcast to invitee (really should
+    # just send to his/her specific channel)
+    MfacWeb.UserChannel.broadcast_event("update_invitation", invitation.invitee_id, %{invitation: json})
+
+    result
   end
 
   @doc """
