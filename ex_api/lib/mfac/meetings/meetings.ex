@@ -204,7 +204,7 @@ defmodule Mfac.Meetings do
   # data should not have a "user_vote" key.
   # Client is set up to handle this.
   defp format_votes(votes) do
-    Enum.reduce(votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
+    Enum.reduce(votes, %{up: 0, down: 0, meh: 0}, fn(vote, acc) -> 
       case vote.vote_type do
         "UP" -> 
           Map.put(acc, :up, Map.get(acc, :up) + 1)
@@ -214,6 +214,30 @@ defmodule Mfac.Meetings do
           Map.put(acc, :meh, Map.get(acc, :meh) + 1)
       end  
     end)
+  end
+
+  defp format_votes(votes, user_id) do
+    result = Enum.reduce(votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
+
+      case vote.vote_type do
+        "UP" -> 
+          #IO.puts("IS UP")
+          Map.put(acc, :up, Map.get(acc, :up) + 1)
+        "DOWN" ->
+          #IO.puts("IS DOWN")
+          Map.put(acc, :down, Map.get(acc, :down) + 1)
+        "MEH" ->
+          #IO.puts("IS MEH")
+          Map.put(acc, :meh, Map.get(acc, :meh) + 1)
+      end 
+    end)
+    filtered = Enum.filter(votes, fn v -> v.user_id == user_id end)
+    if List.first(filtered) != nil do
+      item = List.first(filtered)
+      result = Map.put(result, :user_vote, item.vote_type)
+    end
+    #IO.inspect(result, label: "RESULT")
+    result
   end
 
   @doc """
@@ -231,7 +255,11 @@ defmodule Mfac.Meetings do
     Map.put(agenda_item, :votes, format_votes(agenda_item.votes))
   end
 
-
+  def get_formatted_agenda_item_votes(agenda_item, user_id) when is_list(agenda_item) do
+    Enum.map(agenda_item, fn item -> 
+      Map.put(item, :votes, format_votes(item.votes, user_id))
+    end)
+  end
 
 
 
@@ -258,9 +286,23 @@ defmodule Mfac.Meetings do
 
   """
   def create_agenda_item_vote(attrs \\ %{}) do
-    %AgendaItemVote{}
-    |> AgendaItemVote.changeset(attrs)
-    |> Repo.insert()
+    result = 
+      %AgendaItemVote{}
+      |> AgendaItemVote.changeset(attrs)
+      |> Repo.insert()
+
+    {status, vote} = result
+    #IO.inspect(vote, label: "CREATE VOTE")
+    votes = Repo.all(from a in AgendaItemVote, where: a.agenda_item_id == ^vote.agenda_item_id)
+    agenda_item = Repo.get(AgendaItem, vote.agenda_item_id)
+    formatted_votes = format_votes(votes)
+    payload = %{
+      votes: formatted_votes,
+      agenda_item_id: agenda_item.id,
+    }
+    send_broadcast("update_agenda_item_votes", agenda_item.meeting_id, payload)
+
+    result
   end
 
   @doc """
@@ -268,9 +310,23 @@ defmodule Mfac.Meetings do
 
   """
   def update_agenda_item_vote(%AgendaItemVote{} = agenda_item_vote, attrs) do
-    agenda_item_vote
-    |> AgendaItemVote.changeset(attrs)
-    |> Repo.update()
+    result = 
+      agenda_item_vote
+      |> AgendaItemVote.changeset(attrs)
+      |> Repo.update()
+
+    {status, vote} = result
+    #IO.inspect(vote, label: "UPDATE VOTE")
+    votes = Repo.all(from a in AgendaItemVote, where: a.agenda_item_id == ^vote.agenda_item_id)
+    agenda_item = Repo.get(AgendaItem, vote.agenda_item_id)
+    formatted_votes = format_votes(votes)
+    payload = %{
+      votes: formatted_votes,
+      agenda_item_id: agenda_item.id,
+    }
+    send_broadcast("update_agenda_item_votes", agenda_item.meeting_id, payload)
+
+    result
   end
 
   @doc """
@@ -278,7 +334,20 @@ defmodule Mfac.Meetings do
 
   """
   def delete_agenda_item_vote(%AgendaItemVote{} = agenda_item_vote) do
-    Repo.delete(agenda_item_vote)
+    result = Repo.delete(agenda_item_vote)
+
+    vote = agenda_item_vote
+    #IO.inspect(vote, label: "UPDATE VOTE")
+    votes = Repo.all(from a in AgendaItemVote, where: a.agenda_item_id == ^vote.agenda_item_id)
+    agenda_item = Repo.get(AgendaItem, vote.agenda_item_id)
+    formatted_votes = format_votes(votes)
+    payload = %{
+      votes: formatted_votes,
+      agenda_item_id: agenda_item.id,
+    }
+    send_broadcast("update_agenda_item_votes", agenda_item.meeting_id, payload)
+
+    result
   end
 
   @doc """

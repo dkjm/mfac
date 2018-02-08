@@ -262,7 +262,7 @@ export const deleteMeetingInvitation = (params = {}) => (dispatch, getState) => 
 
 export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   const {meeting_id} = params;
-  socket = new Socket("ws://localhost:4000/socket")
+  socket = new Socket(API_ENTRY_WS, {params: {token: localStorage.getItem('token')}})
   socket.connect()
   const room = `meeting:${meeting_id}`
   let channel = socket.channel(room, {})
@@ -322,6 +322,16 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
     const action = {
       type: REMOVE_AGENDA_ITEM,
       agenda_item_id: payload.agenda_item_id,
+    }
+    dispatch(action);
+  })
+
+  channel.on('update_agenda_item_votes', payload => {
+    console.log('channel - update_agenda_item_votes', payload)
+    const action = {
+      type: UPDATE_AGENDA_ITEM_VOTE_COUNTS,
+      agenda_item_id: payload.agenda_item_id,
+      votes: payload.votes,
     }
     dispatch(action);
   })
@@ -487,7 +497,8 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
 
 export const disconnectMeetingSocket = (params = {}) => (dispatch, getState) => {
   if (socket) {
-    socket.close();
+    //socket.close();
+    socket.disconnect();
   }
 }
 
@@ -784,54 +795,81 @@ export const postAgendaItemVote = (params = {}) => (dispatch, getState) => {
   // in case for whatever reason agendaItem is null
   if (!agendaItem) {return};
 
-  let vote_action;
-
+  // if new user_vote is same as current,
+  // user is "un-voting".  Set user_vote to
+  // null on successfull request
+  let updated_user_vote;
   if (agendaItem.votes.user_vote === vote_type) {
-    vote_action = 'delete_vote';
+    updated_user_vote = null;
   }
   else {
-    vote_action = 'post_vote';
+    updated_user_vote = vote_type;
   }
 
-  if (vote_action === 'delete_vote') {
-    return axios.delete(endpoint)
-    .then(response => {
-      // if successful, update state with
-      // new user vote_type
-      const action = {
-        type: UPDATE_AGENDA_ITEM_USER_VOTE_TYPE,
-        agenda_item_id,
-        vote_type: null,
-      }
-      dispatch(action);
-    })
-    .catch(error => {
-      const params_ = {
-        open: true,
-        message: 'Unable to post vote.',
-      }
-      dispatch(toggleSnackbar(params_));
-    })
+  const config = {
+    url: endpoint,
+    method: 'POST',
+    data: {vote_type},
   }
 
-  else {
-    return axios.post(endpoint, {vote_type})
-    .then(response => {
-      const action = {
-        type: UPDATE_AGENDA_ITEM_USER_VOTE_TYPE,
-        agenda_item_id,
-        vote_type,
-      }
-      dispatch(action);
-    })
-    .catch(error => {
-      const params_ = {
-        open: true,
-        message: 'Unable to post vote.',
-      }
-      dispatch(toggleSnackbar(params_));
-    })
-  }
+  return axios(config)
+  .then(response => {
+    const action = {
+      type: UPDATE_AGENDA_ITEM_USER_VOTE_TYPE,
+      agenda_item_id,
+      vote_type: updated_user_vote,
+    }
+    dispatch(action);
+  })
+
+  // let vote_action;
+
+  // if (agendaItem.votes.user_vote === vote_type) {
+  //   vote_action = 'delete_vote';
+  // }
+  // else {
+  //   vote_action = 'post_vote';
+  // }
+
+  // if (vote_action === 'delete_vote') {
+  //   return axios.delete(endpoint)
+  //   .then(response => {
+  //     // if successful, update state with
+  //     // new user vote_type
+  //     const action = {
+  //       type: UPDATE_AGENDA_ITEM_USER_VOTE_TYPE,
+  //       agenda_item_id,
+  //       vote_type: null,
+  //     }
+  //     dispatch(action);
+  //   })
+  //   .catch(error => {
+  //     const params_ = {
+  //       open: true,
+  //       message: 'Unable to post vote.',
+  //     }
+  //     dispatch(toggleSnackbar(params_));
+  //   })
+  // }
+
+  // else {
+  //   return axios.post(endpoint, {vote_type})
+  //   .then(response => {
+  //     const action = {
+  //       type: UPDATE_AGENDA_ITEM_USER_VOTE_TYPE,
+  //       agenda_item_id,
+  //       vote_type,
+  //     }
+  //     dispatch(action);
+  //   })
+  //   .catch(error => {
+  //     const params_ = {
+  //       open: true,
+  //       message: 'Unable to post vote.',
+  //     }
+  //     dispatch(toggleSnackbar(params_));
+  //   })
+  // }
 
 }
 
@@ -1045,7 +1083,7 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
     }
 
     case (UPDATE_AGENDA_ITEM_VOTE_COUNTS): {
-      const {agenda_item_id, votes} = action.data;
+      const {agenda_item_id, votes} = action;
       const agendaItem = state.cache[agenda_item_id];
       if (!agendaItem) {return state};
 
@@ -1104,10 +1142,17 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
       let updatedItem = state.cache[agenda_item.id]
       // if item already in cache,
       // merge objects
+      // ** Need to make sure not to
+      // overwrite user_vote key of
+      // votes key of agenda_item
       if (updatedItem) {
         updatedItem = {
           ...updatedItem,
           ...agenda_item,
+          votes: {
+            ...updatedItem.votes,
+            ...agenda_item.votes,
+          }
         }
       }
       // else add data as it is

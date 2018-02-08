@@ -37,4 +37,21 @@ defmodule MfacWeb.MeetingView do
       owner: render_one(meeting.owner, MfacWeb.UserView, "user_simple.json")
     }
   end
+
+  def render("socket_meeting_with_user_vote.json", %{meeting: meeting}) do
+    %{
+      id: meeting.id,
+      title: meeting.title,
+      description: meeting.description,
+      allotted_duration: meeting.allotted_duration,
+      version: meeting.version,
+      inserted_at: meeting.inserted_at,
+      updated_at: meeting.updated_at,
+      ended_at: meeting.ended_at,
+      agenda_items: render_many(meeting.agenda_items, MfacWeb.AgendaItemView, "agenda_item_with_user_vote.json"),
+      invitations: render_many(meeting.invitations, MfacWeb.InvitationView, "invitation.json"),
+      participants: render_many(meeting.participants, MfacWeb.ParticipantView, "participant.json"),
+      owner: render_one(meeting.owner, MfacWeb.UserView, "user_simple.json")
+    }
+  end
 end

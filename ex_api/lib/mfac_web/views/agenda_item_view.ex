@@ -47,6 +47,19 @@ defmodule MfacWeb.AgendaItemView do
     }
   end
 
+  def render("agenda_item_with_user_vote.json", %{agenda_item: agenda_item}) do
+    %{id: agenda_item.id,
+      title: agenda_item.title,
+      body: agenda_item.body,
+      status: agenda_item.status,
+      allotted_duration: agenda_item.allotted_duration,
+      version: agenda_item.version,
+      votes: agenda_item.votes,
+      owner: render_one(agenda_item.owner, MfacWeb.UserView, "user.json"),
+      stack_entries: render_many(agenda_item.stack_entries, MfacWeb.StackEntryView, "stack_entry.json")
+    }
+  end
+
   def render("agenda_item_with_votes.json", data) do 
     %{id: data.id,
       title: data.title,

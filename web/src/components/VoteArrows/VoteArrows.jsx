@@ -18,20 +18,20 @@ const VoteArrows = (props) => {
 		<div style={styles.container}>
 
 			<Block
-				icon={getVoteIconName('up')}
+				icon={getVoteIconName('UP')}
 				count={up}
-				active={user_vote === 'up'}
-				onClick={() => onClickVote('up')}
+				active={user_vote === 'UP'}
+				onClick={() => onClickVote('UP')}
 				disabled={disableVoting}
 			/>
 			<div style={styles.divider}>
 				{count}
 			</div>
 			<Block
-				icon={getVoteIconName('down')}
+				icon={getVoteIconName('DOWN')}
 				count={down}
-				active={user_vote === 'down'}
-				onClick={() => onClickVote('down')}
+				active={user_vote === 'DOWN'}
+				onClick={() => onClickVote('DOWN')}
 				disabled={disableVoting}
 			/>
 		</div>
@@ -74,15 +74,15 @@ const Block = ({icon, active, onClick, disabled}) => {
 
 const getVoteIconName = (vote_type) => {
   let iconName;
-  if (vote_type === 'up') {
+  if (vote_type === 'UP') {
     //iconName = 'thumbs-o-up';
     iconName = 'caret-up';
   }
-  else if (vote_type === 'down') {
+  else if (vote_type === 'DOWN') {
     //iconName = 'thumbs-o-down';
     iconName = 'caret-down';
   }
-  else if (vote_type === 'meh') {
+  else if (vote_type === 'MEH') {
     iconName = 'meh-o';
   }
   return iconName;
