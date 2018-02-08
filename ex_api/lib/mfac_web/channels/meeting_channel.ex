@@ -7,11 +7,27 @@ defmodule MfacWeb.MeetingChannel do
   alias Mfac.Meetings.Participant
   alias Mfac.Meetings.StackEntry
   alias Mfac.Accounts.User
+  alias Mfac.Repo
   import Ecto.Query
 
   def join("meeting:" <> id, _payload, socket) do
-    send self(), {:update, id}
-    {:ok, socket}
+    # check that meeting exists and that user
+    # has access
+    meeting = Repo.get(Meeting, id)
+    case meeting do
+      nil ->
+        {:error, %{reason: "meeting_does_not_exist"}}
+      %Meeting{} ->
+        user_meetings = Mfac.Meetings.list_user_meetings(socket.assigns.current_user)
+        has_access = Enum.any?(user_meetings, fn(m) -> m.id == meeting.id end)
+        case has_access do
+          true ->
+            send self(), {:update, id}
+            {:ok, socket}
+          false ->
+            {:error, %{reason: "unauthorized"}}
+        end    
+    end   
   end
 
 

@@ -1,7 +1,7 @@
 import _sortBy from 'lodash/sortBy';
 import _orderBy from 'lodash/orderBy';
 import React from 'react';
-import {Button, notification} from 'antd';
+import {Button, Modal, notification} from 'antd';
 import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
@@ -50,6 +50,18 @@ export const openNotification = (config) => {
     placement: c.placement || 'topRight',
     style: c.style || {},
   })
+}
+
+
+
+// info, success, error, warning
+export const openModal = (config = {}) => {
+	const c = config;
+	Modal.error({
+		title: c.title,
+		content: c.content,
+		onOk: c.onOk,
+	})
 }
 
 

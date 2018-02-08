@@ -311,7 +311,26 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   let channel = socket.channel(room, {})
   channel.join()
     .receive('ok', resp => { console.log('Joined room ' + room, resp) })
-    .receive('error', resp => { console.log('Unable to join room ' + room, resp) })
+    .receive('error', resp => { 
+      console.log('Unable to join room ' + room);
+      let title, content;
+      if (resp.reason === 'unauthorized') {
+        title = 'Unauthorized';
+        content = "You don't have permissions to view this meeting";
+      }
+      else if (resp.reason === 'meeting_does_not_exist') {
+        title = 'Meeting not found';
+        content = "The requested meeting does not exist.";
+      }
+      const onOk = () => {
+        history.push('/meetings/dashboard');
+      }
+      utils.openModal({
+        title,
+        content,
+        onOk,
+      })
+    })
 
 
   channel.on('update_meeting', payload => {
