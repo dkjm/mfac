@@ -125,6 +125,7 @@ class App extends Component {
             message={this.props.snackbar.message}
             autoHideDuration={4000}
             onRequestClose={this.handleRequestCloseSnackbar}
+            style={{textAlign: 'center'}}
           />
             
         </div>
