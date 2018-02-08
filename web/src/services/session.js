@@ -13,6 +13,9 @@ export const LOGOUT = 'LOGOUT';
 export const LOAD_USER_DATA = 'LOAD_USER_DATA';
 export const UPDATE_MEETING_INVITATIONS = 'UPDATE_MEETING_INVITATIONS';
 
+// Need to namespace these action types
+// to avoid conflicts with same-named
+// action types in api.js
 export const LOAD_INVITATION = 'session/LOAD_INVITATION';
 export const REMOVE_INVITATION = 'session/REMOVE_INVITATION';
 export const ACCEPT_OR_DECLINE_MEETING_INVITATION = 'ACCEPT_OR_DECLINE_MEETING_INVITATION';

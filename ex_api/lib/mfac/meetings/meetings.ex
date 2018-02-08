@@ -85,8 +85,15 @@ defmodule Mfac.Meetings do
 
   """
   def delete_meeting(%Meeting{} = meeting) do
+    # Notify each user who was an invitee to
+    # this meeting
+    invitations = Repo.all(from i in Invitation, where: i.meeting_id == ^meeting.id)
+    IO.inspect(invitations, label: "INVITATIONS")
     result = Repo.delete(meeting)
     send_broadcast("remove_meeting", meeting.id, %{meeting_id: meeting.id})
+    Enum.each(invitations, fn(i) -> 
+      MfacWeb.UserChannel.broadcast_event("remove_invitation", i.invitee_id, %{invitation_id: i.id})
+    end)
     result
   end
 
