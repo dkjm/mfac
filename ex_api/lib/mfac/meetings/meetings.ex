@@ -455,9 +455,22 @@ defmodule Mfac.Meetings do
 
   """
   def create_invitation(attrs \\ %{}) do
-    %Invitation{}
-    |> Invitation.changeset(attrs)
-    |> Repo.insert()
+    result = 
+      %Invitation{}
+      |> Invitation.changeset(attrs)
+      |> Repo.insert()
+    {status, invitation} = result
+    invitation = Repo.get(Invitation, invitation.id)
+      |> Repo.preload([:inviter, :invitee, :meeting])
+
+    json = MfacWeb.InvitationView.render("invitation.json", %{invitation: invitation})
+    # broadcast to meeting
+    send_broadcast("add_invitation", invitation.meeting_id, %{invitation: json})
+    # broadcast to invitee (really should
+    # just send to his/her specific channel)
+    MfacWeb.UserChannel.broadcast_event("add_invitation", invitation.invitee_id, %{invitation: json})
+
+    result
   end
 
   @doc """
@@ -475,7 +488,12 @@ defmodule Mfac.Meetings do
 
   """
   def delete_invitation(%Invitation{} = invitation) do
-    Repo.delete(invitation)
+    result = Repo.delete(invitation)
+    send_broadcast("remove_invitation", invitation.meeting_id, %{invitation_id: invitation.id})
+    # broadcast to invitee (really should
+    # just send to his/her specific channel)
+    MfacWeb.UserChannel.broadcast_event("remove_invitation", invitation.invitee_id, %{invitation_id: invitation.id})
+    result
   end
 
   @doc """

@@ -10,14 +10,20 @@ defmodule MfacWeb.UserView do
     %{data: render_one(user, UserView, "user.json")}
   end
 
-  def render("sign_in.json", %{user_data: data, token: token}) do
+  # def render("sign_in.json", %{user_data: data, token: token}) do
+  #  %{
+  #     user_data: render_one(data.user_data, UserView, "user.json"),
+  #     token: token,
+  #     meeting_invitations: render_many(data.meeting_invitations, MfacWeb.InvitationView, "show.json"),
+  #     contacts: render_many(data.contacts, UserView, "user_simple.json")
+  #   }
+  # end
+
+  def render("sign_in.json", %{user: user, token: token}) do
    %{
-      user_data: render_one(data.user_data, UserView, "user.json"),
+      user_data: render_one(user, UserView, "user.json"),
       token: token,
-      meeting_invitations: render_many(data.meeting_invitations, MfacWeb.InvitationView, "show.json"),
-      contacts: render_many(data.contacts, UserView, "user_simple.json")
     }
-    
   end
 
   def render("user.json", %{user: user}) do
@@ -27,6 +33,7 @@ defmodule MfacWeb.UserView do
       last_name: user.last_name,
       middle_name: user.middle_name,
       full_name: full_name,
+      user_name: user.user_name,
       is_active: user.is_active}
   end
 

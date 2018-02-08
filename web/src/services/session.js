@@ -1,6 +1,6 @@
 import axios from 'axios';
+import {Socket} from 'phoenix-channels';
 import {notification} from 'antd';
-//import {axios} from '../constants';
 
 import * as selectors from '../selectors';
 import {toggleSnackbar, toggleNavDrawer} from '../services/ui';
@@ -12,8 +12,9 @@ export const LOGIN = 'LOGIN';
 export const LOGOUT = 'LOGOUT';
 export const LOAD_USER_DATA = 'LOAD_USER_DATA';
 export const UPDATE_MEETING_INVITATIONS = 'UPDATE_MEETING_INVITATIONS';
-export const ADD_MEETING_INVITATION = 'ADD_MEETING_INVITATION';
-export const UPDATE_MEETING_INVITATION = 'UPDATE_MEETING_INVITATION';
+
+export const LOAD_INVITATION = 'session/LOAD_INVITATION';
+export const REMOVE_INVITATION = 'session/REMOVE_INVITATION';
 export const ACCEPT_OR_DECLINE_MEETING_INVITATION = 'ACCEPT_OR_DECLINE_MEETING_INVITATION';
 
 axios.interceptors.request.use((config) => {
@@ -23,7 +24,7 @@ axios.interceptors.request.use((config) => {
     return config;
   })
 
-
+let socket;
 
 
 export const submitLoginForm = (params = {}) => (dispatch, getState) => {
@@ -57,6 +58,7 @@ export const logout = (params = {}) => (dispatch, getState) => {
 		type: LOGOUT,
 	}
 	dispatch(action);
+	dispatch(disconnectUserSocket());
 	dispatch(toggleNavDrawer({open: false}));
 	history.push('/login');
 }
@@ -92,62 +94,157 @@ export const acceptOrDeclineMeetingInvitation = (params = {}) => (dispatch, getS
 	})
 }
 
-// TODO(MPP - 180204): Disable for now
+
+
 export const connectUserSocket = (params = {}) => (dispatch, getState) => {
-	return;
+  // see link for options to pass to socket:
+  // https://hexdocs.pm/phoenix/js/
   const state = getState();
-  const user_id = selectors.getUserData(state).id;
-  const token = localStorage.getItem('token');
-  const endpoint = `${API_ENTRY_WS}/users/${user_id}/token=${token}/`;
-  let socket = new WebSocket(endpoint);
-
-  socket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-
-    console.log('userSocket onmessage', data)
-
-    if (data.event === 'update_meeting_invitations') {
-      const action = {
-        type: UPDATE_MEETING_INVITATIONS,
-        data: data,
-      }
-      dispatch(action);
-    }
-    else if (data.event === 'add_meeting_invitation') {
-    	const action = {
-        type: ADD_MEETING_INVITATION,
-        data: data,
-      }
-      dispatch(action);
-      const {meeting_invitation} = data;
-      const path = `/invitations/${meeting_invitation.id}`;
-      const config = {
-      	message: 'New Meeting Invitation',
-      	description: `You have been invited to participate in ${data.meeting_invitation.meeting.title}.`,
-      	onButtonClick: () => history.push(path),
-      	buttonText: 'View',
-      	duration: 10,
-      	icon: 'man',
-      }
-      utils.openNotification(config);
-   	}
-   	else if (data.event === 'update_meeting_invitation') {
-    	const action = {
-        type: UPDATE_MEETING_INVITATION,
-        data: data,
-      }
-      dispatch(action);
-   	}
+  const userData = selectors.getUserData(state);
+  const socketOptions = {
+    params: {
+      token: localStorage.getItem('token'),
+    },
+    //timeout: 10000,
+    //heartbeatIntervalMs: 10000, 
+    //reconnectAfterMs: 20000,
   }
+  socket = new Socket(API_ENTRY_WS, socketOptions)
+  socket.connect()
+  const room = `user:${userData.id}`
+  let channel = socket.channel(room, {})
+  channel.join()
+    .receive('ok', resp => { console.log('Joined room ' + room, resp) })
+    .receive('error', resp => { 
+      console.log('Unable to join room ' + room);
+      let title, content;
+      if (resp.reason === 'unauthorized') {
+        title = 'Unauthorized';
+        content = "You don't have permissions to join this channel.";
+      }
+      else if (resp.reason === 'user_does_not_exist') {
+        title = 'User not found';
+        content = "";
+      }
+      else {
+      	console.log('Unknown reason: ', resp);
+      	title = "Can't connect"
+      	title = "Unknown reason."
+      }
+      const onOk = () => {
+        //dispatch(logout())
+      }
+      utils.openModal({
+        title,
+        content,
+        onOk,
+      })
+    })
 
-  socket.onopen = function() {
 
-  }
+  channel.on('update_user_data', payload => {
+   console.log('user channel - update_user_data', payload)
+     const action = {
+      type: LOAD_USER_DATA,
+      data: payload.user_data,
+     }
+     dispatch(action);
+  })
 
-  if (socket.readyState === WebSocket.OPEN) socket.onopen();
+  channel.on('add_invitation', payload => {
+   console.log('user channel - add_invitation', payload)
+     const action = {
+      type: LOAD_INVITATION,
+      invitation: payload.invitation
+     }
+     dispatch(action);
+  })
 
-  return socket;
+  channel.on('update_invitation', payload => {
+   console.log('user channel - update_invitation', payload)
+     const action = {
+      type: LOAD_INVITATION,
+      invitation: payload.invitation
+     }
+     dispatch(action);
+  })
+
+  channel.on('remove_invitation', payload => {
+   console.log('user channel - remove_invitation', payload)
+     const action = {
+      type: REMOVE_INVITATION,
+      invitation_id: payload.invitation_id
+     }
+     dispatch(action);
+  })
 }
+
+export const disconnectUserSocket = (params = {}) => (dispatch, getState) => {
+  if (socket) {
+    //socket.close();
+    socket.disconnect();
+  }
+}
+
+
+
+// // TODO(MPP - 180204): Disable for now
+// export const connectUserSocket = (params = {}) => (dispatch, getState) => {
+// 	return;
+//   const state = getState();
+//   const user_id = selectors.getUserData(state).id;
+//   const token = localStorage.getItem('token');
+//   const endpoint = `${API_ENTRY_WS}/users/${user_id}/token=${token}/`;
+//   let socket = new WebSocket(endpoint);
+
+//   socket.onmessage = function(e) {
+//     const data = JSON.parse(e.data);
+
+//     console.log('userSocket onmessage', data)
+
+//     if (data.event === 'update_meeting_invitations') {
+//       const action = {
+//         type: UPDATE_MEETING_INVITATIONS,
+//         data: data,
+//       }
+//       dispatch(action);
+//     }
+//     else if (data.event === 'add_meeting_invitation') {
+//     	const action = {
+//         type: ADD_MEETING_INVITATION,
+//         data: data,
+//       }
+//       dispatch(action);
+//       const {meeting_invitation} = data;
+//       const path = `/invitations/${meeting_invitation.id}`;
+//       const config = {
+//       	message: 'New Meeting Invitation',
+//       	description: `You have been invited to participate in ${data.meeting_invitation.meeting.title}.`,
+//       	onButtonClick: () => history.push(path),
+//       	buttonText: 'View',
+//       	duration: 10,
+//       	icon: 'man',
+//       }
+//       utils.openNotification(config);
+//    	}
+//    	else if (data.event === 'update_meeting_invitation') {
+//     	const action = {
+//         type: UPDATE_MEETING_INVITATION,
+//         data: data,
+//       }
+//       dispatch(action);
+//    	}
+//   }
+
+//   socket.onopen = function() {
+
+//   }
+
+//   if (socket.readyState === WebSocket.OPEN) socket.onopen();
+
+//   return socket;
+// }
+
 
 
 const initialState = {
@@ -163,19 +260,12 @@ export const reducer = (state = initialState, action) => {
 		case LOGIN: {
 			const {
 				user_data, 
-				meeting_invitations,
-				contacts,
 			} = action.data;
-			const meetingInvitationsObj = {};
-			const contactsObj = {};
-			meeting_invitations.forEach(i => meetingInvitationsObj[i.id] = i);
-			contacts.forEach(i => contactsObj[i.id] = i);
+
 			const nextState = {
 				...state,
 				isLoggedIn: true,
 				userData: user_data,
-				meetingInvitations: meetingInvitationsObj,
-				contacts: contactsObj,
 			}
 			return nextState;
 		}
@@ -189,26 +279,35 @@ export const reducer = (state = initialState, action) => {
 			return nextState;
 		}
 
-		case ADD_MEETING_INVITATION: {
-			const {meeting_invitation} = action.data;
+		case LOAD_INVITATION: {
+			const {invitation} = action;
+			let updatedInvitation = state.meetingInvitations[invitation.id]
+			if (updatedInvitation) {
+				updatedInvitation = {
+					...updatedInvitation,
+					...invitation,
+				}
+			}
+			else {
+				updatedInvitation = invitation;
+			}
 			const nextState = {
 				...state,
 				meetingInvitations: {
 					...state.meetingInvitations,
-					[meeting_invitation.id]: meeting_invitation,
+					[invitation.id]: updatedInvitation,
 				},
 			}
 			return nextState;
 		}
 
-		case UPDATE_MEETING_INVITATION: {
-			const {meeting_invitation} = action.data;
+		case REMOVE_INVITATION: {
+			const {invitation_id} = action;
+			const invitations = state.meetingInvitations;
+			delete invitations[invitation_id];
 			const nextState = {
 				...state,
-				meetingInvitations: {
-					...state.meetingInvitations,
-					[meeting_invitation.id]: meeting_invitation,
-				},
+				meetingInvitations: {...invitations},
 			}
 			return nextState;
 		}
@@ -230,7 +329,6 @@ export const reducer = (state = initialState, action) => {
 				meeting_invitations,
 				contacts,
 			} = action.data;
-			//console.log('LOAD_USER_DATA', action.data)
 			const meetingInvitationsObj = {};
 			meeting_invitations.forEach(i => meetingInvitationsObj[i.id] = i);
 			const contactsObj = {};

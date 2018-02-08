@@ -417,6 +417,24 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
     dispatch(action);
   })
 
+  channel.on('add_invitation', payload => {
+    console.log('channel - add_invitation', payload)
+    const action = {
+      type: LOAD_MEETING_INVITATION,
+      invitation: payload.invitation,
+    }
+    dispatch(action);
+  })
+
+  channel.on('remove_invitation', payload => {
+    console.log('channel - remove_invitation', payload)
+    const action = {
+      type: REMOVE_MEETING_INVITATION,
+      invitation_id: payload.invitation_id,
+    }
+    dispatch(action);
+  })
+
   //     
 
   // const {meeting_id} = params;
@@ -996,35 +1014,35 @@ export const meetingInvitationReducer = (state = initialMeetingInvitationState, 
     }
 
     case (LOAD_MEETING_INVITATION): {
-      const {meeting_invitation} = action;
-      let updatedMeetingInvitation = state.cache[meeting_invitation.id]
+      const {invitation} = action;
+      let updatedInvitation = state.cache[invitation.id]
       // if meeting_invitation already in cache,
       // merge objects
-      if (updatedMeetingInvitation) {
-        updatedMeetingInvitation = {
-          ...updatedMeetingInvitation,
-          ...meeting_invitation,
+      if (updatedInvitation) {
+        updatedInvitation = {
+          ...updatedInvitation,
+          ...invitation,
         }
       }
       // else add data as it is
       else {
-        updatedMeetingInvitation = meeting_invitation;
+        updatedInvitation = invitation;
       }
 
       const nextState = {
         ...state,
         cache: {
           ...state.cache,
-          [meeting_invitation.id]: updatedMeetingInvitation,
+          [invitation.id]: updatedInvitation,
         },
       }
       return nextState;
     }
 
     case (REMOVE_MEETING_INVITATION): {
-      const {meeting_invitation_id} = action.data;
+      const {invitation_id} = action;
       const {cache} = state;
-      delete cache[meeting_invitation_id];
+      delete cache[invitation_id];
       const nextState = {
         ...state,
         cache: {...cache},

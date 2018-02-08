@@ -12,7 +12,6 @@ class UserMeetingInvitationCard extends Component {
   		invitation, 
   		onRequestViewDetail, 
   	} = this.props
-  	console.log(this.props)
 
 		const m = invitation.meeting;
 		

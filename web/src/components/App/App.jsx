@@ -45,12 +45,12 @@ class App extends Component {
     } = this.props;
 
     if (isUserLoggedIn) {
-      loadUserData();
+      //loadUserData();
       connectUserSocket();
     }
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentDidUpdate(prevProps) {
     const {
       isUserLoggedIn, 
       loadUserData, 
@@ -58,8 +58,8 @@ class App extends Component {
     } = this.props;
 
     // if user wasn't logged in and now is, loadData
-    if (nextProps.isUserLoggedIn && !isUserLoggedIn) {
-      loadUserData();
+    if (!prevProps.isUserLoggedIn && isUserLoggedIn) {
+      //loadUserData();
       connectUserSocket();
     }
   }

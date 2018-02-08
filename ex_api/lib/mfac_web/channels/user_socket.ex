@@ -4,6 +4,7 @@ defmodule MfacWeb.UserSocket do
   ## Channels
   # channel "room:*", MfacWeb.RoomChannel
   channel "meeting:*", MfacWeb.MeetingChannel
+  channel "user:*", MfacWeb.UserChannel
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
   # transport :longpoll, Phoenix.Transports.LongPoll

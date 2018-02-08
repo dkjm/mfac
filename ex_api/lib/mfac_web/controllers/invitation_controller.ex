@@ -19,8 +19,7 @@ defmodule MfacWeb.InvitationController do
     with {:ok, %Invitation{} = invitation} <- Meetings.create_invitation(updated_params) do
       conn
       |> put_status(:created)
-      |> put_resp_header("location", invitation_path(conn, :show, invitation))
-      |> send_resp(201, "")
+      |> send_resp(:no_content, "")
     end
   end
 
@@ -29,6 +28,10 @@ defmodule MfacWeb.InvitationController do
     render(conn, "show.json", invitation: invitation)
   end
 
+  # MP 2/8 - Haven't implemented update for
+  # invitation because I don't think it's
+  # necessary.  Just create and delete funcs
+  # are needed.
   def update(conn, %{"id" => id, "invitation" => invitation_params}) do
     invitation = Meetings.get_invitation!(id)
 

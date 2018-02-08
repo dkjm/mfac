@@ -61,37 +61,45 @@ defmodule MfacWeb.UserController do
   # found.  Right now, I think client just gets
   # a 500
   def sign_in_user(conn, %{"username" => user_name, "password" => password}) do
+    IO.puts("sign_in_user ====")
     try do
       user = Mfac.Repo.get_by(User, user_name: trim_user_name(user_name))
+      IO.inspect(user, label: "USER")
+      IO.inspect(password, label: "PASSWORD")
+      # invitations_query = 
+      # from i in Mfac.Meetings.Invitation,
+      #   left_join: m in Mfac.Meetings.Meeting, on: i.meeting_id == m.id,
+      #   left_join: inviter in User, on: i.inviter_id == inviter.id,
+      #   left_join: invitee in User, on: i.invitee_id == invitee.id,
+      #   where: i.invitee_id == ^user.id,
+      #   preload: [
+      #     meeting: m,
+      #     inviter: inviter,
+      #     invitee: invitee,
+      #   ]
 
-      invitations_query = 
-      from i in Mfac.Meetings.Invitation,
-        left_join: m in Mfac.Meetings.Meeting, on: i.meeting_id == m.id,
-        left_join: inviter in User, on: i.inviter_id == inviter.id,
-        left_join: invitee in User, on: i.invitee_id == invitee.id,
-        where: i.invitee_id == ^user.id,
-        preload: [
-          meeting: m,
-          inviter: inviter,
-          invitee: invitee,
-        ]
-      invitations = Mfac.Repo.all(invitations_query)
+      # invitations = Mfac.Repo.all(invitations_query)
+      # IO.puts(invitations, label: "INVITATIONS")
 
-      contacts_query = from u in User, where: u.id != ^user.id
-      contacts = Mfac.Repo.all(contacts_query)
+      # contacts_query = from u in User, where: u.id != ^user.id
+      # contacts = Mfac.Repo.all(contacts_query)
 
-      data = %{
-        user_data: user, 
-        meeting_invitations: invitations, 
-        contacts: contacts}
+      # data = %{
+      #   user_data: user, 
+      #   meeting_invitations: invitations, 
+      #   contacts: contacts}
+
+      # IO.puts(data, label: "DATA")
 
       case is_binary(user.hashed_password) and authenticate(user, password) do
         true ->
+          IO.puts("TRUE")
           auth_conn = Accounts.Guardian.Plug.sign_in(conn, user)
           jwt = Accounts.Guardian.Plug.current_token(auth_conn) 
-
-          auth_conn
-          |> render(MfacWeb.UserView, "sign_in.json", user_data: data, token: jwt)
+          
+          render(auth_conn, "sign_in.json", user: user, token: jwt)
+          #render(auth_conn, "user.json", user: user)
+          #render(conn, "user.json", user: user)
         false ->
           conn
           |> put_status(401)
@@ -100,7 +108,7 @@ defmodule MfacWeb.UserController do
 
     rescue
       e ->
-        IO.inspect e # Print error to the console for debugging
+        IO.inspect(e, label: "ERROR") # Print error to the console for debugging
     end
   end
 

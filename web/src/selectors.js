@@ -105,6 +105,21 @@ export const getUserContacts = createSelector(
   contacts => contacts,
 )
 
+export const getUninvitedContacts = createSelector(
+  getUserContacts,
+  getMeetingInvitations,
+  (contacts, invitations) => {
+    const result = contacts.filter(c => {
+      for (let i = 0; i < invitations.length; i++) {
+        if (invitations[i].invitee.id === c.id) {
+          return false;
+        }
+      }
+      return true;
+    })
+    return result;
+  },
+)
 
 export const getMeeting = createSelector(
   (state, params = {}) => {

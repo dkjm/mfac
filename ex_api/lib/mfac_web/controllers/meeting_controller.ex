@@ -8,6 +8,7 @@ defmodule MfacWeb.MeetingController do
 
   def index(conn, _params) do
     user = Mfac.Accounts.Guardian.Plug.current_resource(conn)
+    IO.inspect(user, label: "USER")
     meetings = Meetings.list_user_meetings(user.id)
     render(conn, "index.json", meetings: meetings)
   end
