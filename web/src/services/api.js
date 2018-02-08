@@ -8,12 +8,17 @@ import history from '../history';
 import { isEmpty } from 'lodash';
 import {API_ENTRY, API_ENTRY_WS} from '../constants';
 
+export const LOAD_MEETINGS = 'LOAD_MEETINGS';
+export const LOAD_MEETING = 'LOAD_MEETING';
+export const REMOVE_MEETING = 'REMOVE_MEETING';
 export const SELECT_MEETING = 'SELECT_MEETING';
+
 export const SELECT_AGENDA_ITEM = 'SELECT_AGENDA_ITEM';
 export const LOAD_AGENDA_ITEMS = 'LOAD_AGENDA_ITEMS';
 // not sure if using below...
 export const LOAD_AGENDA_ITEM = 'LOAD_AGENDA_ITEM';
 export const REMOVE_AGENDA_ITEM = 'REMOVE_AGENDA_ITEM';
+
 export const LOAD_MEETING_INVITATIONS = 'LOAD_MEETING_INVITATIONS';
 // not sure if using below...
 export const LOAD_MEETING_INVITATION = 'LOAD_MEETING_INVITATION';
@@ -21,12 +26,16 @@ export const REMOVE_MEETING_INVITATION = 'REMOVE_MEETING_INVITATION';
 
 export const UPDATE_AGENDA_ITEM_USER_VOTE_TYPE = 'UPDATE_AGENDA_ITEM_USER_VOTE_TYPE';
 export const UPDATE_AGENDA_ITEM_VOTE_COUNTS = 'UPDATE_AGENDA_ITEM_VOTE_COUNTS';
+
 export const LOAD_AGENDA_ITEM_STACK_ENTRY = 'LOAD_AGENDA_ITEM_STACK_ENTRY';
 export const UPDATE_AGENDA_ITEM_STACK_ENTRIES = 'UPDATE_AGENDA_ITEM_STACK_ENTRIES';
 
-export const LOAD_MEETINGS = 'LOAD_MEETINGS';
-export const LOAD_MEETING = 'LOAD_MEETING';
-export const UPDATE_MEETING_DETAIL = 'UPDATE_MEETING_DETAIL';
+export const ADD_MEETING_PARTICIPANT = 'ADD_MEETING_PARTICIPANT';
+export const REMOVE_MEETING_PARTICIPANT = 'REMOVE_MEETING_PARTICIPANT';
+export const LOAD_MEETING_PARTICIPANTS = 'LOAD_MEETING_PARTICIPANTS';
+
+// TODO(MP 2/8): remove all action types and
+// action creators not being used
 export const LOAD_TOPICS = 'LOAD_TOPICS';
 export const UPDATE_TOPIC = 'UPDATE_TOPIC';
 export const POST_TOPIC = 'POST_TOPIC';
@@ -34,9 +43,7 @@ export const RECEIVE_TOPIC = 'RECEIVE_TOPIC';
 export const UPDATE_VOTE_COUNTS = 'UPDATE_VOTE_COUNTS';
 export const POST_VOTE = 'POST_VOTE';
 
-export const ADD_MEETING_PARTICIPANT = 'ADD_MEETING_PARTICIPANT';
-export const REMOVE_MEETING_PARTICIPANT = 'REMOVE_MEETING_PARTICIPANT';
-export const LOAD_MEETING_PARTICIPANTS = 'LOAD_MEETING_PARTICIPANTS';
+
 
 
 // declare socket var here so it can be used
@@ -190,6 +197,32 @@ export const submitMeetingForm = (params = {}) => (dispatch, getState) => {
 }
 
 
+export const deleteMeeting = (params = {}) => (dispatch, getState) => {
+  const {
+    meeting_id,
+  } = params
+
+  const endpoint = `${API_ENTRY}/meetings/${meeting_id}/`;
+
+  const config = {
+    url: endpoint,
+    method: 'DELETE',
+  }
+
+  return axios(config)
+    .then(response => {
+      history.push('/meetings/dashboard');
+      const snackbarParams = {
+        open: true,
+        message: 'Meeting deleted.',
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    })
+}
+
+
 export const submitMeetingInvitationForm = (params = {}) => (dispatch, getState) => {
   const {
     meeting_invitation_id,
@@ -261,8 +294,18 @@ export const deleteMeetingInvitation = (params = {}) => (dispatch, getState) => 
 }
 
 export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
+  // see link for options to pass to socket:
+  // https://hexdocs.pm/phoenix/js/
   const {meeting_id} = params;
-  socket = new Socket(API_ENTRY_WS, {params: {token: localStorage.getItem('token')}})
+  const socketOptions = {
+    params: {
+      token: localStorage.getItem('token'),
+    },
+    //timeout: 10000,
+    //heartbeatIntervalMs: 10000, 
+    //reconnectAfterMs: 20000,
+  }
+  socket = new Socket(API_ENTRY_WS, socketOptions)
   socket.connect()
   const room = `meeting:${meeting_id}`
   let channel = socket.channel(room, {})
@@ -297,6 +340,25 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
       participants: payload.meeting.participants,
     }
     dispatch(actionLoadMeetingParticipants);
+  })
+
+  channel.on('update_meeting_details', payload => {
+   console.log('channel - update_meeting_details', payload)
+     const action = {
+      type: LOAD_MEETING,
+      meeting: payload.meeting
+     }
+     dispatch(action);
+  })
+
+  channel.on('remove_meeting', payload => {
+   console.log('channel - remove_meeting', payload)
+     const action = {
+      type: REMOVE_MEETING,
+      meeting_id: payload.meeting_id,
+     }
+     dispatch(action);
+     history.push('/meetings/dashboard');
   })
 
   channel.on('add_agenda_item', payload => {

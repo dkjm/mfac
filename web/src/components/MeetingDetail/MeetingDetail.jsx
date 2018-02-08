@@ -1,8 +1,8 @@
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
+import React, {Component} from 'react';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 import {Route, Switch, Redirect} from 'react-router';
-import {withRouter} from 'react-router-dom' 
+import {withRouter} from 'react-router-dom';
 
 import LayoutBanner from '../LayoutBanner';
 import Stack from '../Stack';
@@ -22,7 +22,6 @@ import MeetingInvitationDetail from '../MeetingInvitationDetail';
 import MeetingInvitationForm from '../MeetingInvitationForm';
 
 import CheckIcon from 'material-ui/svg-icons/navigation/check'
-
 
 import {
 	connectMeetingSocket, 
@@ -80,8 +79,6 @@ class MeetingDetail extends Component {
 					/>
 					<Route path={`${match.url}/agenda_item/:agenda_item_id`} render={props => ( <AgendaItemDetail meeting={m} {...props} /> )}
 					/>
-					{/*<Route path='/' render={props => ( <MeetingHome meeting={m} {...props} /> )}
-					/>*/}
 					<Redirect from='/' to={`${match.url}/home`} />
 
 				</Switch>

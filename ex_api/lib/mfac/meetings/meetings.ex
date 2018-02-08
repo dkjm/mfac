@@ -66,9 +66,18 @@ defmodule Mfac.Meetings do
 
   """
   def update_meeting(%Meeting{} = meeting, attrs) do
-    meeting
-    |> Meeting.changeset(attrs)
-    |> Repo.update()
+    result = 
+      meeting
+      |> Meeting.changeset(attrs)
+      |> Repo.update()
+
+    meeting = Repo.get(Meeting, meeting.id)
+      |> Repo.preload([:owner])
+
+    json = MfacWeb.MeetingView.render("meeting_details.json", meeting)
+    send_broadcast("update_meeting_details", meeting.id, %{meeting: json})
+
+    result
   end
 
   @doc """
@@ -76,7 +85,9 @@ defmodule Mfac.Meetings do
 
   """
   def delete_meeting(%Meeting{} = meeting) do
-    Repo.delete(meeting)
+    result = Repo.delete(meeting)
+    send_broadcast("remove_meeting", meeting.id, %{meeting_id: meeting.id})
+    result
   end
 
   @doc """

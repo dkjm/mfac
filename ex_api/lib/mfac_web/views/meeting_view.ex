@@ -21,6 +21,19 @@ defmodule MfacWeb.MeetingView do
       ended_at: meeting.ended_at}
   end
 
+  def render("meeting_details.json", meeting) do
+    %{id: meeting.id,
+      title: meeting.title,
+      description: meeting.description,
+      allotted_duration: meeting.allotted_duration,
+      version: meeting.version,
+      inserted_at: meeting.inserted_at,
+      updated_at: meeting.updated_at,
+      ended_at: meeting.ended_at,
+      owner: render_one(meeting.owner, MfacWeb.UserView, "user_simple.json")
+    }
+  end
+
   def render("socket_meeting.json", %{meeting: meeting}) do
     %{
       id: meeting.id,

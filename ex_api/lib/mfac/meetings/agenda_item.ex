@@ -13,8 +13,8 @@ defmodule Mfac.Meetings.AgendaItem do
     field :closed_at, :utc_datetime
     belongs_to :owner, Mfac.Accounts.User, foreign_key: :user_id
     belongs_to :meeting, Mfac.Meetings.Meeting, foreign_key: :meeting_id
-    has_many :votes, Mfac.Meetings.AgendaItemVote
-    has_many :stack_entries, Mfac.Meetings.StackEntry
+    has_many :votes, Mfac.Meetings.AgendaItemVote, on_delete: :delete_all
+    has_many :stack_entries, Mfac.Meetings.StackEntry, on_delete: :delete_all
     timestamps()
   end
 

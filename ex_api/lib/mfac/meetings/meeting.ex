@@ -11,9 +11,9 @@ defmodule Mfac.Meetings.Meeting do
     field :version, :integer
     field :ended_at, :utc_datetime
     belongs_to :owner, Mfac.Accounts.User, foreign_key: :user_id
-    has_many :agenda_items, Mfac.Meetings.AgendaItem
-    has_many :invitations, Mfac.Meetings.Invitation
-    has_many :participants, Mfac.Meetings.Participant
+    has_many :agenda_items, Mfac.Meetings.AgendaItem, on_delete: :delete_all
+    has_many :invitations, Mfac.Meetings.Invitation, on_delete: :delete_all
+    has_many :participants, Mfac.Meetings.Participant, on_delete: :delete_all
     timestamps()
   end
 
