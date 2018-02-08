@@ -1,5 +1,6 @@
 import axios from 'axios';
-
+// const {Socket} = require('phoenix-channels');
+import {Socket} from 'phoenix-channels';
 import * as selectors from '../selectors';
 import {toggleSnackbar} from '../services/ui';
 import * as utils from '../utils';
@@ -12,6 +13,7 @@ export const SELECT_AGENDA_ITEM = 'SELECT_AGENDA_ITEM';
 export const LOAD_AGENDA_ITEMS = 'LOAD_AGENDA_ITEMS';
 // not sure if using below...
 export const LOAD_AGENDA_ITEM = 'LOAD_AGENDA_ITEM';
+export const REMOVE_AGENDA_ITEM = 'REMOVE_AGENDA_ITEM';
 export const LOAD_MEETING_INVITATIONS = 'LOAD_MEETING_INVITATIONS';
 // not sure if using below...
 export const LOAD_MEETING_INVITATION = 'LOAD_MEETING_INVITATION';
@@ -259,25 +261,18 @@ export const deleteMeetingInvitation = (params = {}) => (dispatch, getState) => 
 }
 
 export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
-  console.log('connectMeetingSocket')
-  const { Socket } = require('phoenix-channels')
   const {meeting_id} = params;
-
-
-
-  let socket = new Socket("ws://localhost:4000/socket")
-
+  socket = new Socket("ws://localhost:4000/socket")
   socket.connect()
-
-  // Now that you are connected, you can join channels with a topic:
-  let channel = socket.channel(`meeting:${meeting_id}`, {})
+  const room = `meeting:${meeting_id}`
+  let channel = socket.channel(room, {})
   channel.join()
-    .receive("ok", resp => { console.log("Joined successfully", resp) })
-    .receive("error", resp => { console.log("Unable to join", resp) })
+    .receive('ok', resp => { console.log('Joined room ' + room, resp) })
+    .receive('error', resp => { console.log('Unable to join room ' + room, resp) })
 
 
   channel.on('update_meeting', payload => {
-   console.log('update_meeting', payload)
+   console.log('channel - update_meeting', payload)
 
      const actionLoadMeeting = {
       type: LOAD_MEETING,
@@ -302,8 +297,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
       participants: payload.meeting.participants,
     }
     dispatch(actionLoadMeetingParticipants);
-
-  });
+  })
 
   channel.on('add_agenda_item', payload => {
     console.log('channel - add_agenda_item', payload)
@@ -323,6 +317,14 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
     dispatch(action);
   })
 
+  channel.on('remove_agenda_item', payload => {
+    console.log('channel - remove_agenda_item', payload)
+    const action = {
+      type: REMOVE_AGENDA_ITEM,
+      agenda_item_id: payload.agenda_item_id,
+    }
+    dispatch(action);
+  })
 
   //     
 
@@ -639,6 +641,32 @@ export const submitAgendaItemForm = (params = {}) => (dispatch, getState) => {
           dispatch(toggleSnackbar(snackbarParams));
         }, 300)
       })
+}
+
+
+export const deleteAgendaItem = (params = {}) => (dispatch, getState) => {
+  const {
+    agenda_item_id,
+  } = params
+
+  const endpoint = `${API_ENTRY}/agenda_items/${agenda_item_id}/`;
+
+  const config = {
+    url: endpoint,
+    method: 'DELETE',
+  }
+
+  return axios(config)
+    .then(response => {
+      history.goBack();
+      const snackbarParams = {
+        open: true,
+        message: 'Agenda item deleted.',
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    })
 }
 
 
@@ -1093,6 +1121,18 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
           ...state.cache,
           [agenda_item.id]: updatedItem,
         },
+      }
+      return nextState;
+    }
+
+    case (REMOVE_AGENDA_ITEM): {
+      console.log('REMOVE_AGENDA_ITEM', action)
+      const {agenda_item_id} = action;
+      const {cache} = state;
+      delete cache[agenda_item_id];
+      const nextState = {
+        ...state,
+        cache: {...cache}
       }
       return nextState;
     }

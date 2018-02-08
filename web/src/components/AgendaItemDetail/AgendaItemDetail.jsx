@@ -6,6 +6,7 @@ import {withRouter} from 'react-router-dom';
 import Paper from 'material-ui/Paper';
 import CheckIcon from 'material-ui/svg-icons/navigation/check';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
+import RaisedButton from 'material-ui/RaisedButton';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import ContentRemove from 'material-ui/svg-icons/content/remove';
 import PencilIcon from 'material-ui/svg-icons/editor/mode-edit';
@@ -15,6 +16,7 @@ import LabelValue from '../LabelValue';
 
 import {COLORS} from '../../constants';
 import {
+  deleteAgendaItem,
   postAgendaItemVote,
   submitAgendaItemStackEntryForm,
   requestRemoveAgendaItemStackEntry,
@@ -95,6 +97,37 @@ const StackItem = ({item}) => {
   )
 }
 
+const DeleteAgendaItemButton = (props) => {
+  const styles = {
+    container: {
+      maxWidth: '150px',
+      flexGrow: '1',
+    },
+    root: {
+
+    },
+    buttonStyle: {
+      minHeight: '60px'
+    },
+    labelStyle: {
+      color: COLORS.white,
+    },
+  }
+  return (
+    <div style={styles.container}>
+      <RaisedButton 
+        style={styles.root}
+        buttonStyle={styles.buttonStyle}
+        labelStyle={styles.labelStyle}
+        label={props.label} 
+        backgroundColor={COLORS.blackGray}
+        onClick={props.onClick}
+        fullWidth={true}
+      />
+    </div>
+  )
+}
+
 
 const StackSection = (props) => {
   const {
@@ -154,6 +187,13 @@ const StackSection = (props) => {
 
 
 class AgendaItemDetail extends Component {
+
+  handleRequestDeleteAgendaItem = () => {
+    const {match} = this.props;
+    const {agenda_item_id} = match.params;
+    const params = {agenda_item_id}
+    this.props.deleteAgendaItem(params);
+  }
 
   handleRequestPostVote = (vote_type) => {
     const {match} = this.props;
@@ -252,7 +292,7 @@ class AgendaItemDetail extends Component {
         zDepth={2}
       >
 
-        <div styles={styles.stackSectionContainer}>
+        <div style={styles.stackSectionContainer}>
           <StackSection 
             onRequestAdd={this.handleRequestAddAgendaItemStackEntry}
             onRequestRemove={this.handleRequestRemoveAgendaItemStackEntry}
@@ -263,6 +303,13 @@ class AgendaItemDetail extends Component {
         </div>
 
       </Paper>
+
+      <div style={styles.bottomButtonsContainer}>
+        <DeleteAgendaItemButton 
+          label="Delete"
+          onClick={this.handleRequestDeleteAgendaItem} 
+        />
+      </div> 
       </div>
     )
   }
@@ -275,6 +322,11 @@ const styles = {
     margin: '10px 15px 20px',
     padding: '10px',
     textAlign: 'left',
+  },
+  bottomButtonsContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    padding: '0px 0px 40px',
   },
   editButtonContainer: {
     float: 'right',
@@ -336,6 +388,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = dispatch => {
   return {
+    deleteAgendaItem: (params) => dispatch(deleteAgendaItem(params)),
     submitAgendaItemStackEntryForm: (params) => dispatch(submitAgendaItemStackEntryForm(params)),
     requestRemoveAgendaItemStackEntry: (params) => dispatch(requestRemoveAgendaItemStackEntry(params)),
     postAgendaItemVote: (params) =>

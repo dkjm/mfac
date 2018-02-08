@@ -176,7 +176,9 @@ defmodule Mfac.Meetings do
 
   """
   def delete_agenda_item(%AgendaItem{} = agenda_item) do
-    Repo.delete(agenda_item)
+    result = Repo.delete(agenda_item)
+    send_broadcast("remove_agenda_item", agenda_item.meeting_id, %{agenda_item_id: agenda_item.id})
+    result
   end
 
   @doc """
