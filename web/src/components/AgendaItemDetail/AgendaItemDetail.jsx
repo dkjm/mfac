@@ -10,6 +10,8 @@ import RaisedButton from 'material-ui/RaisedButton';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import ContentRemove from 'material-ui/svg-icons/content/remove';
 import PencilIcon from 'material-ui/svg-icons/editor/mode-edit';
+import RefreshIcon from 'material-ui/svg-icons/action/autorenew';
+
 
 import VoteArrows from '../VoteArrows';
 import LabelValue from '../LabelValue';
@@ -20,6 +22,7 @@ import {
   postAgendaItemVote,
   submitAgendaItemStackEntryForm,
   requestRemoveAgendaItemStackEntry,
+  openOrCloseAgendaItem,
 } from '../../services/api';
 import {
   getAgendaItem, 
@@ -73,8 +76,22 @@ const EditButton = (props) => {
       onClick={props.onClick}
       mini={true}
       iconStyle={{fill: COLORS.blackGray}}
+      style={{marginLeft: '20px'}}
       backgroundColor={COLORS.reactBlue}>
       <PencilIcon />
+    </FloatingActionButton>
+  )
+}
+
+const OpenOrCloseButton = (props) => {
+  return (
+    <FloatingActionButton
+      onClick={props.onClick}
+      mini={true}
+      iconStyle={{fill: COLORS.blackGray}}
+      style={{marginLeft: '10px'}}
+      backgroundColor={props.color || COLORS.cyan50}>
+      {props.icon}
     </FloatingActionButton>
   )
 }
@@ -224,6 +241,53 @@ class AgendaItemDetail extends Component {
     history.push(path);
   }
 
+  handleRequestOpenOrCloseAgendaItem = () => {
+    const {agendaItem, openOrCloseAgendaItem} = this.props;
+    const {status} = agendaItem;
+    const newStatus = status === 'CLOSED'
+      ? 'OPEN'
+      : 'CLOSED'
+    const params = {
+      agenda_item_id: agendaItem.id,
+      status: newStatus,
+    }
+    openOrCloseAgendaItem(params);
+  }
+
+  renderTopRightButtons() {
+    const {agendaItem} = this.props;
+    const {status} = agendaItem;
+    let icon;
+    if (status === 'OPEN' || status === 'PENDING') {
+      icon = <CheckIcon />
+    } 
+    else {
+      icon = <RefreshIcon />
+    }
+    if (status === 'OPEN' || status === 'PENDING') {
+      return (
+        <div style={styles.topRightButtonsContainer}>
+          <EditButton onClick={this.handleRequestUpdateAgendaItem} />
+          <OpenOrCloseButton 
+            onClick={this.handleRequestOpenOrCloseAgendaItem}
+            icon={icon} 
+          />
+        </div>
+      )
+    }
+    else if (status === 'CLOSED') {
+      return (
+        <div style={styles.topRightButtonsContainer}>
+          <OpenOrCloseButton 
+            onClick={this.handleRequestOpenOrCloseAgendaItem}
+            icon={icon} 
+            color={COLORS.reactBlue}
+          />
+        </div>
+      )
+    }
+  }
+
   render() {
     const {
       agendaItem,
@@ -240,10 +304,7 @@ class AgendaItemDetail extends Component {
         style={styles.paper} 
         zDepth={2}
       >
-        <div style={styles.editButtonContainer}>
-          { i.status !== 'CLOSED' && i.owner.id === userData.id && <EditButton onClick={this.handleRequestUpdateAgendaItem} />
-          }
-        </div>
+        {this.renderTopRightButtons()}
 
         <div style={styles.headerSectionContainer}>
           <div style={styles.leftBlock}>
@@ -260,9 +321,9 @@ class AgendaItemDetail extends Component {
                 {i.title}
               </div>
 
-              <div style={styles.status}>
+              {/*<div style={styles.status}>
                 {i.status === 'CLOSED' && statusIcon}
-              </div>
+              </div>*/}
             </div>
 
             <div style={styles.rightBlockBottom}>
@@ -328,7 +389,7 @@ const styles = {
     justifyContent: 'center',
     padding: '0px 0px 40px',
   },
-  editButtonContainer: {
+  topRightButtonsContainer: {
     float: 'right',
     // textAlign: 'right',
     // position: 'absolute',
@@ -393,6 +454,7 @@ const mapDispatchToProps = dispatch => {
     requestRemoveAgendaItemStackEntry: (params) => dispatch(requestRemoveAgendaItemStackEntry(params)),
     postAgendaItemVote: (params) =>
       dispatch(postAgendaItemVote(params)),
+    openOrCloseAgendaItem: (params) => dispatch(openOrCloseAgendaItem(params)),
   }
 }
 

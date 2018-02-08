@@ -17,6 +17,10 @@ export const COLORS = {
 	reactBlue: 'rgb(119, 210, 249)',
 	reactBlueTransparent: 'rgba(119, 210, 249, .7)',
 	midnightGray: 'rgb(91, 91, 91)',
+  cyan50: '#E0F7FA',
+  cyan100: '#B2EBF2',
+  cyan200: '#80DEEA',
+  cyan300: '#4DD0E1',
 }
 
 // export const API_ENTRY = 'http://localhost:8000/api';

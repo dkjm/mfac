@@ -33,7 +33,6 @@ defmodule MfacWeb.AgendaItemController do
   # See Meetings.update_agenda_item for details
   def update(conn, %{"id" => id, "agenda_item" => agenda_item_params}) do
     agenda_item = Meetings.get_agenda_item!(id)
-
     with {:ok, %AgendaItem{} = agenda_item} <- Meetings.update_agenda_item(agenda_item, agenda_item_params) do
       conn
       |> put_status(:ok)

@@ -788,6 +788,36 @@ export const deleteAgendaItem = (params = {}) => (dispatch, getState) => {
     })
 }
 
+export const openOrCloseAgendaItem = (params = {}) => (dispatch, getState) => {
+  const {
+    agenda_item_id,
+    status,
+  } = params
+
+  const endpoint = API_ENTRY + `/agenda_items/${agenda_item_id}/`;
+
+  const successMessage = status === 'OPEN'
+    ? 'Agenda item opened.'
+    : 'Agenda item closed.'
+
+  const config = {
+    url: endpoint,
+    method: 'PATCH',
+    data: {agenda_item: {status}},
+  }
+
+  return axios(config)
+    .then(response => {
+        const snackbarParams = {
+          open: true,
+          message: successMessage,
+        }
+        setTimeout(() => {
+          dispatch(toggleSnackbar(snackbarParams));
+        }, 300)
+      })
+}
+
 
 // TODO: Currently just calling this on
 // "add" button in stack section of comp
