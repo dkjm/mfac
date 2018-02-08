@@ -9,14 +9,18 @@ defmodule Mfac.Meetings do
 
   alias Mfac.Meetings.Meeting
   alias Mfac.Meetings.Invitation
+  alias Mfac.Meetings.AgendaItem
+  alias Mfac.Meetings.AgendaItemVote
+  alias Mfac.Meetings.StackEntry
+  alias Mfac.Accounts.User
+
+
+  defp send_broadcast(event, meeting_id, payload) do
+    MfacWeb.MeetingChannel.broadcast_event(event, meeting_id, payload)
+  end
 
   @doc """
-  Returns the list of meetings.
-
-  ## Examples
-
-      iex> list_meetings()
-      [%Meeting{}, ...]
+  Returns the list of all meetings.
 
   """
   def list_meetings do
@@ -29,8 +33,9 @@ defmodule Mfac.Meetings do
   2. user has related invitations that 
     have been accepted
   """
-  # TODO(mp 2/7): replace invitation status string value 
-  # check with enum value
+  # TODO(mp 2/7): replace invitation status
+  # string value check with enum value once
+  # we have implemented enum
   def list_user_meetings(user_id) do
     owned_meetings = Repo.all(from m in Meeting, where: m.user_id == ^user_id)
     accepted_invitations = Repo.all(from i in Invitation, where: i.invitee_id == ^user_id and i.status == "ACCEPTED")
@@ -43,27 +48,11 @@ defmodule Mfac.Meetings do
 
   Raises `Ecto.NoResultsError` if the Meeting does not exist.
 
-  ## Examples
-
-      iex> get_meeting!(123)
-      %Meeting{}
-
-      iex> get_meeting!(456)
-      ** (Ecto.NoResultsError)
-
   """
   def get_meeting!(id), do: Repo.get!(Meeting, id)
 
   @doc """
   Creates a meeting.
-
-  ## Examples
-
-      iex> create_meeting(%{field: value})
-      {:ok, %Meeting{}}
-
-      iex> create_meeting(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
 
   """
   def create_meeting(attrs \\ %{}) do
@@ -75,14 +64,6 @@ defmodule Mfac.Meetings do
   @doc """
   Updates a meeting.
 
-  ## Examples
-
-      iex> update_meeting(meeting, %{field: new_value})
-      {:ok, %Meeting{}}
-
-      iex> update_meeting(meeting, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def update_meeting(%Meeting{} = meeting, attrs) do
     meeting
@@ -93,14 +74,6 @@ defmodule Mfac.Meetings do
   @doc """
   Deletes a Meeting.
 
-  ## Examples
-
-      iex> delete_meeting(meeting)
-      {:ok, %Meeting{}}
-
-      iex> delete_meeting(meeting)
-      {:error, %Ecto.Changeset{}}
-
   """
   def delete_meeting(%Meeting{} = meeting) do
     Repo.delete(meeting)
@@ -109,28 +82,18 @@ defmodule Mfac.Meetings do
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking meeting changes.
 
-  ## Examples
-
-      iex> change_meeting(meeting)
-      %Ecto.Changeset{source: %Meeting{}}
-
   """
   def change_meeting(%Meeting{} = meeting) do
     Meeting.changeset(meeting, %{})
   end
 
-  alias Mfac.Meetings.AgendaItem
+  
 
   @doc """
   Returns the list of agendaitems.
 
-  ## Examples
-
-      iex> list_agendaitems()
-      [%AgendaItem{}, ...]
-
   """
-  def list_agendaitems do
+  def list_agenda_items do
     Repo.all(AgendaItem)
   end
 
@@ -139,94 +102,77 @@ defmodule Mfac.Meetings do
 
   Raises `Ecto.NoResultsError` if the Agenda item does not exist.
 
-  ## Examples
-
-      iex> get_agenda_item!(123)
-      %AgendaItem{}
-
-      iex> get_agenda_item!(456)
-      ** (Ecto.NoResultsError)
-
   """
   def get_agenda_item!(id), do: Repo.get!(AgendaItem, id)
 
   @doc """
-  Creates a agenda_item.
-
-  ## Examples
-
-      iex> create_agenda_item(%{field: value})
-      {:ok, %AgendaItem{}}
-
-      iex> create_agenda_item(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+  Creates a agenda_item.  Broadcasts event to
+  related meeting room
 
   """
-  # def create_agenda_item(attrs \\ %{}) do
-  #   %AgendaItem{}
-  #   |> AgendaItem.changeset(attrs)
-  #   |> Repo.insert()
-  #   |> IO.inspect(label: "ITEM")
-  # end
-
-  # def create_agenda_item(attrs \\ %{}) do
-  #   %AgendaItem{}
-  #   |> AgendaItem.changeset(attrs)
-  #   |> Repo.insert()
-  #   |> IO.inspect(label: "REPO RESULT")
-  #   |> send_broadcast
-  # end
-
+  # TODO(MP 2/7): consolidate complex queries
+  # into one place, instead of having 
+  # to replicate same code as in below
+  # create and update funcs
   def create_agenda_item(attrs \\ %{}) do
     result = 
       %AgendaItem{}
       |> AgendaItem.changeset(attrs)
       |> Repo.insert()
-      |> IO.inspect(label: "REPO RESULT")
-      |> send_broadcast("add_agenda_item")
+    {status, agenda_item} = result
+    query = from a in AgendaItem,
+      left_join: u in User, on: u.id == a.user_id,
+      left_join: v in AgendaItemVote, on: v.agenda_item_id == a.id,
+      left_join: s in StackEntry, on: s.agenda_item_id == a.id,
+      left_join: so in User, on: so.id == s.user_id,
+      where: a.id == ^agenda_item.id,
+      preload: [
+        owner: u,
+        votes: v,
+        stack_entries: {s, [
+          owner: so,  
+        ]},
+      ]
+    agenda_item = List.first(Repo.all(query))
+    json = MfacWeb.AgendaItemView.render("agenda_item_with_votes.json", agenda_item)
+    send_broadcast("add_agenda_item", agenda_item.meeting_id, %{agenda_item: json})
+    result
   end
 
-  defp send_broadcast(result, val) do
-    {status, agenda_item} = result
-    IO.inspect(status, label: "STATUS=======")
-    IO.inspect(status, label: "STATUS=======")
-    MfacWeb.MeetingChannel.broadcast_event(agenda_item, val)
-    result
-    # IO.inspect(agenda_item, label: "ITEM=======")
-  end
-  #   room = "meetings:#{agenda_item.meeting_id}"
-  #   agenda_item_json = MfacWeb.AgendaItemView.render("show.json", %{agenda_item: agenda_item})
-  #   MeetingChannel.Endpoint.broadcast(room, "add_agenda_item", agenda_item_json)
-  # end
+  
+
 
   @doc """
   Updates a agenda_item.
 
-  ## Examples
-
-      iex> update_agenda_item(agenda_item, %{field: new_value})
-      {:ok, %AgendaItem{}}
-
-      iex> update_agenda_item(agenda_item, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def update_agenda_item(%AgendaItem{} = agenda_item, attrs) do
-    agenda_item
-    |> AgendaItem.changeset(attrs)
-    |> Repo.update()
+    result = 
+      agenda_item
+      |> AgendaItem.changeset(attrs)
+      |> Repo.update()
+    {status, agenda_item} = result
+    query = from a in AgendaItem,
+      left_join: u in User, on: u.id == a.user_id,
+      left_join: v in AgendaItemVote, on: v.agenda_item_id == a.id,
+      left_join: s in StackEntry, on: s.agenda_item_id == a.id,
+      left_join: so in User, on: so.id == s.user_id,
+      where: a.id == ^agenda_item.id,
+      preload: [
+        owner: u,
+        votes: v,
+        stack_entries: {s, [
+          owner: so,  
+        ]},
+      ]
+    agenda_item = List.first(Repo.all(query))
+    json = MfacWeb.AgendaItemView.render("agenda_item_with_votes.json", agenda_item)
+    send_broadcast("update_agenda_item", agenda_item.meeting_id, %{agenda_item: json})
+    result
   end
 
   @doc """
   Deletes a AgendaItem.
-
-  ## Examples
-
-      iex> delete_agenda_item(agenda_item)
-      {:ok, %AgendaItem{}}
-
-      iex> delete_agenda_item(agenda_item)
-      {:error, %Ecto.Changeset{}}
 
   """
   def delete_agenda_item(%AgendaItem{} = agenda_item) do
@@ -236,11 +182,6 @@ defmodule Mfac.Meetings do
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking agenda_item changes.
 
-  ## Examples
-
-      iex> change_agenda_item(agenda_item)
-      %Ecto.Changeset{source: %AgendaItem{}}
-
   """
   def change_agenda_item(%AgendaItem{} = agenda_item) do
     AgendaItem.changeset(agenda_item, %{})
@@ -248,6 +189,18 @@ defmodule Mfac.Meetings do
 
 
   # TODO(JA): ask mark what the user_vote key should return and handle that formatting here
+  # TODO(MP 2/7): I think maybe this should be
+  # moved to a different location.  Moved it to
+  # AgendaItemView.
+  # *** user_vote key should be either "UP",
+  # "DOWN", "MEH", or nil, depending on what 
+  # type of vote the requesting user cast for
+  # this agenda item.  It's  context dependent,
+  # so in the case where we are updating vote
+  # counts in a broadcast 
+  # (and not to a specific user), returned
+  # data should not have a "user_vote" key.
+  # Client is set up to handle this.
   defp format_votes(votes) do
     Enum.reduce(votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
       case vote.vote_type do
@@ -285,11 +238,6 @@ defmodule Mfac.Meetings do
   @doc """
   Returns the list of agendaitemvotes.
 
-  ## Examples
-
-      iex> list_agendaitemvotes()
-      [%AgendaItemVote{}, ...]
-
   """
   def list_agendaitemvotes do
     Repo.all(AgendaItemVote)
@@ -300,27 +248,11 @@ defmodule Mfac.Meetings do
 
   Raises `Ecto.NoResultsError` if the Agenda item vote does not exist.
 
-  ## Examples
-
-      iex> get_agenda_item_vote!(123)
-      %AgendaItemVote{}
-
-      iex> get_agenda_item_vote!(456)
-      ** (Ecto.NoResultsError)
-
   """
   def get_agenda_item_vote!(id), do: Repo.get!(AgendaItemVote, id)
 
   @doc """
   Creates a agenda_item_vote.
-
-  ## Examples
-
-      iex> create_agenda_item_vote(%{field: value})
-      {:ok, %AgendaItemVote{}}
-
-      iex> create_agenda_item_vote(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
 
   """
   def create_agenda_item_vote(attrs \\ %{}) do
@@ -332,14 +264,6 @@ defmodule Mfac.Meetings do
   @doc """
   Updates a agenda_item_vote.
 
-  ## Examples
-
-      iex> update_agenda_item_vote(agenda_item_vote, %{field: new_value})
-      {:ok, %AgendaItemVote{}}
-
-      iex> update_agenda_item_vote(agenda_item_vote, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def update_agenda_item_vote(%AgendaItemVote{} = agenda_item_vote, attrs) do
     agenda_item_vote
@@ -350,14 +274,6 @@ defmodule Mfac.Meetings do
   @doc """
   Deletes a AgendaItemVote.
 
-  ## Examples
-
-      iex> delete_agenda_item_vote(agenda_item_vote)
-      {:ok, %AgendaItemVote{}}
-
-      iex> delete_agenda_item_vote(agenda_item_vote)
-      {:error, %Ecto.Changeset{}}
-
   """
   def delete_agenda_item_vote(%AgendaItemVote{} = agenda_item_vote) do
     Repo.delete(agenda_item_vote)
@@ -365,11 +281,6 @@ defmodule Mfac.Meetings do
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking agenda_item_vote changes.
-
-  ## Examples
-
-      iex> change_agenda_item_vote(agenda_item_vote)
-      %Ecto.Changeset{source: %AgendaItemVote{}}
 
   """
   def change_agenda_item_vote(%AgendaItemVote{} = agenda_item_vote) do
@@ -381,11 +292,6 @@ defmodule Mfac.Meetings do
   @doc """
   Returns the list of stack_entries.
 
-  ## Examples
-
-      iex> list_stack_entries()
-      [%StackEntry{}, ...]
-
   """
   def list_stack_entries do
     Repo.all(StackEntry)
@@ -396,29 +302,17 @@ defmodule Mfac.Meetings do
 
   Raises `Ecto.NoResultsError` if the Stack entry does not exist.
 
-  ## Examples
-
-      iex> get_stack_entry!(123)
-      %StackEntry{}
-
-      iex> get_stack_entry!(456)
-      ** (Ecto.NoResultsError)
-
   """
   def get_stack_entry!(id), do: Repo.get!(StackEntry, id)
 
   @doc """
   Creates a stack_entry.
 
-  ## Examples
-
-      iex> create_stack_entry(%{field: value})
-      {:ok, %StackEntry{}}
-
-      iex> create_stack_entry(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
+  # TODO(MP 2/7) - reimplement send_broadcast,
+  # turned it off for now because I was 
+  # reworking broadcast flow for agenda_item
+  # create and update events
   def create_stack_entry(attrs \\ %{}) do
     # TODO(ja): this needs to handle errors. just testing the socket stuff right now
     {:ok, se} =
@@ -426,20 +320,12 @@ defmodule Mfac.Meetings do
       |> StackEntry.changeset(attrs)
       |> Repo.insert()
 
-    send_broadcast({:ok, get_agenda_item!(se.agenda_item_id)}, "update_agenda_item")
+    # send_broadcast({:ok, get_agenda_item!(se.agenda_item_id)}, "update_agenda_item")
     {:ok, se}
   end
 
   @doc """
   Updates a stack_entry.
-
-  ## Examples
-
-      iex> update_stack_entry(stack_entry, %{field: new_value})
-      {:ok, %StackEntry{}}
-
-      iex> update_stack_entry(stack_entry, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
 
   """
   def update_stack_entry(%StackEntry{} = stack_entry, attrs) do
@@ -451,14 +337,6 @@ defmodule Mfac.Meetings do
   @doc """
   Deletes a StackEntry.
 
-  ## Examples
-
-      iex> delete_stack_entry(stack_entry)
-      {:ok, %StackEntry{}}
-
-      iex> delete_stack_entry(stack_entry)
-      {:error, %Ecto.Changeset{}}
-
   """
   def delete_stack_entry(%StackEntry{} = stack_entry) do
     Repo.delete(stack_entry)
@@ -466,11 +344,6 @@ defmodule Mfac.Meetings do
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking stack_entry changes.
-
-  ## Examples
-
-      iex> change_stack_entry(stack_entry)
-      %Ecto.Changeset{source: %StackEntry{}}
 
   """
   def change_stack_entry(%StackEntry{} = stack_entry) do
@@ -482,11 +355,6 @@ defmodule Mfac.Meetings do
   @doc """
   Returns the list of invitations.
 
-  ## Examples
-
-      iex> list_invitations()
-      [%Invitation{}, ...]
-
   """
   def list_invitations do
     Repo.all(Invitation)
@@ -497,27 +365,11 @@ defmodule Mfac.Meetings do
 
   Raises `Ecto.NoResultsError` if the Invitation does not exist.
 
-  ## Examples
-
-      iex> get_invitation!(123)
-      %Invitation{}
-
-      iex> get_invitation!(456)
-      ** (Ecto.NoResultsError)
-
   """
   def get_invitation!(id), do: Repo.get!(Invitation, id)
 
   @doc """
   Creates a invitation.
-
-  ## Examples
-
-      iex> create_invitation(%{field: value})
-      {:ok, %Invitation{}}
-
-      iex> create_invitation(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
 
   """
   def create_invitation(attrs \\ %{}) do
@@ -529,14 +381,6 @@ defmodule Mfac.Meetings do
   @doc """
   Updates a invitation.
 
-  ## Examples
-
-      iex> update_invitation(invitation, %{field: new_value})
-      {:ok, %Invitation{}}
-
-      iex> update_invitation(invitation, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def update_invitation(%Invitation{} = invitation, attrs) do
     invitation
@@ -547,14 +391,6 @@ defmodule Mfac.Meetings do
   @doc """
   Deletes a Invitation.
 
-  ## Examples
-
-      iex> delete_invitation(invitation)
-      {:ok, %Invitation{}}
-
-      iex> delete_invitation(invitation)
-      {:error, %Ecto.Changeset{}}
-
   """
   def delete_invitation(%Invitation{} = invitation) do
     Repo.delete(invitation)
@@ -562,11 +398,6 @@ defmodule Mfac.Meetings do
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking invitation changes.
-
-  ## Examples
-
-      iex> change_invitation(invitation)
-      %Ecto.Changeset{source: %Invitation{}}
 
   """
   def change_invitation(%Invitation{} = invitation) do
@@ -578,11 +409,6 @@ defmodule Mfac.Meetings do
   @doc """
   Returns the list of participants.
 
-  ## Examples
-
-      iex> list_participants()
-      [%Participant{}, ...]
-
   """
   def list_participants do
     Repo.all(Participant)
@@ -593,27 +419,11 @@ defmodule Mfac.Meetings do
 
   Raises `Ecto.NoResultsError` if the Participant does not exist.
 
-  ## Examples
-
-      iex> get_participant!(123)
-      %Participant{}
-
-      iex> get_participant!(456)
-      ** (Ecto.NoResultsError)
-
   """
   def get_participant!(id), do: Repo.get!(Participant, id)
 
   @doc """
   Creates a participant.
-
-  ## Examples
-
-      iex> create_participant(%{field: value})
-      {:ok, %Participant{}}
-
-      iex> create_participant(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
 
   """
   def create_participant(attrs \\ %{}) do
@@ -625,14 +435,6 @@ defmodule Mfac.Meetings do
   @doc """
   Updates a participant.
 
-  ## Examples
-
-      iex> update_participant(participant, %{field: new_value})
-      {:ok, %Participant{}}
-
-      iex> update_participant(participant, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def update_participant(%Participant{} = participant, attrs) do
     participant
@@ -643,14 +445,6 @@ defmodule Mfac.Meetings do
   @doc """
   Deletes a Participant.
 
-  ## Examples
-
-      iex> delete_participant(participant)
-      {:ok, %Participant{}}
-
-      iex> delete_participant(participant)
-      {:error, %Ecto.Changeset{}}
-
   """
   def delete_participant(%Participant{} = participant) do
     Repo.delete(participant)
@@ -658,11 +452,6 @@ defmodule Mfac.Meetings do
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking participant changes.
-
-  ## Examples
-
-      iex> change_participant(participant)
-      %Ecto.Changeset{source: %Participant{}}
 
   """
   def change_participant(%Participant{} = participant) do

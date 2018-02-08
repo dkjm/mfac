@@ -10,6 +10,16 @@ defmodule MfacWeb.StackEntryView do
     %{data: render_one(stack_entry, StackEntryView, "stack_entry.json")}
   end
 
+  # def render("stack_entry.json", %{stack_entry: stack_entry}) do
+  #   %{id: stack_entry.id,
+  #     status: stack_entry.status,
+  #     allotted_duration: stack_entry.allotted_duration,
+  #     version: stack_entry.version,
+  #     opened_at: stack_entry.opened_at,
+  #     closed_at: stack_entry.closed_at,
+  #     owner_id: stack_entry.user_id
+  #   }
+  # end
   def render("stack_entry.json", %{stack_entry: stack_entry}) do
     %{id: stack_entry.id,
       status: stack_entry.status,
@@ -17,7 +27,7 @@ defmodule MfacWeb.StackEntryView do
       version: stack_entry.version,
       opened_at: stack_entry.opened_at,
       closed_at: stack_entry.closed_at,
-      owner_id: stack_entry.user_id
+      owner: render_one(stack_entry.owner, MfacWeb.UserView, "user.json")
     }
   end
 end

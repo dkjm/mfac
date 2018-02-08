@@ -7,7 +7,7 @@ defmodule Mfac.Meetings.AgendaItem do
   schema "agenda_items" do
     field :allotted_duration, :integer
     field :body, :string
-    field :status, :string
+    field :status, :string, default: "PENDING"
     field :title, :string
     field :version, :integer, default: 0
     field :closed_at, :utc_datetime

@@ -21,7 +21,7 @@ export const UPDATE_AGENDA_ITEM_USER_VOTE_TYPE = 'UPDATE_AGENDA_ITEM_USER_VOTE_T
 export const UPDATE_AGENDA_ITEM_VOTE_COUNTS = 'UPDATE_AGENDA_ITEM_VOTE_COUNTS';
 export const LOAD_AGENDA_ITEM_STACK_ENTRY = 'LOAD_AGENDA_ITEM_STACK_ENTRY';
 export const UPDATE_AGENDA_ITEM_STACK_ENTRIES = 'UPDATE_AGENDA_ITEM_STACK_ENTRIES';
-export const UPDATE_AGENDA_ITEM = 'UPDATE_AGENDA_ITEM';
+
 export const LOAD_MEETINGS = 'LOAD_MEETINGS';
 export const LOAD_MEETING = 'LOAD_MEETING';
 export const UPDATE_MEETING_DETAIL = 'UPDATE_MEETING_DETAIL';
@@ -306,7 +306,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   });
 
   channel.on('add_agenda_item', payload => {
-    console.log('add_agenda_item', payload)
+    console.log('channel - add_agenda_item', payload)
     const action = {
       type: LOAD_AGENDA_ITEM,
       agenda_item: payload.agenda_item,
@@ -315,9 +315,9 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('update_agenda_item', payload => {
-    console.log("made it to update")
+    console.log('channel - update_agenda_item', payload)
     const action = {
-      type: UPDATE_AGENDA_ITEM,
+      type: LOAD_AGENDA_ITEM,
       agenda_item: payload.agenda_item,
     }
     dispatch(action);
@@ -610,27 +610,31 @@ export const submitAgendaItemForm = (params = {}) => (dispatch, getState) => {
   // <intent> will be either "update"
   // or "create".  Endpoint depends on which
 
-  const endpoint = intent === 'update'
-    ? API_ENTRY + `/agenda_items/${agenda_item_id}/`
-    : API_ENTRY + '/agenda_items/'
+  let method, endpoint, successMessage;
+  if (intent === 'update') {
+    endpoint = API_ENTRY + `/agenda_items/${agenda_item_id}/`;
+    method = 'PATCH';
+    successMessage = 'Agenda item updated successfully.';
+  }
+  else {
+    endpoint = API_ENTRY + `/agenda_items/`;
+    method = 'POST';
+    successMessage = 'Agenda item created successfully.';
+  }
 
-  const successMessage = intent === 'update'
-    ? 'Agenda item updated successfully.'
-    : 'Agenda item created successfully.'
+  const config = {
+    url: endpoint,
+    method,
+    data: {agenda_item: data},
+  }
 
-  return axios.post(endpoint, {agenda_item: data})
+  return axios(config)
     .then(response => {
-        // ** currently not handling response. New data
         history.goBack();
         const snackbarParams = {
           open: true,
           message: successMessage,
         }
-        // opening snackbar in timeout
-        // because it looks alittle smoother 
-        // and prevents some jank when
-        // navigating back to previous screen
-        // after form submit
         setTimeout(() => {
           dispatch(toggleSnackbar(snackbarParams));
         }, 300)
@@ -1117,20 +1121,6 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
       return nextState;   
     }
 
-    case (UPDATE_AGENDA_ITEM): {
-      const { agenda_item } = action;
-      const agendaItem = state.cache[agenda_item.id];
-      if (!agendaItem) {return state};
-
-      const nextState = {
-        ...state,
-        cache: {
-          ...state.cache,
-          [agenda_item.id]: agenda_item,
-        },
-      }
-      return nextState;
-    }
 
     case (LOAD_AGENDA_ITEM_STACK_ENTRY): {
       const {agenda_item_stack_entry} = action;
