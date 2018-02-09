@@ -50,19 +50,10 @@ class MeetingsDashboard extends Component {
 	
 	render() {
 		const {meetings} = this.props;
-		let header = null;
-		if (meetings.length) {
-			header = (
-				<div style={styles.header}>
-          Meetings
-        </div>
-      )
-		}
+
 		return (
 			<div style={styles.container}>
-				
-				{header}
-				
+								
 				<CardListContainer>
 					{this.renderItems()}
 				</CardListContainer>

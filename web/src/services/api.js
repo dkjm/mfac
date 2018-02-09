@@ -1312,7 +1312,6 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
     }
 
     case (REMOVE_AGENDA_ITEM): {
-      console.log('REMOVE_AGENDA_ITEM', action)
       const {agenda_item_id} = action;
       const {cache} = state;
       delete cache[agenda_item_id];

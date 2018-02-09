@@ -34,7 +34,9 @@ defmodule MfacWeb.UserView do
       middle_name: user.middle_name,
       full_name: full_name,
       user_name: user.user_name,
-      is_active: user.is_active}
+      is_active: user.is_active,
+      inserted_at: user.inserted_at,
+    }
   end
 
   def render("user_data.json", %{user_data: data}) do

@@ -10,13 +10,70 @@ import NavIcon from 'material-ui/svg-icons/navigation/menu';
 
 import {COLORS, COMPANY_NAME} from '../../constants';
 import {toggleNavDrawer} from '../../services/ui';
-import {getHeader} from '../../selectors';
-import {getUserData} from '../../selectors';
+import {
+	getHeader,
+	getUserData,
+	getMeetings,
+} from '../../selectors';
 
-// header is passed location prop from
-// app.js component and it should read
-// current url and pass isSelected to navItems
+
+const meetingDetailRE = /\/meetings\/(\d+)/;
+const meetingsRE = /\/meetings\/dashboard/;
+const dashboardRE = /\/dashboard/;
+const invitationsRE = /\/invitations/;
+const settingsRE = /\/settings/;
+
+const getTitle = (path, nextProps) => {
+	const p = path;
+	if (meetingDetailRE.test(p)) {
+		const match = meetingDetailRE.exec(p);
+		const meeting_id = match[1];
+		const meeting = nextProps.meetings.filter(m => m.id == meeting_id)[0];
+		if (meeting) {
+			return meeting.title;
+		}
+	}
+	else if (meetingsRE.test(p)) {
+		return 'Meetings';
+	}
+	else if (dashboardRE.test(p)) {
+		return nextProps.userData.full_name;
+	}
+	else if (invitationsRE.test(p)) {
+		return 'Invitations';
+	}
+	else if (settingsRE.test(p)) {
+		return 'Settings';
+	}
+	else {
+		console.log('No match for: ', p);
+		return '';
+	}
+}
+
+
 class Header extends Component {
+
+	constructor(props) {
+		super(props);
+		this.state = {
+			title: '',
+		}
+	}
+
+	componentWillMount() {
+		const path = this.props.location.pathname;
+		this.setState({title: getTitle(path, this.props)})
+	}
+
+	componentWillReceiveProps(nextProps) {
+		// TODO(MP 2/9): Implement some kind of
+		// check here so that (hopefully) don't
+		// need to run through getTitle on
+		// every props change
+		const path = nextProps.location.pathname;
+		this.setState({title: getTitle(path, nextProps)});
+	}
 
 	handleToggleNavDrawer = () => {
 		this.props.toggleNavDrawer({open: true});
@@ -36,7 +93,7 @@ class Header extends Component {
 		)
 
 		const appBarProps = {
-			title: userData.full_name || COMPANY_NAME,
+			title: this.state.title,
 			iconElementLeft: NavButton,
 			//className: 'Header-AppBar',
 			style: {
@@ -58,6 +115,7 @@ const mapStateToProps = (state, ownProps) => {
 	return {
 		header: getHeader(state),
 		userData: getUserData(state),
+		meetings: getMeetings(state),
 	}
 }
 

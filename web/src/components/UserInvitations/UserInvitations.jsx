@@ -32,17 +32,8 @@ class UserInvitations extends Component {
 
   render() {
     const invitations = this.props.meetingInvitations;
-    let header = null;
-    if (invitations.length) {
-      header = (
-        <div style={styles.header}>
-          Invitations
-        </div>
-      )
-    }
     return(
       <div style={styles.container}>
-        {header}
         <CardListContainer>
           {this.renderInvitations()}
         </CardListContainer>

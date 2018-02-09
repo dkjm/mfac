@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {connect} from 'react-redux'
+import {connect} from 'react-redux';
 import './App.css';
 import {Route, Switch, Redirect} from 'react-router';
 import {withRouter} from 'react-router-dom';
@@ -18,6 +18,8 @@ import MeetingLayout from '../MeetingLayout';
 import LoginForm from '../LoginForm';
 import UserInvitations from '../UserInvitations';
 import UserInvitationDetail from '../UserInvitationDetail';
+import UserSettings from '../UserSettings';
+import LayoutBanner from '../LayoutBanner';
 
 import {COLORS, muiTheme} from '../../constants';
 import {toggleSnackbar} from '../../services/ui';
@@ -88,6 +90,11 @@ class App extends Component {
             />
 
             <Route 
+              path="/settings"
+              render={props => (<UserSettings {...props} />)}
+            />
+
+            <Route 
               exact
               path="/invitations"
               render={props => (<UserInvitations {...props} />)}
@@ -111,12 +118,12 @@ class App extends Component {
               )} 
             />
 
-            <Redirect to="/login" />
+            {/*<Redirect to="/login" />*/}
 
             {/* 180127 - MPP - NoMatch will never
               be called with current routing setup  
             */}
-            <Route component={NoMatch} />
+            <Route render={props => (<LayoutBanner title="Path not found" />)} />
             
           </Switch>
 
@@ -134,16 +141,6 @@ class App extends Component {
   }
 }
 
-const NoMatch = () => {
-  return (
-    <div>
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <h1 className="App-title">No matching route found.</h1>
-      </header>
-    </div>
-  )
-}
 
 
 const mapStateToProps = (state) => {

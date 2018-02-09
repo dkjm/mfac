@@ -102,6 +102,59 @@ export const acceptOrDeclineMeetingInvitation = (params = {}) => (dispatch, getS
   })
 }
 
+// TODO(MP 2/9): Implement user profile form
+// endpoint.  Right now this will fail
+export const submitUserProfileForm = (params = {}) => (dispatch, getState) => {
+  const endpoint = `${API_ENTRY}/update_user_profile/`;
+  const config = {
+    url: endpoint,
+    method: 'POST',
+    data: params,
+  }
+  return axios(config)
+  .then(response => {
+    const snackbarParams = {
+        open: true,
+        message: 'Profile updated.',
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    history.push('/settings');
+  })
+  .catch(error => {
+    console.log('Error', error);
+    console.log('Error', error.response)
+  })
+}
+
+
+// TODO(MP 2/9): Implement user password form
+// endpoint.  Right now this will fail
+export const submitUserPasswordForm = (params = {}) => (dispatch, getState) => {
+  const endpoint = `${API_ENTRY}/update_user_password/`;
+  const config = {
+    url: endpoint,
+    method: 'POST',
+    data: params,
+  }
+
+  return axios(config)
+  .then(response => {
+    const snackbarParams = {
+        open: true,
+        message: 'Password updated.',
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    history.push('/settings');
+  })
+  .catch(error => {
+    console.log('Error', error);
+    console.log('Error', error.response)
+  })
+}
 
 
 export const connectUserSocket = (params = {}) => (dispatch, getState) => {
