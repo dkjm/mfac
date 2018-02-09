@@ -1,5 +1,6 @@
 defmodule MfacWeb.MeetingChannel do
   use Phoenix.Channel 
+  alias MfacWeb.Presence
   alias Mfac.Meetings.Meeting
   alias Mfac.Meetings.AgendaItemVote
   alias Mfac.Meetings.Invitation 
@@ -10,10 +11,11 @@ defmodule MfacWeb.MeetingChannel do
   alias Mfac.Repo
   import Ecto.Query
 
-  def join("meeting:" <> id, _payload, socket) do
+  def join("meeting:" <> meeting_id, _payload, socket) do
     # check that meeting exists and that user
     # has access
-    meeting = Repo.get(Meeting, id)
+    meeting_id = String.to_integer(meeting_id)
+    meeting = Repo.get(Meeting, meeting_id)
     case meeting do
       nil ->
         {:error, %{reason: "meeting_does_not_exist"}}
@@ -22,7 +24,7 @@ defmodule MfacWeb.MeetingChannel do
         has_access = Enum.any?(user_meetings, fn(m) -> m.id == meeting.id end)
         case has_access do
           true ->
-            send self(), {:update, id}
+            send self(), {:after_join, meeting_id}
             {:ok, socket}
           false ->
             {:error, %{reason: "unauthorized"}}
@@ -31,7 +33,13 @@ defmodule MfacWeb.MeetingChannel do
   end
 
 
-  def handle_info({:update, type}, socket), do: socket |> push_update(type)
+  def handle_info({:after_join, meeting_id}, socket) do
+    push(socket, "presence_state", Presence.list(socket))
+    {:ok, _} = Presence.track(socket, socket.assigns.current_user, %{
+      online_at: inspect(System.system_time(:seconds))
+    })
+    push_meeting_data(socket, meeting_id)
+  end 
 
 
   def broadcast_event(event, meeting_id, payload) do
@@ -43,11 +51,11 @@ defmodule MfacWeb.MeetingChannel do
   end
 
 
-  defp push_update(socket, id) do
+  defp push_meeting_data(socket, meeting_id) do
     # Process.send_after(self(), {:update, id}, 20000)
+    id = meeting_id
     user_id = socket.assigns.current_user
     time = NaiveDateTime.utc_now
-    meeting_id = String.to_integer(id)
     
     query = 
       from m in Meeting,

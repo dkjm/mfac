@@ -1,6 +1,7 @@
 import axios from 'axios';
 // const {Socket} = require('phoenix-channels');
-import {Socket} from 'phoenix-channels';
+import {Socket, Presence} from 'phoenix-channels';
+import _values from 'lodash/values';
 import * as selectors from '../selectors';
 import {toggleSnackbar} from '../services/ui';
 import * as utils from '../utils';
@@ -306,6 +307,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
     //heartbeatIntervalMs: 10000, 
     //reconnectAfterMs: 20000,
   }
+  let presences = {};
   socket = new Socket(API_ENTRY_WS, socketOptions)
   socket.connect()
   const room = `meeting:${meeting_id}`
@@ -333,6 +335,21 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
       })
     })
 
+  channel.on('presence_state', state => {
+    console.log('meetingChannel - presence_state', state);
+    presences = Presence.syncState(presences, state)
+  })
+
+  channel.on('presence_diff', diff => {
+    presences = Presence.syncDiff(presences, diff)
+    const participants = _values(presences).map(item => item.user)
+    const action = {
+      type: LOAD_MEETING_PARTICIPANTS,
+      participants,
+    }
+    dispatch(action);
+  })
+
 
   channel.on('update_meeting', payload => {
    console.log('channel - update_meeting', payload)
@@ -354,12 +371,6 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
       meeting_invitations: payload.meeting.invitations,
     }
     dispatch(actionLoadMeetingInvitations);
-
-    const actionLoadMeetingParticipants = {
-      type: LOAD_MEETING_PARTICIPANTS,
-      participants: payload.meeting.participants,
-    }
-    dispatch(actionLoadMeetingParticipants);
   })
 
   channel.on('update_meeting_details', payload => {
