@@ -180,6 +180,33 @@ export const getAgendaItems = createSelector(
   agendaItems => agendaItems,
 )
 
+export const getFilteredAgendaItems = createSelector(
+  (state, params = {}) => {
+    const {status} = params;
+    const cache = state.agendaItems.cache;
+    const asArray = _values(cache);
+
+    const items = asArray.filter(a => a.status === status);
+
+    let sorted = _sortBy(items, 
+      (item => {
+        const {up, down} = item.votes;
+        const net_total = up - down;
+        return net_total;
+      })
+    );
+    // reverse array so that items are
+    // in desc order (I don't believe this
+    // can be accomplished in _sortBy.  It
+    // can be accomplished with _orderBy,
+    // but I don't think you can pass a func
+    // to orderBy like you can with sortBy)
+    sorted.reverse();
+    return sorted; 
+  },
+  agendaItems => agendaItems,
+)
+
 
 export const getAgendaItem = createSelector(
   (state, params = {}) => {

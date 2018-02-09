@@ -11,6 +11,7 @@ import ContentAdd from 'material-ui/svg-icons/content/add';
 import ContentRemove from 'material-ui/svg-icons/content/remove';
 import PencilIcon from 'material-ui/svg-icons/editor/mode-edit';
 import RefreshIcon from 'material-ui/svg-icons/action/autorenew';
+import TriangleIcon from 'material-ui/svg-icons/action/change-history';
 
 
 import VoteArrows from '../VoteArrows';
@@ -21,7 +22,7 @@ import {
   deleteAgendaItem,
   postAgendaItemVote,
   addOrRemoveStackEntry,
-  openOrCloseAgendaItem,
+  changeAgendaItemStatus,
 } from '../../services/api';
 import {
   getAgendaItem, 
@@ -95,23 +96,6 @@ const OpenOrCloseButton = (props) => {
   )
 }
 
-const StackItem = ({item}) => {
-  const s = {
-    container: {
-      marginBottom: '10px',
-    },
-    header: {
-
-    },
-  }
-  return (
-    <div style={s.container}>
-      <div style={s.header}>
-        {item.owner.full_name}
-      </div>
-    </div>
-  )
-}
 
 const DeleteAgendaItemButton = (props) => {
   const styles = {
@@ -144,6 +128,56 @@ const DeleteAgendaItemButton = (props) => {
   )
 }
 
+const SpeakButton = (props) => {
+  const styles = {
+    container: {
+      padding: '0 15px',
+      flexGrow: '1',
+    },
+    root: {
+
+    },
+    buttonStyle: {
+      minHeight: '60px'
+    },
+    labelStyle: {
+      color: COLORS.white,
+    },
+  }
+  return (
+    <div style={styles.container}>
+      <RaisedButton 
+        style={styles.root}
+        buttonStyle={styles.buttonStyle}
+        labelStyle={styles.labelStyle}
+        label={props.label} 
+        backgroundColor={COLORS.blackGray}
+        onClick={props.onClick}
+        fullWidth={true}
+      />
+    </div>
+  )
+}
+
+
+const StackItem = ({item}) => {
+  const s = {
+    container: {
+      marginBottom: '10px',
+    },
+    header: {
+
+    },
+  }
+  return (
+    <div style={s.container}>
+      <div style={s.header}>
+        {item.owner.full_name}
+      </div>
+    </div>
+  )
+}
+
 
 const StackSection = (props) => {
   const {
@@ -158,11 +192,13 @@ const StackSection = (props) => {
 
   const s = {
     container: {
+      //minHeight: '80px',
     },
     top: {
       display: 'flex',
       justifyContent: 'space-between',
       marginBottom: '10px',
+      minHeight: '50px',
     },
     header: {
       fontSize: '130%',
@@ -240,36 +276,54 @@ class AgendaItemDetail extends Component {
     history.push(path);
   }
 
-  handleRequestOpenOrCloseAgendaItem = () => {
-    const {agendaItem, openOrCloseAgendaItem} = this.props;
-    const {status} = agendaItem;
-    const newStatus = status === 'CLOSED'
-      ? 'OPEN'
-      : 'CLOSED'
+  handleRequestChangeAgendaItemStatus = (status) => {
+    const {agendaItem, changeAgendaItemStatus} = this.props;
     const params = {
       agenda_item_id: agendaItem.id,
-      status: newStatus,
+      status,
     }
-    openOrCloseAgendaItem(params);
+    changeAgendaItemStatus(params);
+  }
+
+  handleRequestSpeak = () => {
+    // TODO(MP 2/9): implement this func;
+    // Maybe push to a view with a single
+    // text input and a speech dictation
+    // button.  User hits button, speech
+    // recognition starts up, populating
+    // form input with speech to text.
+    // Throttle updates to state (e.g. with
+    // setInterval or lodash/throttle)
   }
 
   renderTopRightButtons() {
     const {agendaItem} = this.props;
     const {status} = agendaItem;
-    let icon;
-    if (status === 'OPEN' || status === 'PENDING') {
-      icon = <CheckIcon />
-    } 
-    else {
-      icon = <RefreshIcon />
-    }
-    if (status === 'OPEN' || status === 'PENDING') {
+
+    if (status === 'OPEN') {
       return (
         <div style={styles.topRightButtonsContainer}>
           <EditButton onClick={this.handleRequestUpdateAgendaItem} />
           <OpenOrCloseButton 
-            onClick={this.handleRequestOpenOrCloseAgendaItem}
-            icon={icon} 
+            onClick={() => this.handleRequestChangeAgendaItemStatus('CLOSED')}
+            icon={<CheckIcon />}
+            color={COLORS.indigo200}  
+          />
+        </div>
+      )
+    }
+    else if (status === 'PENDING') {
+      return (
+        <div style={styles.topRightButtonsContainer}>
+          <EditButton onClick={this.handleRequestUpdateAgendaItem} />
+          <OpenOrCloseButton 
+            onClick={() => this.handleRequestChangeAgendaItemStatus('CLOSED')}
+            color={COLORS.indigo200} 
+            icon={<CheckIcon />} 
+          />
+          <OpenOrCloseButton 
+            onClick={() => this.handleRequestChangeAgendaItemStatus('OPEN')}
+            icon={<TriangleIcon />}
           />
         </div>
       )
@@ -278,9 +332,8 @@ class AgendaItemDetail extends Component {
       return (
         <div style={styles.topRightButtonsContainer}>
           <OpenOrCloseButton 
-            onClick={this.handleRequestOpenOrCloseAgendaItem}
-            icon={icon} 
-            color={COLORS.reactBlue}
+            onClick={() => this.handleRequestChangeAgendaItemStatus('PENDING')}
+            icon={<RefreshIcon />} 
           />
         </div>
       )
@@ -348,6 +401,15 @@ class AgendaItemDetail extends Component {
 
       </Paper>
 
+      {isUserInStack && (i.status === 'OPEN') && (
+        <div style={styles.speakButtonContainer}>
+          <SpeakButton 
+            label="Speak"
+            onClick={this.handleRequestSpeak} 
+          />
+        </div>
+      )}
+
       <Paper 
         style={styles.paper} 
         zDepth={2}
@@ -389,6 +451,9 @@ const styles = {
     margin: '10px 15px 20px',
     padding: '10px',
     textAlign: 'left',
+  },
+  speakButtonContainer: {
+    marginBottom: '20px',
   },
   bottomButtonsContainer: {
     display: 'flex',
@@ -464,7 +529,7 @@ const mapDispatchToProps = dispatch => {
     addOrRemoveStackEntry: (params) => dispatch(addOrRemoveStackEntry(params)),
     postAgendaItemVote: (params) =>
       dispatch(postAgendaItemVote(params)),
-    openOrCloseAgendaItem: (params) => dispatch(openOrCloseAgendaItem(params)),
+    changeAgendaItemStatus: (params) => dispatch(changeAgendaItemStatus(params)),
   }
 }
 

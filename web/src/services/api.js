@@ -810,7 +810,7 @@ export const deleteAgendaItem = (params = {}) => (dispatch, getState) => {
     })
 }
 
-export const openOrCloseAgendaItem = (params = {}) => (dispatch, getState) => {
+export const changeAgendaItemStatus = (params = {}) => (dispatch, getState) => {
   const {
     agenda_item_id,
     status,
@@ -818,9 +818,16 @@ export const openOrCloseAgendaItem = (params = {}) => (dispatch, getState) => {
 
   const endpoint = API_ENTRY + `/agenda_items/${agenda_item_id}/`;
 
-  const successMessage = status === 'OPEN'
-    ? 'Agenda item opened.'
-    : 'Agenda item closed.'
+  let successMessage;
+  if (status === 'OPEN') {
+    successMessage = 'Agenda item opened.';
+  }
+  else if (status === 'CLOSED') {
+    successMessage = 'Agenda item closed.';
+  }
+  else if (status === 'PENDING') {
+    successMessage = 'Agenda item reactivated.';
+  }
 
   const config = {
     url: endpoint,

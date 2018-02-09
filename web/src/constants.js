@@ -21,14 +21,15 @@ export const COLORS = {
   cyan100: '#B2EBF2',
   cyan200: '#80DEEA',
   cyan300: '#4DD0E1',
+  indigo200: '#9FA8DA',
 }
 
 // export const API_ENTRY = 'http://localhost:8000/api';
 // export const API_ENTRY_WS = 'ws://localhost:8000';
-// export const API_ENTRY = 'http://localhost:4000/api/v0';
-// export const API_ENTRY_WS = 'ws://localhost:4000/socket';
-export const API_ENTRY = 'http://10.0.0.206:4000/api/v0';
-export const API_ENTRY_WS = 'ws://10.0.0.206:4000/socket';
+export const API_ENTRY = 'http://localhost:4000/api/v0';
+export const API_ENTRY_WS = 'ws://localhost:4000/socket';
+// export const API_ENTRY = 'http://10.0.0.206:4000/api/v0';
+// export const API_ENTRY_WS = 'ws://10.0.0.206:4000/socket';
 // export const axios = Axios.create({
 //   baseURL: API_ENTRY,
 //   timeout: 3000,

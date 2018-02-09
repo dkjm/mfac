@@ -38,6 +38,7 @@ class AgendaItemCard extends Component {
 					<VoteArrows 
 						onClickVote={onClickVote} 
 						votes={i.votes} 
+						disableVoting={i.status === 'CLOSED'}
 					/>
 				</div>
 
