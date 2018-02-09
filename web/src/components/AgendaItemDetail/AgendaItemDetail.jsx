@@ -295,7 +295,8 @@ class AgendaItemDetail extends Component {
       isUserInStack,
     } = this.props;
 
-    if (!agendaItem) {return null};
+    if (!agendaItem) {return <NotFound />};
+
     const i = agendaItem;
 
     return(
@@ -377,6 +378,12 @@ class AgendaItemDetail extends Component {
 }
 
 
+const NotFound = () => (
+  <div style={styles.notFound}>
+    Agenda item not found
+  </div>
+)
+
 
 const styles = {
   paper: {
@@ -433,6 +440,11 @@ const styles = {
   icon: {
     transform: 'rotate(0.875turn)',
     padding: '0 !important',
+  },
+  notFound: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: '100px',
   },
 }
 

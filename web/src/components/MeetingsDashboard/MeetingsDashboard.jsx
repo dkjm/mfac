@@ -29,15 +29,13 @@ class MeetingsDashboard extends Component {
 
 	handleRequestAddMeeting = () => {
     const {match, history} = this.props;
-    // TODO:  make more robust routing instead
-    // of just doing replace as below
     const path = '/meetings/meeting_form/create';
     history.push(path);
   }
 
 	renderItems() {
 		const {meetings} = this.props;
-
+		if (!meetings.length) {return <NoItems />};
 		const renderedItems = meetings.map((m, index) => {
 			return (
 				<MeetingCard 
@@ -47,7 +45,6 @@ class MeetingsDashboard extends Component {
 				/>
 			)
 		})
-
 		return renderedItems;
 	}
 	
@@ -72,15 +69,26 @@ class MeetingsDashboard extends Component {
 	}
 }
 
+const NoItems = () => (
+  <div style={styles.noItems}>
+    No meetings
+  </div>
+)
+
 const styles = {
 	container: {
-		margin: '15px 0',
+		//margin: '15px 0',
 	},
 	 fab: {
     position: 'fixed',
     bottom: '20px',
     right: '20px',
     zIndex: '10',
+  },
+  noItems: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: '100px',
   },
 }
 

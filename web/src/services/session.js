@@ -31,75 +31,75 @@ let socket;
 
 
 export const submitLoginForm = (params = {}) => (dispatch, getState) => {
-	const endpoint = `${API_ENTRY}/auth/login/`;
-	const data = {
-		username: params.username,
-		password: params.password,
-	}
-	return axios.post(endpoint, data)
-	.then(response => {
-		const {token} = response.data;
-		localStorage.setItem('token', token);
-		const action = {
-			type: LOGIN,
-			data: response.data,
-		}
-		dispatch(action);
-		history.push('/meetings/dashboard');
-	})
-	.catch(error => {
-		console.log('Error', error);
-		console.log('Error', error.response)
-	})
+  const endpoint = `${API_ENTRY}/auth/login/`;
+  const data = {
+    username: params.username,
+    password: params.password,
+  }
+  return axios.post(endpoint, data)
+  .then(response => {
+    const {token} = response.data;
+    localStorage.setItem('token', token);
+    const action = {
+      type: LOGIN,
+      data: response.data,
+    }
+    dispatch(action);
+    history.push('/meetings/dashboard');
+  })
+  .catch(error => {
+    console.log('Error', error);
+    console.log('Error', error.response)
+  })
 }
 
 export const logout = (params = {}) => (dispatch, getState) => {
-	// clear token from local storate
-	localStorage.setItem('token', '');
-	// clear user data
-	const action = {
-		type: LOGOUT,
-	}
-	dispatch(action);
-	dispatch(disconnectUserSocket());
-	dispatch(toggleNavDrawer({open: false}));
-	history.push('/login');
+  // clear token from local storate
+  localStorage.setItem('token', '');
+  // clear user data
+  const action = {
+    type: LOGOUT,
+  }
+  dispatch(action);
+  dispatch(disconnectUserSocket());
+  dispatch(toggleNavDrawer({open: false}));
+  history.push('/login');
 }
 
 export const loadUserData = (params = {}) => (dispatch, getState) => {
-	const endpoint = `${API_ENTRY}/user_data/`;
-	return axios.get(endpoint)
-	.then(response => {
-		const action = {
-			type: LOAD_USER_DATA,
-			data: response.data,
-		}
-		dispatch(action);
-	})
-	.catch(error => {
-		console.log('Error', error.response)
-	})
+  const endpoint = `${API_ENTRY}/user_data/`;
+  return axios.get(endpoint)
+  .then(response => {
+    const action = {
+      type: LOAD_USER_DATA,
+      data: response.data,
+    }
+    dispatch(action);
+  })
+  .catch(error => {
+    console.log('Error', error.response)
+  })
 }
 
 export const acceptOrDeclineMeetingInvitation = (params = {}) => (dispatch, getState) => {
-	const {meeting_invitation_id, status} = params;
-	const endpoint = `${API_ENTRY}/invitations/${meeting_invitation_id}/`;
+  const {meeting_invitation_id, status} = params;
+  const endpoint = `${API_ENTRY}/invitations/${meeting_invitation_id}/`;
 
-	const config = {
-		url: endpoint,
-		method: 'PATCH',
-		data: {status},
-	}
-	return axios(config)
-	.then(response => {
-		const message = status === 'ACCEPTED'
-			? 'Accepted.  You can now view meeting.'
-			: 'Invitation declined.'
-		dispatch(toggleSnackbar({open: true, message}))
-	})
-	.catch(error => {
-		console.log('Error', error.response)
-	})
+  const config = {
+    url: endpoint,
+    method: 'PATCH',
+    data: {status},
+  }
+  return axios(config)
+  .then(response => {
+    const message = status === 'ACCEPTED'
+      ? 'Accepted.  You can now view meeting.'
+      : 'Invitation declined.'
+    dispatch(toggleSnackbar({open: true, message}))
+  })
+  .catch(error => {
+    console.log('Error', error.response)
+  })
 }
 
 
@@ -135,9 +135,9 @@ export const connectUserSocket = (params = {}) => (dispatch, getState) => {
         content = "";
       }
       else {
-      	console.log('Unknown reason: ', resp);
-      	title = "Can't connect"
-      	title = "Unknown reason."
+        console.log('Unknown reason: ', resp);
+        title = "Can't connect"
+        title = "Unknown reason."
       }
       const onOk = () => {
         //dispatch(logout())
@@ -160,12 +160,23 @@ export const connectUserSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('add_invitation', payload => {
-   console.log('user channel - add_invitation', payload)
-     const action = {
+    console.log('user channel - add_invitation', payload)
+    const action = {
       type: LOAD_INVITATION,
       invitation: payload.invitation
-     }
-     dispatch(action);
+    }
+    dispatch(action);
+
+    const path = `/invitations/${payload.invitation.id}`;
+    const config = {
+      message: 'New Meeting Invitation',
+      description: `You have been invited to participate in ${payload.invitation.meeting.title}.`,
+      onButtonClick: () => history.push(path),
+      buttonText: 'View',
+      duration: 5,
+      icon: 'man',
+    }
+    utils.openNotification(config);
   })
 
   channel.on('update_invitation', payload => {
@@ -198,7 +209,7 @@ export const disconnectUserSocket = (params = {}) => (dispatch, getState) => {
 
 // // TODO(MPP - 180204): Disable for now
 // export const connectUserSocket = (params = {}) => (dispatch, getState) => {
-// 	return;
+//  return;
 //   const state = getState();
 //   const user_id = selectors.getUserData(state).id;
 //   const token = localStorage.getItem('token');
@@ -218,7 +229,7 @@ export const disconnectUserSocket = (params = {}) => (dispatch, getState) => {
 //       dispatch(action);
 //     }
 //     else if (data.event === 'add_meeting_invitation') {
-//     	const action = {
+//      const action = {
 //         type: ADD_MEETING_INVITATION,
 //         data: data,
 //       }
@@ -226,22 +237,22 @@ export const disconnectUserSocket = (params = {}) => (dispatch, getState) => {
 //       const {meeting_invitation} = data;
 //       const path = `/invitations/${meeting_invitation.id}`;
 //       const config = {
-//       	message: 'New Meeting Invitation',
-//       	description: `You have been invited to participate in ${data.meeting_invitation.meeting.title}.`,
-//       	onButtonClick: () => history.push(path),
-//       	buttonText: 'View',
-//       	duration: 10,
-//       	icon: 'man',
+//        message: 'New Meeting Invitation',
+//        description: `You have been invited to participate in ${data.meeting_invitation.meeting.title}.`,
+//        onButtonClick: () => history.push(path),
+//        buttonText: 'View',
+//        duration: 10,
+//        icon: 'man',
 //       }
 //       utils.openNotification(config);
-//    	}
-//    	else if (data.event === 'update_meeting_invitation') {
-//     	const action = {
+//      }
+//      else if (data.event === 'update_meeting_invitation') {
+//      const action = {
 //         type: UPDATE_MEETING_INVITATION,
 //         data: data,
 //       }
 //       dispatch(action);
-//    	}
+//      }
 //   }
 
 //   socket.onopen = function() {
@@ -256,102 +267,102 @@ export const disconnectUserSocket = (params = {}) => (dispatch, getState) => {
 
 
 const initialState = {
-	userData: {},
-	isLoggedIn: false,
-	meetingInvitations: {},
-	contacts: {},
+  userData: {},
+  isLoggedIn: false,
+  meetingInvitations: {},
+  contacts: {},
 }
 
 export const reducer = (state = initialState, action) => {
-	switch (action.type) {
+  switch (action.type) {
 
-		case LOGIN: {
-			const {
-				user_data, 
-			} = action.data;
+    case LOGIN: {
+      const {
+        user_data, 
+      } = action.data;
 
-			const nextState = {
-				...state,
-				isLoggedIn: true,
-				userData: user_data,
-			}
-			return nextState;
-		}
+      const nextState = {
+        ...state,
+        isLoggedIn: true,
+        userData: user_data,
+      }
+      return nextState;
+    }
 
-		case LOGOUT: {
-			const nextState = {
-				...state,
-				isLoggedIn: false,
-				userData: {},
-			}
-			return nextState;
-		}
+    case LOGOUT: {
+      const nextState = {
+        ...state,
+        isLoggedIn: false,
+        userData: {},
+      }
+      return nextState;
+    }
 
-		case LOAD_INVITATION: {
-			const {invitation} = action;
-			let updatedInvitation = state.meetingInvitations[invitation.id]
-			if (updatedInvitation) {
-				updatedInvitation = {
-					...updatedInvitation,
-					...invitation,
-				}
-			}
-			else {
-				updatedInvitation = invitation;
-			}
-			const nextState = {
-				...state,
-				meetingInvitations: {
-					...state.meetingInvitations,
-					[invitation.id]: updatedInvitation,
-				},
-			}
-			return nextState;
-		}
+    case LOAD_INVITATION: {
+      const {invitation} = action;
+      let updatedInvitation = state.meetingInvitations[invitation.id]
+      if (updatedInvitation) {
+        updatedInvitation = {
+          ...updatedInvitation,
+          ...invitation,
+        }
+      }
+      else {
+        updatedInvitation = invitation;
+      }
+      const nextState = {
+        ...state,
+        meetingInvitations: {
+          ...state.meetingInvitations,
+          [invitation.id]: updatedInvitation,
+        },
+      }
+      return nextState;
+    }
 
-		case REMOVE_INVITATION: {
-			const {invitation_id} = action;
-			const invitations = state.meetingInvitations;
-			delete invitations[invitation_id];
-			const nextState = {
-				...state,
-				meetingInvitations: {...invitations},
-			}
-			return nextState;
-		}
+    case REMOVE_INVITATION: {
+      const {invitation_id} = action;
+      const invitations = state.meetingInvitations;
+      delete invitations[invitation_id];
+      const nextState = {
+        ...state,
+        meetingInvitations: {...invitations},
+      }
+      return nextState;
+    }
 
-		case UPDATE_MEETING_INVITATIONS: {
-			const {meeting_invitations} = action.data;
-			const obj = {};
-			meeting_invitations.forEach(i => obj[i.id] = i);
-			const nextState = {
-				...state,
-				meetingInvitations: obj,
-			}
-			return nextState;
-		}
+    case UPDATE_MEETING_INVITATIONS: {
+      const {meeting_invitations} = action.data;
+      const obj = {};
+      meeting_invitations.forEach(i => obj[i.id] = i);
+      const nextState = {
+        ...state,
+        meetingInvitations: obj,
+      }
+      return nextState;
+    }
 
-		case LOAD_USER_DATA: {
-			const {
-				user_data, 
-				meeting_invitations,
-				contacts,
-			} = action.data;
-			const meetingInvitationsObj = {};
-			meeting_invitations.forEach(i => meetingInvitationsObj[i.id] = i);
-			const contactsObj = {};
-			contacts.forEach(i => contactsObj[i.id] = i);
-			const nextState = {
-				...state,
-				userData: user_data,
-				meetingInvitations: meetingInvitationsObj,
-				contacts: contactsObj,
-			}
-			return nextState;
-		}
+    case LOAD_USER_DATA: {
+      const {
+        user_data, 
+        meeting_invitations,
+        contacts,
+      } = action.data;
+      const meetingInvitationsObj = {};
+      meeting_invitations.forEach(i => meetingInvitationsObj[i.id] = i);
+      const contactsObj = {};
+      contacts.forEach(i => contactsObj[i.id] = i);
+      const nextState = {
+        ...state,
+        userData: user_data,
+        meetingInvitations: meetingInvitationsObj,
+        contacts: contactsObj,
+      }
+      return nextState;
+    }
 
-		default: {
-			return state;
-		}
-	}
+    default: {
+      return state;
+    }
+  }
 }

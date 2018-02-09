@@ -44,6 +44,7 @@ class MeetingAgenda extends Component {
 
   renderItems() {
     const items = this.props.agendaItems;
+    if (!items.length) {return <NoItems />};
     const renderedItems = items.map(item => (
         <AgendaItemCard 
           key={item.id} 
@@ -89,6 +90,12 @@ class MeetingAgenda extends Component {
   }
 }
 
+const NoItems = () => (
+  <div style={styles.noItems}>
+    No agenda items
+  </div>
+)
+
 // TODO: consolidate all styles in this file,
 // get ride of css file
 const styles = {
@@ -97,6 +104,11 @@ const styles = {
     bottom: '20px',
     right: '20px',
     zIndex: '10',
+  },
+  noItems: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: '100px',
   },
 }
 

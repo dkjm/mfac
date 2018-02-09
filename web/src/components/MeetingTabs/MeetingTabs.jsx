@@ -11,29 +11,23 @@ import {COLORS} from '../../constants';
 class MeetingTabs extends Component {
 
 	navigateToPath = (path) => {
-		const {location, match} = this.props;
-		this.context.router.history.push(`${match.url}/${path}`);
+		const {
+			location, 
+			match, 
+			history,
+		} = this.props;
+		
+		history.push(`${match.url}/${path}`);
 	}
 
 	render() {
 		const {location, match} = this.props;
 		const path = location.pathname;
-		console.log(this.props)
-		const style = {
-			container: {
-				margin: '10px 10px',
-			},
-			buttonsContainer: {
-				textAlign: 'center',
-				display: 'flex',
-				justifyContent: 'center',
-				flexWrap: 'wrap',
-			},
-		}
-		return (
-			<div style={style.container}>
 
-				<div style={style.buttonsContainer}>
+		return (
+			<div style={styles.container}>
+
+				<div style={styles.buttonsContainer}>
 
 					<Button
 						title='Home' 
@@ -105,10 +99,19 @@ const Button = (props) => {
 	)
 }
 
+const styles = {
+	container: {
+		margin: '10px 10px',
+	},
+	buttonsContainer: {
+		textAlign: 'center',
+		display: 'flex',
+		justifyContent: 'center',
+		flexWrap: 'wrap',
+	},
+}
 
-MeetingTabs.contextTypes = {
-  router: PropTypes.object,
-};
+
 
 const mapStateToProps = (state, ownProps) => {
 	return {

@@ -79,7 +79,7 @@ class MeetingInvitationDetail extends Component {
 
 const NotFound = () => (
   <div style={styles.notFound}>
-    Inivitation not found
+    Invitation not found
   </div>
 )
 
@@ -137,6 +137,7 @@ const styles = {
   notFound: {
     textAlign: 'center',
     fontStyle: 'italic',
+    marginTop: '100px',
   },
 }
 
