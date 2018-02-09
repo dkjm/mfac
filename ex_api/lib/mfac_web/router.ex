@@ -25,7 +25,9 @@ defmodule MfacWeb.Router do
     #resources "/agenda_item_votes", AgendaItemVoteController
     resources "/users", UserController, except: [:new, :edit]
     get "/user_data", UserController, :user_data
-    resources "/agenda_item_stack_entries", StackEntryController, except: [:new, :edit]
+    post "/agenda_items/:agenda_item_id/stack_entries", StackEntryController, :create
+    delete "/agenda_items/:agenda_item_id/stack_entries", StackEntryController, :delete
+    #delete "/agenda_items/:agenda_item_id/stack_entries", StackEntryController
     resources "/invitations", InvitationController, except: [:new, :edit]
     resources "/participants", ParticipantController, except: [:new, :edit]
   end

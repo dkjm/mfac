@@ -20,8 +20,7 @@ import {COLORS} from '../../constants';
 import {
   deleteAgendaItem,
   postAgendaItemVote,
-  submitAgendaItemStackEntryForm,
-  requestRemoveAgendaItemStackEntry,
+  addOrRemoveStackEntry,
   openOrCloseAgendaItem,
 } from '../../services/api';
 import {
@@ -108,7 +107,7 @@ const StackItem = ({item}) => {
   return (
     <div style={s.container}>
       <div style={s.header}>
-        {item.owner_full_name}
+        {item.owner.full_name}
       </div>
     </div>
   )
@@ -222,16 +221,16 @@ class AgendaItemDetail extends Component {
     this.props.postAgendaItemVote(params);
   }
 
-  handleRequestAddAgendaItemStackEntry = () => {
-    const {match} = this.props;
-    const {agenda_item_id} = match.params;
-    this.props.submitAgendaItemStackEntryForm({agenda_item_id});
-  }
-
-  handleRequestRemoveAgendaItemStackEntry = () => {
-    const {match} = this.props;
-    const {agenda_item_id} = match.params;
-    this.props.requestRemoveAgendaItemStackEntry({agenda_item_id});
+  handleRequestAddOrRemoveStackEntry = (action) => {
+    const {
+      agendaItem,
+      addOrRemoveStackEntry,
+    } = this.props;
+    const params = {
+      agenda_item_id: agendaItem.id,
+      action,
+    }
+    addOrRemoveStackEntry(params);
   }
 
   handleRequestUpdateAgendaItem = () => {
@@ -356,8 +355,8 @@ class AgendaItemDetail extends Component {
 
         <div style={styles.stackSectionContainer}>
           <StackSection 
-            onRequestAdd={this.handleRequestAddAgendaItemStackEntry}
-            onRequestRemove={this.handleRequestRemoveAgendaItemStackEntry}
+            onRequestAdd={() => this.handleRequestAddOrRemoveStackEntry('add')}
+            onRequestRemove={() => this.handleRequestAddOrRemoveStackEntry('remove')}
             items={i.stack_entries} 
             showButton={i.status !== 'CLOSED'}
             iconType={isUserInStack ? 'minus' : 'plus'}
@@ -462,8 +461,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = dispatch => {
   return {
     deleteAgendaItem: (params) => dispatch(deleteAgendaItem(params)),
-    submitAgendaItemStackEntryForm: (params) => dispatch(submitAgendaItemStackEntryForm(params)),
-    requestRemoveAgendaItemStackEntry: (params) => dispatch(requestRemoveAgendaItemStackEntry(params)),
+    addOrRemoveStackEntry: (params) => dispatch(addOrRemoveStackEntry(params)),
     postAgendaItemVote: (params) =>
       dispatch(postAgendaItemVote(params)),
     openOrCloseAgendaItem: (params) => dispatch(openOrCloseAgendaItem(params)),

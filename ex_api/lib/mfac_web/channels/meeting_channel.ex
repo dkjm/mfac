@@ -59,6 +59,7 @@ defmodule MfacWeb.MeetingChannel do
       left_join: a in AgendaItem, on: a.meeting_id == ^id,
       left_join: v in AgendaItemVote, on: v.agenda_item_id == a.id,
       left_join: s in StackEntry, on: s.agenda_item_id == a.id,
+      left_join: su in User, on: su.id == s.user_id,
       left_join: u in User, on: u.id == a.user_id,
       where: m.id == ^id,
       preload: [
@@ -66,7 +67,9 @@ defmodule MfacWeb.MeetingChannel do
         participants: p, 
         agenda_items: {a, [
           votes: v, 
-          stack_entries: s, 
+          stack_entries: {s, [
+            owner: su,
+          ]}, 
           owner: u
         ]},
         invitations: {i, [

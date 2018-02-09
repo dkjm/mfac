@@ -398,19 +398,28 @@ defmodule Mfac.Meetings do
   Creates a stack_entry.
 
   """
-  # TODO(MP 2/7) - reimplement send_broadcast,
-  # turned it off for now because I was 
-  # reworking broadcast flow for agenda_item
-  # create and update events
   def create_stack_entry(attrs \\ %{}) do
-    # TODO(ja): this needs to handle errors. just testing the socket stuff right now
-    {:ok, se} =
+    result =
       %StackEntry{}
       |> StackEntry.changeset(attrs)
       |> Repo.insert()
 
-    # send_broadcast({:ok, get_agenda_item!(se.agenda_item_id)}, "update_agenda_item")
-    {:ok, se}
+    {status, stack_entry} = result
+    # Need to query for agenda_item because
+    # we need to know meeting_id for broadcast
+    # TODO(MP 2/8): currently querying
+    # stack_entries twice, one time in
+    # controller to see if user is already
+    # on stack, and another time here.
+    # Should prob try to consolidate
+    agenda_item = Repo.get(AgendaItem, stack_entry.agenda_item_id)
+    stack_entries = Repo.all(from s in StackEntry, where: s.agenda_item_id == ^agenda_item.id, preload: [:owner])
+    data = %{
+      agenda_item_id: agenda_item.id,
+      stack_entries: MfacWeb.StackEntryView.render("index.json", stack_entries: stack_entries),
+    }
+    send_broadcast("update_stack_entries", agenda_item.meeting_id, data)
+    result
   end
 
   @doc """
@@ -428,7 +437,22 @@ defmodule Mfac.Meetings do
 
   """
   def delete_stack_entry(%StackEntry{} = stack_entry) do
-    Repo.delete(stack_entry)
+    result = Repo.delete(stack_entry)
+    # Need to query for agenda_item because
+    # we need to know meeting_id for broadcast
+    # TODO(MP 2/8): currently querying
+    # stack_entries twice, one time in
+    # controller to see if user is already
+    # on stack, and another time here.
+    # Should prob try to consolidate
+    agenda_item = Repo.get(AgendaItem, stack_entry.agenda_item_id)
+    stack_entries = Repo.all(from s in StackEntry, where: s.agenda_item_id == ^agenda_item.id, preload: [:owner])
+    data = %{
+      agenda_item_id: agenda_item.id,
+      stack_entries: MfacWeb.StackEntryView.render("index.json", stack_entries: stack_entries),
+    }
+    send_broadcast("update_stack_entries", agenda_item.meeting_id, data)
+    result
   end
 
   @doc """

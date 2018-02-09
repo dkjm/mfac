@@ -27,6 +27,7 @@ export const REMOVE_MEETING_INVITATION = 'REMOVE_MEETING_INVITATION';
 export const UPDATE_AGENDA_ITEM_USER_VOTE_TYPE = 'UPDATE_AGENDA_ITEM_USER_VOTE_TYPE';
 export const UPDATE_AGENDA_ITEM_VOTE_COUNTS = 'UPDATE_AGENDA_ITEM_VOTE_COUNTS';
 
+export const LOAD_STACK_ENTRIES = 'LOAD_STACK_ENTRIES';
 export const LOAD_AGENDA_ITEM_STACK_ENTRY = 'LOAD_AGENDA_ITEM_STACK_ENTRY';
 export const UPDATE_AGENDA_ITEM_STACK_ENTRIES = 'UPDATE_AGENDA_ITEM_STACK_ENTRIES';
 
@@ -444,6 +445,16 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
     dispatch(action);
   })
 
+  channel.on('update_stack_entries', payload => {
+    console.log('channel - update_stack_entries', payload)
+    const action = {
+      type: LOAD_STACK_ENTRIES,
+      agenda_item_id: payload.agenda_item_id,
+      stack_entries: payload.stack_entries,
+    }
+    dispatch(action);
+  })
+
   //     
 
   // const {meeting_id} = params;
@@ -823,54 +834,35 @@ export const openOrCloseAgendaItem = (params = {}) => (dispatch, getState) => {
 // "add" button in stack section of comp
 // AgendaItemDetail.  Need to implement form
 // with fields for requested time, etc.?
-export const submitAgendaItemStackEntryForm = (params = {}) => (dispatch, getState) => {
+export const addOrRemoveStackEntry = (params = {}) => (dispatch, getState) => {
   const {
     agenda_item_id,
+    action,
   } = params
 
-  const data = {
-    agenda_item_id,
+  const endpoint = `${API_ENTRY}/agenda_items/${agenda_item_id}/stack_entries`;
+  let method, successMessage;
+  if (action === 'add') {
+    method = 'POST';
+    successMessage = 'You have been added to the stack.';
+  }
+  else {
+    method = 'DELETE';
+    successMessage = 'You have been removed from the stack.';
   }
 
-  let user_id = 2;
-
-  // check if user already in stack
-  const state = getState();
-  const agendaItem = selectors.getAgendaItem(state, {agenda_item_id});
-  // if agendaItem does not exist, return
-  if (!agendaItem) {return};
-
-  if (utils.isUserInStack(user_id, agendaItem.stack_entries)) {
-    //return;
+  const config = {
+    url: endpoint,
+    method,
   }
 
-  const endpoint =  API_ENTRY + `/agenda_item_stack_entries/`;
-  const successMessage = 'You have been added to the stack.'
-
-  return axios.post(endpoint, data)
+  return axios(config)
     .then(response => {
-        // ** currently not handling response
-        // here (i.e. not adding topic from
-        // response to store).  New data
-        // comes in via websocket as 
-        // RECEIVE_TOPIC action
-        //history.goBack();
         const snackbarParams = {
           open: true,
           message: successMessage,
         }
-        // opening snackbar in timeout
-        // because it looks alittle smoother 
-        // and prevents some jank when
-        // navigating back to previous screen
-        // after form submit
-        // ** not setting timeout because this
-        // is currently not causing navigation 
-        // changes
         dispatch(toggleSnackbar(snackbarParams));
-        // setTimeout(() => {
-        //   dispatch(toggleSnackbar(snackbarParams));
-        // }, 300)
       })
     .catch(error => {
       // not handling error right now
@@ -1320,60 +1312,82 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
       return nextState;
     }
 
-    case (UPDATE_AGENDA_ITEM_STACK_ENTRIES): {
+    case (LOAD_STACK_ENTRIES): {
       const {
         agenda_item_id,
-        agenda_item_stack_entries,
+        stack_entries,
       } = action;
 
       const agendaItem = state.cache[agenda_item_id];
       if (!agendaItem) {return state};
 
-      const updatedAgendaItem = {
-        ...agendaItem,
-        stack_entries: agenda_item_stack_entries,
-      }
-      
       const nextState = {
         ...state,
         cache: {
           ...state.cache,
-          [agenda_item_id]: updatedAgendaItem,
-        },
+          [agenda_item_id]: {
+            ...agendaItem,
+            stack_entries: stack_entries,
+          }
+        }
       }
-      return nextState;   
+      return nextState;      
     }
 
+    // case (UPDATE_AGENDA_ITEM_STACK_ENTRIES): {
+    //   const {
+    //     agenda_item_id,
+    //     agenda_item_stack_entries,
+    //   } = action;
 
-    case (LOAD_AGENDA_ITEM_STACK_ENTRY): {
-      const {agenda_item_stack_entry} = action;
-      const {agenda_item_id} = agenda_item_stack_entry;
-      const agendaItem = state.cache[agenda_item_id];
-      // check to make sure agendaItem exists.
-      // I suppose it's possible for the data to be
-      // come unsynced.
-      if (agendaItem) {
-        let updatedAgendaItemStackEntries = agendaItem.stack_entries.map(se => se);
-        updatedAgendaItemStackEntries.push(agenda_item_stack_entry);
-        const updatedAgendaItem = {
-          ...agendaItem,
-          stack_entries: updatedAgendaItemStackEntries,
-        }
-        const nextState = {
-          ...state,
-          cache: {
-            ...state.cache,
-            [agenda_item_id]: updatedAgendaItem,
-          },
-        }
-        return nextState; 
-      }
-      // if agendaItem not in state, ignore
-      else {
-        return state;
-      }
+    //   const agendaItem = state.cache[agenda_item_id];
+    //   if (!agendaItem) {return state};
+
+    //   const updatedAgendaItem = {
+    //     ...agendaItem,
+    //     stack_entries: agenda_item_stack_entries,
+    //   }
       
-    }
+    //   const nextState = {
+    //     ...state,
+    //     cache: {
+    //       ...state.cache,
+    //       [agenda_item_id]: updatedAgendaItem,
+    //     },
+    //   }
+    //   return nextState;   
+    // }
+
+
+    // case (LOAD_AGENDA_ITEM_STACK_ENTRY): {
+    //   const {agenda_item_stack_entry} = action;
+    //   const {agenda_item_id} = agenda_item_stack_entry;
+    //   const agendaItem = state.cache[agenda_item_id];
+    //   // check to make sure agendaItem exists.
+    //   // I suppose it's possible for the data to be
+    //   // come unsynced.
+    //   if (agendaItem) {
+    //     let updatedAgendaItemStackEntries = agendaItem.stack_entries.map(se => se);
+    //     updatedAgendaItemStackEntries.push(agenda_item_stack_entry);
+    //     const updatedAgendaItem = {
+    //       ...agendaItem,
+    //       stack_entries: updatedAgendaItemStackEntries,
+    //     }
+    //     const nextState = {
+    //       ...state,
+    //       cache: {
+    //         ...state.cache,
+    //         [agenda_item_id]: updatedAgendaItem,
+    //       },
+    //     }
+    //     return nextState; 
+    //   }
+    //   // if agendaItem not in state, ignore
+    //   else {
+    //     return state;
+    //   }
+      
+    // }
 
     default: {
       return state;

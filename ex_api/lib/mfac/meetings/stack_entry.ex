@@ -8,7 +8,7 @@ defmodule Mfac.Meetings.StackEntry do
     field :allotted_duration, :integer
     field :closed_at, :utc_datetime
     field :opened_at, :utc_datetime
-    field :status, :string
+    field :status, :string, default: "PENDING"
     field :version, :integer, default: 0
     belongs_to :owner, Mfac.Accounts.User, foreign_key: :user_id
     belongs_to :agenda_item, Mfac.Meetings.AgendaItem, foreign_key: :agenda_item_id

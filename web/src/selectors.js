@@ -208,7 +208,7 @@ export const getIsUserInStack = createSelector(
     const ses = agendaItem.stack_entries;
     for (var i = 0; i < ses.length; i++) {
       const se = ses[i];
-      if (se.owner_id === userData.id) {
+      if (se.owner.id === userData.id) {
         return true;
       }
     }
