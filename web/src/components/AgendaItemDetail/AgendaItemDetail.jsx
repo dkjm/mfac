@@ -76,7 +76,7 @@ const EditButton = (props) => {
       onClick={props.onClick}
       mini={true}
       iconStyle={{fill: COLORS.blackGray}}
-      style={{marginLeft: '20px'}}
+      style={{marginBottom: '20px'}}
       backgroundColor={COLORS.reactBlue}>
       <PencilIcon />
     </FloatingActionButton>
@@ -89,7 +89,7 @@ const OpenOrCloseButton = (props) => {
       onClick={props.onClick}
       mini={true}
       iconStyle={{fill: COLORS.blackGray}}
-      style={{marginLeft: '10px'}}
+      style={{marginBottom: '20px'}}
       backgroundColor={props.color || COLORS.cyan50}>
       {props.icon}
     </FloatingActionButton>
@@ -302,7 +302,7 @@ class AgendaItemDetail extends Component {
 
     if (status === 'OPEN') {
       return (
-        <div style={styles.topRightButtonsContainer}>
+        <div>
           <EditButton onClick={this.handleRequestUpdateAgendaItem} />
           <OpenOrCloseButton 
             onClick={() => this.handleRequestChangeAgendaItemStatus('CLOSED')}
@@ -314,7 +314,7 @@ class AgendaItemDetail extends Component {
     }
     else if (status === 'PENDING') {
       return (
-        <div style={styles.topRightButtonsContainer}>
+        <div>
           <EditButton onClick={this.handleRequestUpdateAgendaItem} />
           <OpenOrCloseButton 
             onClick={() => this.handleRequestChangeAgendaItemStatus('CLOSED')}
@@ -330,7 +330,7 @@ class AgendaItemDetail extends Component {
     }
     else if (status === 'CLOSED') {
       return (
-        <div style={styles.topRightButtonsContainer}>
+        <div>
           <OpenOrCloseButton 
             onClick={() => this.handleRequestChangeAgendaItemStatus('PENDING')}
             icon={<RefreshIcon />} 
@@ -357,7 +357,7 @@ class AgendaItemDetail extends Component {
         style={styles.paper} 
         zDepth={2}
       >
-        {this.renderTopRightButtons()}
+        
 
         <div style={styles.headerSectionContainer}>
           <div style={styles.leftBlock}>
@@ -385,6 +385,12 @@ class AgendaItemDetail extends Component {
               </div>
             </div>
 
+          </div>
+
+          <div style={styles.thirdBlock}>
+            <div style={styles.thirdBlockInner}>
+            {this.renderTopRightButtons()}
+            </div>
           </div>
         </div>
 
@@ -461,10 +467,7 @@ const styles = {
     padding: '0px 0px 40px',
   },
   topRightButtonsContainer: {
-    float: 'right',
-    // textAlign: 'right',
-    // position: 'absolute',
-    // right: '10px',
+
   },
   headerSectionContainer: {
     display: 'flex',
@@ -476,12 +479,24 @@ const styles = {
   stackSectionContainer: {
 
   },
+  thirdBlock: {
+    //border: 'solid blue',
+    flexGrow: '1',
+    maxWidth: '50px',
+    //width: '10%',
+    textAlign: 'center',
+    //float: 'right',
+  },
+  thirdBlockInner: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
   leftBlock: {
 
   },
   rightBlock: {
     padding: '18px 0 0 20px',
-    flexGrow: '3',
+    flexGrow: '4',
   },
   rightBlockTop: {
     display: 'flex',

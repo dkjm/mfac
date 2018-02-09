@@ -5,6 +5,7 @@ import {COLORS} from '../../constants';
 import {Icon} from 'react-fa';
 import Paper from 'material-ui/Paper';
 import VoteArrows from '../VoteArrows';
+import SpinningLogo from '../SpinningLogo';
 
 // limit for how many chars of body
 // we want to display in card
@@ -21,11 +22,21 @@ class AgendaItemCard extends Component {
 
 		const i = item;
 		
-		const statusIcon = (
-			<div>
-				<CheckIcon />
-			</div>
-		)
+		let statusIcon;
+		if (i.status === 'CLOSED') {
+			statusIcon = (
+				<div style={{padding: '0px 10px'}}>
+					<CheckIcon />
+				</div>
+			)
+		}
+		else if (i.status === 'OPEN') {
+			statusIcon = (
+				<div style={{padding: '0px 0px'}}>
+					<SpinningLogo />
+				</div>
+			)
+		}
 
 		return (
 			<Paper 
@@ -49,7 +60,7 @@ class AgendaItemCard extends Component {
 						</div>
 
 						<div style={styles.status}>
-							{i.status === 'CLOSED' && statusIcon}
+							{statusIcon}
 						</div>
 					</div>
 
@@ -84,15 +95,20 @@ const styles = {
   },
   rightBlockTop: {
   	display: 'flex',
+  	justifyContent: 'space-between',
+  	//border: 'solid 1px',
   },
   title: {
-  	width: '90%',
+  	//width: '80%',
   	fontSize: '110%',
   	marginBottom: '10px',
   	fontWeight: 'bold',
+  	//flexGrow: '8',
   },
   status: {
-  	width: '10%',
+  	//width: '15%',
+  	//flexGrow: '2',
+  	//float: 'right',
   },
   rightBlockBottom: {
 
