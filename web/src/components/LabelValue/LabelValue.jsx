@@ -3,28 +3,32 @@ import './LabelValue.css';
 import {COLORS} from '../../constants';
 
 
-const styles = {
-	container: {
-		//border: 'solid black',
-		marginBottom: '30px',
-	},
-	label: {
-		//border: 'solid blue',
-		fontSize: '80%',
-		marginBottom: '5px',
-		//backgroundColor: COLORS.lightGray,
-		//padding: '5px',
-	},
-	value: {
-		//border: 'solid orange',
-		//padding: '5px',
-	},
-}
-
 class LabelValue extends Component {
 
 	render() {
-		const {label, value} = this.props;
+		// TODO(MP 2/8): I had styles defined
+		// outside of Component, but I was unable
+		// to change values in object dynamically.
+		// Ended up putting inside to be able to
+		// change them (e.g. if "last" is passed
+		// as prop)
+		const styles = {
+			container: {
+				marginBottom: '20px',
+			},
+			label: {
+				fontSize: '80%',
+				marginBottom: '5px',
+			},
+			value: {
+
+			},
+		}
+
+		const {label, value, last} = this.props;
+
+		if (last) {styles.container.marginBottom = 0};
+		
 		return(
 			<div style={styles.container}>
 

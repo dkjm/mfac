@@ -19,7 +19,7 @@ class UserInvitations extends Component {
 
   renderInvitations = () => {
     const invitations = this.props.meetingInvitations;
-    if (!invitations) {return null};
+    if (!invitations.length) {return <NoItems />};
     const renderedItems = invitations.map(i => 
       <UserMeetingInvitationCard 
             key={i.id} 
@@ -31,11 +31,18 @@ class UserInvitations extends Component {
   }
 
   render() {
-    return(
-      <div style={styles.container}>
+    const invitations = this.props.meetingInvitations;
+    let header = null;
+    if (invitations.length) {
+      header = (
         <div style={styles.header}>
           Invitations
         </div>
+      )
+    }
+    return(
+      <div style={styles.container}>
+        {header}
         <CardListContainer>
           {this.renderInvitations()}
         </CardListContainer>
@@ -43,6 +50,12 @@ class UserInvitations extends Component {
     )
   }
 }
+
+const NoItems = () => (
+  <div style={styles.noItems}>
+    You don't have any invitations
+  </div>
+)
 
 const styles = {
   container: {
@@ -52,6 +65,11 @@ const styles = {
     marginBottom: '20px',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  noItems: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: '100px',
   },
 }
 

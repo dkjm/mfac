@@ -37,9 +37,11 @@ defmodule Mfac.Meetings do
   # string value check with enum value once
   # we have implemented enum
   def list_user_meetings(user_id) do
-    owned_meetings = Repo.all(from m in Meeting, where: m.user_id == ^user_id)
+    owned_meetings = Repo.all(from m in Meeting, where: m.user_id == ^user_id, preload: [:owner])
     accepted_invitations = Repo.all(from i in Invitation, where: i.invitee_id == ^user_id and i.status == "ACCEPTED")
-    invited_meetings = Enum.map(accepted_invitations, fn i -> Repo.get(Meeting, i.meeting_id) end)
+    invited_meetings = Enum.map(accepted_invitations, fn i -> 
+      Repo.get(Meeting, i.meeting_id) 
+      |> Repo.preload([:owner]) end)
     owned_meetings ++ invited_meetings
   end
 
@@ -74,7 +76,7 @@ defmodule Mfac.Meetings do
     meeting = Repo.get(Meeting, meeting.id)
       |> Repo.preload([:owner])
 
-    json = MfacWeb.MeetingView.render("meeting_details.json", meeting)
+    json = MfacWeb.MeetingView.render("meeting_details.json", %{meeting: meeting})
     send_broadcast("update_meeting_details", meeting.id, %{meeting: json})
 
     result

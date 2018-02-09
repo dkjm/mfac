@@ -3,7 +3,7 @@ defmodule MfacWeb.MeetingView do
   alias MfacWeb.MeetingView
 
   def render("index.json", %{meetings: meetings}) do
-    render_many(meetings, MeetingView, "meeting.json")
+    render_many(meetings, MeetingView, "meeting_details.json")
   end
 
   def render("show.json", %{meeting: meeting}) do
@@ -18,10 +18,11 @@ defmodule MfacWeb.MeetingView do
       version: meeting.version,
       inserted_at: meeting.inserted_at,
       updated_at: meeting.updated_at,
-      ended_at: meeting.ended_at}
+      ended_at: meeting.ended_at,
+    }
   end
 
-  def render("meeting_details.json", meeting) do
+  def render("meeting_details.json", %{meeting: meeting}) do
     %{id: meeting.id,
       title: meeting.title,
       description: meeting.description,

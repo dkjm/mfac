@@ -71,7 +71,7 @@ class MeetingAgenda extends Component {
 
   render() {
     return (
-    	<div className="MeetingAgenda-container">
+    	<div>
 
     		<CardListContainer>
     			{this.renderItems()}

@@ -23,8 +23,8 @@ class MeetingsDashboard extends Component {
 	}
 
 	handleSelect = (meeting_id) => {
-		const path = `/meetings/${meeting_id}/agenda`;
-		this.context.router.history.push(path);
+		const path = `/meetings/${meeting_id}/home`;
+		this.props.history.push(path);
 	}
 
 	handleRequestAddMeeting = () => {
@@ -49,10 +49,20 @@ class MeetingsDashboard extends Component {
 	}
 	
 	render() {
-
+		const {meetings} = this.props;
+		let header = null;
+		if (meetings.length) {
+			header = (
+				<div style={styles.header}>
+          Meetings
+        </div>
+      )
+		}
 		return (
 			<div style={styles.container}>
-				{/*<LayoutBanner title="Meetings" />*/}
+				
+				{header}
+				
 				<CardListContainer>
 					{this.renderItems()}
 				</CardListContainer>
@@ -77,9 +87,14 @@ const NoItems = () => (
 
 const styles = {
 	container: {
-		//margin: '15px 0',
+		margin: '15px 0',
 	},
-	 fab: {
+	header: {
+    marginBottom: '20px',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+	fab: {
     position: 'fixed',
     bottom: '20px',
     right: '20px',
@@ -91,10 +106,6 @@ const styles = {
     marginTop: '100px',
   },
 }
-
-MeetingsDashboard.contextTypes = {
-  router: PropTypes.object,
-};
 
 
 const mapStateToProps = (state, ownProps) => {
