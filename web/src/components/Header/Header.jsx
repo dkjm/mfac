@@ -14,6 +14,7 @@ import {
 	getHeader,
 	getUserData,
 	getMeetings,
+	getIsUserLoggedIn,
 } from '../../selectors';
 
 
@@ -71,8 +72,13 @@ class Header extends Component {
 	}
 
 	componentWillMount() {
-		const path = this.props.location.pathname;
-		const showNavButton = !(path.includes('login') || path.includes('signup'));
+		const {
+			isUserLoggedIn,
+			location,
+		} = this.props
+		const path = location.pathname;
+		const showNavButton = isUserLoggedIn;
+		//const showNavButton = !(path.includes('login') || path.includes('signup'));
 		this.setState({
 			title: getTitle(path, this.props),
 			navButtonVisible: showNavButton,
@@ -84,8 +90,13 @@ class Header extends Component {
 		// check here so that (hopefully) don't
 		// need to run through getTitle on
 		// every props change
-		const path = nextProps.location.pathname;
-		const showNavButton = !(path.includes('login') || path.includes('signup'));
+		const {
+			isUserLoggedIn,
+			location,
+		} = nextProps
+		const path = location.pathname;
+		const showNavButton = isUserLoggedIn;
+		//const showNavButton = !(path.includes('login') || path.includes('signup'));
 		this.setState({
 			title: getTitle(path, nextProps),
 			navButtonVisible: showNavButton,
@@ -138,6 +149,7 @@ const mapStateToProps = (state, ownProps) => {
 		header: getHeader(state),
 		userData: getUserData(state),
 		meetings: getMeetings(state),
+		isUserLoggedIn: getIsUserLoggedIn(state),
 	}
 }
 
