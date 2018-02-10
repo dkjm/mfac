@@ -7,7 +7,7 @@ import {TextField} from 'redux-form-material-ui'
 import RaisedButton from 'material-ui/RaisedButton';
 
 import {COLORS} from '../../constants';
-import {submitUserProfileForm} from '../../services/session';
+import {submitSignupForm} from '../../services/session';
 import {getUserData} from '../../selectors';
 import {required} from '../../validation';
 
@@ -62,7 +62,7 @@ const Button = (props) => {
 }
 
 
-class UserProfileForm extends Component {
+class SignupForm extends Component {
 
   handleCancel = (event) => {
     this.props.history.goBack();
@@ -73,7 +73,7 @@ class UserProfileForm extends Component {
     // should show errors on submit.
     // Right now, failing fields only show 
     // error if they are dirty
-    this.props.submitUserProfileForm(values);
+    this.props.submitSignupForm(values);
   }
 
   render() {
@@ -87,15 +87,15 @@ class UserProfileForm extends Component {
       match,
     } = this.props
 
-    const formTitle = 'Update Profile';
+    const formTitle = 'Signup';
 
     return (
       <form>
         <div style={styles.container}>
 
-          <div style={styles.title}>
+          {/*<div style={styles.title}>
             {formTitle}
-          </div>
+          </div>*/}
 
           <div style={styles.inputsContainer}>
             <InputContainer>
@@ -143,6 +143,30 @@ class UserProfileForm extends Component {
               />
             </InputContainer>
 
+            <InputContainer>
+              <Field 
+                style={styles.input}
+                fullWidth={true}
+                name="password" 
+                component={TextField}
+                floatingLabelText="Password"
+                validate={required}
+                type="password"
+              />
+            </InputContainer>
+
+            <InputContainer>
+              <Field 
+                style={styles.input}
+                fullWidth={true}
+                name="password_again" 
+                component={TextField}
+                floatingLabelText="Confirm password"
+                validate={required}
+                type="password"
+              />
+            </InputContainer>
+
           </div>
 
           <div style={styles.buttonsContainer}>
@@ -187,26 +211,18 @@ const styles = {
 
 
 const mapStateToProps = (state, ownProps) => {
-  const userData = getUserData(state);
-  const u = userData;
-  const initialValues = {
-    first_name: u.first_name,
-    last_name: u.last_name,
-    email: u.email,
-    user_name: u.user_name,
-  }
   return {
-    initialValues,
+
   }
 }
 
 const mapDispatchToProps = (dispatch)  => ({
-  submitUserProfileForm: (params) => dispatch(submitUserProfileForm(params)),
+  submitSignupForm: (params) => dispatch(submitSignupForm(params)),
 })
 
 let Connected = reduxForm({
-  form: 'userProfileForm',
-})(UserProfileForm)
+  form: 'signupForm',
+})(SignupForm)
 
 Connected = connect(
   mapStateToProps,

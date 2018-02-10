@@ -62,6 +62,14 @@ defmodule MfacWeb.UserController do
     end
   end
 
+  def sign_up_user(conn, %{"user" => user_params}) do
+    with {:ok, %User{} = user} <- Accounts.create_user(user_params) do
+      conn
+      |> put_status(:created)
+      |> send_resp(:no_content, "")
+    end
+  end
+
   def delete(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
     with {:ok, %User{}} <- Accounts.delete_user(user) do

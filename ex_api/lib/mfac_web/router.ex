@@ -25,6 +25,7 @@ defmodule MfacWeb.Router do
     #resources "/agenda_item_votes", AgendaItemVoteController
     resources "/users", UserController, except: [:new, :edit]
     get "/user_data", UserController, :user_data
+    post "/signup", UserController, :sign_up_user
     post "/update_user_profile", UserController, :update_user_profile
     post "/update_user_password", UserController, :update_user_password
     post "/agenda_items/:agenda_item_id/stack_entries", StackEntryController, :create

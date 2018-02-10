@@ -161,6 +161,31 @@ export const submitUserPasswordForm = (params = {}) => (dispatch, getState) => {
 }
 
 
+export const submitSignupForm = (params = {}) => (dispatch, getState) => {
+  const endpoint = `${API_ENTRY}/signup/`;
+  const config = {
+    url: endpoint,
+    method: 'POST',
+    data: {user: {...params}},
+  }
+  return axios(config)
+  .then(response => {
+    const snackbarParams = {
+        open: true,
+        message: 'Thanks for signing up.',
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    history.push('/login');
+  })
+  .catch(error => {
+    console.log('Error', error);
+    console.log('Error', error.response)
+  })
+}
+
+
 export const connectUserSocket = (params = {}) => (dispatch, getState) => {
   // see link for options to pass to socket:
   // https://hexdocs.pm/phoenix/js/

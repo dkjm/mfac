@@ -36,7 +36,7 @@ const InputContainer = ({children}) => {
 const Button = (props) => {
   const styles = {
     container: {
-      maxWidth: '150px',
+      //maxWidth: '150px',
       flexGrow: '1',
     },
     root: {
@@ -76,6 +76,10 @@ class LoginForm extends Component {
     this.props.submitLoginForm(values);
   }
 
+  handleRequestSignup = () => {
+    this.props.history.push('/signup');
+  }
+
   render() {
 
     const { 
@@ -91,9 +95,9 @@ class LoginForm extends Component {
       <form>
         <div style={styles.container}>
 
-          <div style={styles.title}>
+          {/*<div style={styles.title}>
             Login
-          </div>
+          </div>*/}
 
           <div style={styles.inputsContainer}>
             <InputContainer>
@@ -115,8 +119,8 @@ class LoginForm extends Component {
                 name="password" 
                 component={TextField}
                 floatingLabelText="Password"
-                multiLine={true} 
                 validate={required}
+                type="password"
               />
             </InputContainer>
 
@@ -127,10 +131,26 @@ class LoginForm extends Component {
               label="Submit"
               onClick={handleSubmit(this.handleSubmit)}
             />
-            <Button
+            {/*<Button
               label="Forgot"
               onClick={this.handleForgot}
-            />
+            />*/}
+          </div>
+
+          <div style={styles.bottomButtonsContainer}>
+
+            <div
+              onClick={this.handleForgot}
+              style={styles.bottomButton}>
+              Forgot
+            </div>
+
+            <div
+              onClick={this.handleRequestSignup}
+              style={styles.bottomButton}>
+              Signup
+            </div>
+            
           </div>
 
         </div>
@@ -159,7 +179,18 @@ const styles = {
     minWidth: '60px',
     textAlign: 'left',
   },
-
+  bottomButtonsContainer: {
+    marginTop: '100px',
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  bottomButton: {
+    margin: '0px 20px',
+    border: 'solid',
+    padding: '10px',
+    minWidth: '100px',
+    textAlign: 'center',
+  },
 }
 
 

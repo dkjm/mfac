@@ -43,6 +43,7 @@ defmodule MfacWeb.UserChannel do
   defp push_update(socket, id) do
     user_id = socket.assigns.current_user
     user = Repo.get(User, user_id)
+    IO.inspect(user, label: "REPO USER")
     invitations_query = 
       from i in Invitation,
         left_join: m in Meeting, on: i.meeting_id == m.id,

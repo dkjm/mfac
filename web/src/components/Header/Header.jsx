@@ -22,6 +22,8 @@ const meetingsRE = /\/meetings\/dashboard/;
 const dashboardRE = /\/dashboard/;
 const invitationsRE = /\/invitations/;
 const settingsRE = /\/settings/;
+const loginRE = /\/login/;
+const signupRE = /\/signup/;
 
 const getTitle = (path, nextProps) => {
 	const p = path;
@@ -45,6 +47,12 @@ const getTitle = (path, nextProps) => {
 	else if (settingsRE.test(p)) {
 		return 'Settings';
 	}
+	else if (loginRE.test(p)) {
+		return 'Login';
+	}
+	else if (signupRE.test(p)) {
+		return 'Signup';
+	}
 	else {
 		//console.log('No match for: ', p);
 		return '';
@@ -58,12 +66,17 @@ class Header extends Component {
 		super(props);
 		this.state = {
 			title: '',
+			navButtonVisible: true,
 		}
 	}
 
 	componentWillMount() {
 		const path = this.props.location.pathname;
-		this.setState({title: getTitle(path, this.props)})
+		const showNavButton = !(path.includes('login') || path.includes('signup'));
+		this.setState({
+			title: getTitle(path, this.props),
+			navButtonVisible: showNavButton,
+		});
 	}
 
 	componentWillReceiveProps(nextProps) {
@@ -72,7 +85,11 @@ class Header extends Component {
 		// need to run through getTitle on
 		// every props change
 		const path = nextProps.location.pathname;
-		this.setState({title: getTitle(path, nextProps)});
+		const showNavButton = !(path.includes('login') || path.includes('signup'));
+		this.setState({
+			title: getTitle(path, nextProps),
+			navButtonVisible: showNavButton,
+		});
 	}
 
 	handleToggleNavDrawer = () => {
@@ -81,7 +98,6 @@ class Header extends Component {
 
 	render() {
 		const {userData, header} = this.props;
-		//return null;
 		if (!header.open) {return null};
 
 		const NavButton = (
@@ -91,7 +107,12 @@ class Header extends Component {
 				<NavIcon />
 			</IconButton>
 		)
-
+		// NOTE(MP 2/9):
+		// passing iconElementLeft: null does
+		// not hide nav icon.  The only way
+		// I could get it to hide was by
+		// passing iconStyleLeft with display
+		// none.
 		const appBarProps = {
 			title: this.state.title,
 			iconElementLeft: NavButton,
@@ -101,6 +122,7 @@ class Header extends Component {
 				textAlign: 'center',
 				zIndex: '1',
 			},
+			iconStyleLeft: this.state.navButtonVisible ? {} : {display: 'none'}
 		}
 
 		return (

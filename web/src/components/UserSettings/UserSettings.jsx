@@ -81,6 +81,7 @@ class UserSettings extends Component {
     return (
       <div style={styles.detailsContainer}>
         <LabelValue label="Name" value={u.full_name} />
+        <LabelValue label="Email" value={u.email} />
         <LabelValue label="User name" value={u.user_name} />
         <LabelValue label="Joined" value={u.inserted_at} />
       </div>

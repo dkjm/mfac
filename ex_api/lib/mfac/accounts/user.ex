@@ -10,6 +10,7 @@ defmodule Mfac.Accounts.User do
     field :last_name, :string
     field :middle_name, :string
     field :user_name, :string
+    field :email, :string
     field :hashed_password, :string
     field :password, :string, virtual: true
     has_many :invitations, Mfac.Meetings.Invitation, foreign_key: :invitee_id
@@ -20,8 +21,8 @@ defmodule Mfac.Accounts.User do
   @doc false
   def changeset(%User{} = user, attrs) do
     user
-    |> cast(attrs, [:first_name, :last_name, :middle_name, :is_active, :hashed_password, :user_name])
-    |> validate_required([:first_name, :last_name, :is_active])
+    |> cast(attrs, [:first_name, :last_name, :middle_name, :is_active, :hashed_password, :user_name, :email])
+    |> validate_required([:first_name, :last_name, :email, :user_name])
   end
 
   defp hash_password(changeset) do

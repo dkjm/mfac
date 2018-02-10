@@ -16,6 +16,7 @@ import NavDrawer from '../NavDrawer';
 import Dashboard from '../Dashboard';
 import MeetingLayout from '../MeetingLayout';
 import LoginForm from '../LoginForm';
+import SignupForm from '../SignupForm';
 import UserInvitations from '../UserInvitations';
 import UserInvitationDetail from '../UserInvitationDetail';
 import UserSettings from '../UserSettings';
@@ -85,8 +86,15 @@ class App extends Component {
           <Switch>
 
             <Route 
+              exact
               path="/login"
               render={props => (<LoginForm {...props} />)}
+            />
+
+            <Route 
+              exact
+              path="/signup"
+              render={props => (<SignupForm {...props} />)}
             />
 
             <Route 
