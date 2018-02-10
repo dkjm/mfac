@@ -162,7 +162,7 @@ export const submitUserPasswordForm = (params = {}) => (dispatch, getState) => {
 
 
 export const submitSignupForm = (params = {}) => (dispatch, getState) => {
-  const endpoint = `${API_ENTRY}/signup/`;
+  const endpoint = `${API_ENTRY}/auth/signup/`;
   const config = {
     url: endpoint,
     method: 'POST',
