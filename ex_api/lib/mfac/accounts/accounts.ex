@@ -7,6 +7,8 @@ defmodule Mfac.Accounts do
   alias Mfac.Repo
 
   alias Mfac.Accounts.User
+  alias MfacWeb.UserChannel
+  alias MfacWeb.UserView
 
   @doc """
   Returns the list of users.
@@ -68,8 +70,25 @@ defmodule Mfac.Accounts do
 
   """
   def update_user(%User{} = user, attrs) do
+    result = 
+      user
+      |> User.changeset(attrs)
+      |> Repo.update()
+    {status, user} = result
+    UserChannel.broadcast_event("update_user_profile", user.id, UserView.render("user.json", %{user: user}))
+    result
+  end
+
+
+  @doc """
+  Updates user password.
+
+  """
+  # TODO(MP 2/9): if validation or update
+  # fails, should not return :ok
+  def update_user_password(%User{} = user, attrs) do
     user
-    |> User.changeset(attrs)
+    |> User.password_changeset(attrs)
     |> Repo.update()
   end
 

@@ -40,4 +40,15 @@ defmodule Mfac.Accounts.User do
     |> validate_length(:password, min: 6, max: 100)
     |> hash_password
   end
+
+  # TODO(MP 2/9): not sure if 
+  # separate password_changeset is
+  # necessary.  Using it for now in
+  # Accounts.update_user_password
+  def password_changeset(user, params) do
+    user
+    |> cast(params, ~w(password)a, [])
+    |> validate_length(:password, min: 6, max: 100)
+    |> hash_password
+  end
 end

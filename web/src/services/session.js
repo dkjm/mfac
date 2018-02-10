@@ -11,6 +11,7 @@ import {API_ENTRY, API_ENTRY_WS} from '../constants';
 export const LOGIN = 'LOGIN';
 export const LOGOUT = 'LOGOUT';
 export const LOAD_USER_DATA = 'LOAD_USER_DATA';
+export const LOAD_USER_PROFILE = 'LOAD_USER_PROFILE';
 export const UPDATE_MEETING_INVITATIONS = 'UPDATE_MEETING_INVITATIONS';
 
 // Need to namespace these action types
@@ -102,14 +103,16 @@ export const acceptOrDeclineMeetingInvitation = (params = {}) => (dispatch, getS
   })
 }
 
-// TODO(MP 2/9): Implement user profile form
-// endpoint.  Right now this will fail
+// TODO(MP 2/9): Handle error response
+// Right now, if update fails on server,
+// Update might fail because new user_name
+// or email are not unique.
 export const submitUserProfileForm = (params = {}) => (dispatch, getState) => {
   const endpoint = `${API_ENTRY}/update_user_profile/`;
   const config = {
     url: endpoint,
     method: 'POST',
-    data: params,
+    data: {user: {...params}},
   }
   return axios(config)
   .then(response => {
@@ -129,8 +132,9 @@ export const submitUserProfileForm = (params = {}) => (dispatch, getState) => {
 }
 
 
-// TODO(MP 2/9): Implement user password form
-// endpoint.  Right now this will fail
+// TODO(MP 2/9): Handle error response.
+// Right now, if update fails on server, 400
+// is returned.
 export const submitUserPasswordForm = (params = {}) => (dispatch, getState) => {
   const endpoint = `${API_ENTRY}/update_user_password/`;
   const config = {
@@ -208,6 +212,20 @@ export const connectUserSocket = (params = {}) => (dispatch, getState) => {
      const action = {
       type: LOAD_USER_DATA,
       data: payload.user_data,
+     }
+     dispatch(action);
+  })
+
+  // update_user_profile is details of user
+  // (e.g. first_name, user_name, etc) whereas
+  // update_user_data will have details but also
+  // contacts and invitations.  update_user_profile
+  // is triggered when user updates there profile
+  channel.on('update_user_profile', payload => {
+   console.log('userChannel - update_user_profile', payload)
+     const action = {
+      type: LOAD_USER_PROFILE,
+      profile: payload,
      }
      dispatch(action);
   })
@@ -410,6 +428,15 @@ export const reducer = (state = initialState, action) => {
         userData: user_data,
         meetingInvitations: meetingInvitationsObj,
         contacts: contactsObj,
+      }
+      return nextState;
+    }
+
+    case LOAD_USER_PROFILE: {
+      const {profile} = action
+      const nextState = {
+        ...state,
+        userData: profile,
       }
       return nextState;
     }

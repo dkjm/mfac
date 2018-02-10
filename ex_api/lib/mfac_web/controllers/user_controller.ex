@@ -35,6 +35,33 @@ defmodule MfacWeb.UserController do
     end
   end
 
+  # TODO(MP 2/9): implement check that the
+  # requested new values for user
+  # user_name or email are unique, and return
+  # 400 with data that says why request failed
+  def update_user_profile(conn, %{"user" => user_params}) do
+    user = Accounts.Guardian.Plug.current_resource(conn)
+    with {:ok, %User{} = user} <- Accounts.update_user(user, user_params) do
+      conn
+      |> put_status(:ok)
+      |> send_resp(:no_content, "")
+    end
+  end
+
+  def update_user_password(conn, %{"password" => password}) do
+    user = Accounts.Guardian.Plug.current_resource(conn)
+    with {:ok, _} <- Accounts.update_user_password(user, %{password: password}) 
+    do      
+      send_resp(conn, :ok, "")
+    else
+      error -> 
+        # TODO(MP 2/9): return error message on invalid
+        # password.  Not sure how to do it with send_resp
+        send_resp(conn, 400, "")
+        #send_resp(conn, 400, %{error: "invalid_password"})
+    end
+  end
+
   def delete(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
     with {:ok, %User{}} <- Accounts.delete_user(user) do
@@ -66,30 +93,6 @@ defmodule MfacWeb.UserController do
       user = Mfac.Repo.get_by(User, user_name: trim_user_name(user_name))
       IO.inspect(user, label: "USER")
       IO.inspect(password, label: "PASSWORD")
-      # invitations_query = 
-      # from i in Mfac.Meetings.Invitation,
-      #   left_join: m in Mfac.Meetings.Meeting, on: i.meeting_id == m.id,
-      #   left_join: inviter in User, on: i.inviter_id == inviter.id,
-      #   left_join: invitee in User, on: i.invitee_id == invitee.id,
-      #   where: i.invitee_id == ^user.id,
-      #   preload: [
-      #     meeting: m,
-      #     inviter: inviter,
-      #     invitee: invitee,
-      #   ]
-
-      # invitations = Mfac.Repo.all(invitations_query)
-      # IO.puts(invitations, label: "INVITATIONS")
-
-      # contacts_query = from u in User, where: u.id != ^user.id
-      # contacts = Mfac.Repo.all(contacts_query)
-
-      # data = %{
-      #   user_data: user, 
-      #   meeting_invitations: invitations, 
-      #   contacts: contacts}
-
-      # IO.puts(data, label: "DATA")
 
       case is_binary(user.hashed_password) and authenticate(user, password) do
         true ->

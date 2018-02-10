@@ -46,7 +46,7 @@ const getTitle = (path, nextProps) => {
 		return 'Settings';
 	}
 	else {
-		console.log('No match for: ', p);
+		//console.log('No match for: ', p);
 		return '';
 	}
 }

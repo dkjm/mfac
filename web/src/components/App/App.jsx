@@ -118,7 +118,7 @@ class App extends Component {
               )} 
             />
 
-            {/*<Redirect to="/login" />*/}
+            <Redirect to="/login" />
 
             {/* 180127 - MPP - NoMatch will never
               be called with current routing setup  
