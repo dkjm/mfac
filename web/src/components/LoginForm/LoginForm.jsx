@@ -9,9 +9,9 @@ import {TextField} from 'redux-form-material-ui';
 import RaisedButton from 'material-ui/RaisedButton';
 
 import {COLORS} from '../../constants';
-import {submitLoginForm} from '../../services/session';
+import {submitLoginForm, logout} from '../../services/session';
 import history from '../../history';
-import {getAgendaItem} from '../../selectors';
+import {getIsUserLoggedIn} from '../../selectors';
 import {required} from '../../validation';
 
 // InputContainer is just a simple
@@ -80,6 +80,10 @@ class LoginForm extends Component {
     this.props.history.push('/signup');
   }
 
+  handleLogout = () => {
+    this.props.logout();
+  }
+
   render() {
 
     const { 
@@ -89,7 +93,25 @@ class LoginForm extends Component {
       reset, 
       submitting,
       match,
+      isUserLoggedIn,
     } = this.props
+
+    if (isUserLoggedIn) {
+      return (
+        <div style={styles.loggedInContainer}>
+          <div style={styles.loggedInTitle}>
+            You are logged in.
+          </div>
+          
+          <div style={styles.buttonsContainer}>
+            <Button
+              label="Log out"
+              onClick={this.handleLogout}
+            />
+          </div>
+        </div>
+      )
+    }
 
     return (
       <form>
@@ -191,17 +213,26 @@ const styles = {
     minWidth: '100px',
     textAlign: 'center',
   },
+  loggedInContainer: {
+    textAlign: 'center',
+    padding: '15px',
+  },
+  loggedInTitle: {
+    padding: '70px',
+    fontStyle: 'italic',
+  },
 }
 
 
 const mapStateToProps = (state, ownProps) => { 
   return {
-
+    isUserLoggedIn: getIsUserLoggedIn(state),
   }
 }
 
 const mapDispatchToProps = (dispatch)  => ({
   submitLoginForm: (params) => dispatch(submitLoginForm(params)),
+  logout: (params) => dispatch(logout(params)),
 })
 
 let Connected = reduxForm({
