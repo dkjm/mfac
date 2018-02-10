@@ -44,7 +44,8 @@ defmodule MfacWeb.UserView do
     %{
       user_data: render_one(data.user_data, UserView, "user.json"), 
       meeting_invitations: render_many(data.meeting_invitations, MfacWeb.InvitationView, "show.json"),
-      contacts: render_many(data.contacts, UserView, "user_simple.json")
+      contacts: render_many(data.contacts, UserView, "user_simple.json"),
+      meetings: render_many(data.meetings, MfacWeb.MeetingView, "meeting_details.json")
     }
   end
 

@@ -64,9 +64,9 @@ defmodule MfacWeb.UserController do
 
   def sign_up_user(conn, %{"user" => user_params}) do
     with {:ok, %User{} = user} <- Accounts.create_user(user_params) do
-      conn
-      |> put_status(:created)
-      |> send_resp(:no_content, "")
+      auth_conn = Accounts.Guardian.Plug.sign_in(conn, user)
+      jwt = Accounts.Guardian.Plug.current_token(auth_conn) 
+      render(auth_conn, "sign_in.json", user: user, token: jwt)
     end
   end
 

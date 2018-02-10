@@ -9,6 +9,8 @@ import history from '../history';
 import { isEmpty } from 'lodash';
 import {API_ENTRY, API_ENTRY_WS} from '../constants';
 
+import {LOAD_USER_DATA} from './session';
+
 export const LOAD_MEETINGS = 'LOAD_MEETINGS';
 export const LOAD_MEETING = 'LOAD_MEETING';
 export const REMOVE_MEETING = 'REMOVE_MEETING';
@@ -313,9 +315,9 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   const room = `meeting:${meeting_id}`
   let channel = socket.channel(room, {})
   channel.join()
-    .receive('ok', resp => { console.log('Joined room ' + room, resp) })
+    .receive('ok', resp => { console.log('meetingChannel - joined room ' + room, resp) })
     .receive('error', resp => { 
-      console.log('Unable to join room ' + room);
+      console.log('meetingChannel - unable to join room ' + room);
       let title, content;
       if (resp.reason === 'unauthorized') {
         title = 'Unauthorized';
@@ -341,6 +343,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('presence_diff', diff => {
+    console.log('meetingChannel - presence_diff', diff);
     presences = Presence.syncDiff(presences, diff)
     const participants = _values(presences).map(item => item.user)
     const action = {
@@ -352,7 +355,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
 
 
   channel.on('update_meeting', payload => {
-   console.log('channel - update_meeting', payload)
+   console.log('meetingChannel - update_meeting', payload)
 
      const actionLoadMeeting = {
       type: LOAD_MEETING,
@@ -374,7 +377,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('update_meeting_details', payload => {
-   console.log('channel - update_meeting_details', payload)
+   console.log('meetingChannel - update_meeting_details', payload)
      const action = {
       type: LOAD_MEETING,
       meeting: payload.meeting
@@ -383,7 +386,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('remove_meeting', payload => {
-   console.log('channel - remove_meeting', payload)
+   console.log('meetingChannel - remove_meeting', payload)
      const action = {
       type: REMOVE_MEETING,
       meeting_id: payload.meeting_id,
@@ -393,7 +396,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('add_agenda_item', payload => {
-    console.log('channel - add_agenda_item', payload)
+    console.log('meetingChannel - add_agenda_item', payload)
     const action = {
       type: LOAD_AGENDA_ITEM,
       agenda_item: payload.agenda_item,
@@ -402,7 +405,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('update_agenda_item', payload => {
-    console.log('channel - update_agenda_item', payload)
+    console.log('meetingChannel - update_agenda_item', payload)
     const action = {
       type: LOAD_AGENDA_ITEM,
       agenda_item: payload.agenda_item,
@@ -411,7 +414,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('remove_agenda_item', payload => {
-    console.log('channel - remove_agenda_item', payload)
+    console.log('meetingChannel - remove_agenda_item', payload)
     const action = {
       type: REMOVE_AGENDA_ITEM,
       agenda_item_id: payload.agenda_item_id,
@@ -420,7 +423,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('update_agenda_item_votes', payload => {
-    console.log('channel - update_agenda_item_votes', payload)
+    console.log('meetingChannel - update_agenda_item_votes', payload)
     const action = {
       type: UPDATE_AGENDA_ITEM_VOTE_COUNTS,
       agenda_item_id: payload.agenda_item_id,
@@ -430,7 +433,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('add_invitation', payload => {
-    console.log('channel - add_invitation', payload)
+    console.log('meetingChannel - add_invitation', payload)
     const action = {
       type: LOAD_MEETING_INVITATION,
       invitation: payload.invitation,
@@ -439,7 +442,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('update_invitation', payload => {
-    console.log('channel - update_invitation', payload)
+    console.log('meetingChannel - update_invitation', payload)
     const action = {
       type: LOAD_MEETING_INVITATION,
       invitation: payload.invitation,
@@ -448,7 +451,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('remove_invitation', payload => {
-    console.log('channel - remove_invitation', payload)
+    console.log('meetingChannel - remove_invitation', payload)
     const action = {
       type: REMOVE_MEETING_INVITATION,
       invitation_id: payload.invitation_id,
@@ -457,7 +460,7 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('update_stack_entries', payload => {
-    console.log('channel - update_stack_entries', payload)
+    console.log('meetingChannel - update_stack_entries', payload)
     const action = {
       type: LOAD_STACK_ENTRIES,
       agenda_item_id: payload.agenda_item_id,
@@ -1150,6 +1153,18 @@ export const meetingParticipantReducer = (state = initialMeetingParticipantState
 
 export const meetingReducer = (state = initialMeetingState, action) => {
   switch (action.type) {
+
+    case (LOAD_USER_DATA): {
+      const {meetings} = action.data;
+      const obj = {};
+      meetings.forEach(m => obj[m.id] = m);
+
+      const nextState = {
+        ...state,
+        cache: obj,
+      }
+      return nextState;
+    }
 
     case (SELECT_MEETING): {
       const {meeting_id} = action;

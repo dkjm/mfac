@@ -43,7 +43,7 @@ defmodule MfacWeb.UserChannel do
   defp push_update(socket, id) do
     user_id = socket.assigns.current_user
     user = Repo.get(User, user_id)
-    IO.inspect(user, label: "REPO USER")
+
     invitations_query = 
       from i in Invitation,
         left_join: m in Meeting, on: i.meeting_id == m.id,
@@ -60,8 +60,11 @@ defmodule MfacWeb.UserChannel do
     contacts_query = from u in User, where: u.id != ^user_id
     contacts = Mfac.Repo.all(contacts_query)
 
+    meetings = Mfac.Meetings.list_user_meetings(user_id)
+
     data = %{
       user_data: user, 
+      meetings: meetings,
       meeting_invitations: invitations, 
       contacts: contacts}
     json = MfacWeb.UserView.render("user_data.json", %{user_data: data})

@@ -79,7 +79,7 @@ class MeetingAgenda extends Component {
   render() {
     const {openItems} = this.props;
     return (
-    	<div>
+    	<div style={styles.container}>
 
         {/*{openItems.length > 0 && (<Section title="OPEN" items={this.renderItems('OPEN')} />)}*/}
         <Section title="OPEN" items={this.renderItems('OPEN')} />
@@ -170,9 +170,11 @@ const NoItems = ({message}) => (
   </div>
 )
 
-// TODO: consolidate all styles in this file,
-// get ride of css file
+
 const styles = {
+  container: {
+    marginTop: '30px',
+  },
   fab: {
     position: 'fixed',
     bottom: '20px',

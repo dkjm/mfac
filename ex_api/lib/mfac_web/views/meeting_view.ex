@@ -68,4 +68,11 @@ defmodule MfacWeb.MeetingView do
       owner: render_one(meeting.owner, MfacWeb.UserView, "user_simple.json")
     }
   end
+
+  # def render("user_simple_for_meeting.json", %{user: user}) do
+  #   full_name = "#{user.first_name} #{user.last_name}"
+  #   %{id: user.id,
+  #     email: user.email,
+  #     full_name: full_name}
+  # end
 end

@@ -31,6 +31,39 @@ axios.interceptors.request.use((config) => {
 let socket;
 
 
+export const submitSignupForm = (params = {}) => (dispatch, getState) => {
+  const endpoint = `${API_ENTRY}/auth/signup/`;
+  const config = {
+    url: endpoint,
+    method: 'POST',
+    data: {user: {...params}},
+  }
+  return axios(config)
+  .then(response => {
+    const {token} = response.data;
+    localStorage.setItem('token', token);
+    
+    const action = {
+      type: LOGIN,
+      data: response.data,
+    }
+    dispatch(action);
+
+    const snackbarParams = {
+        open: true,
+        message: 'Thanks for signing up.',
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    history.push('/dashboard');
+  })
+  .catch(error => {
+    console.log('Error', error);
+    console.log('Error', error.response)
+  })
+}
+
 export const submitLoginForm = (params = {}) => (dispatch, getState) => {
   const endpoint = `${API_ENTRY}/auth/login/`;
   const data = {
@@ -46,13 +79,14 @@ export const submitLoginForm = (params = {}) => (dispatch, getState) => {
       data: response.data,
     }
     dispatch(action);
-    history.push('/meetings/dashboard');
+    history.push('/dashboard');
   })
   .catch(error => {
     console.log('Error', error);
     console.log('Error', error.response)
   })
 }
+
 
 export const logout = (params = {}) => (dispatch, getState) => {
   // clear token from local storate
@@ -161,30 +195,6 @@ export const submitUserPasswordForm = (params = {}) => (dispatch, getState) => {
 }
 
 
-export const submitSignupForm = (params = {}) => (dispatch, getState) => {
-  const endpoint = `${API_ENTRY}/auth/signup/`;
-  const config = {
-    url: endpoint,
-    method: 'POST',
-    data: {user: {...params}},
-  }
-  return axios(config)
-  .then(response => {
-    const snackbarParams = {
-        open: true,
-        message: 'Thanks for signing up.',
-      }
-      setTimeout(() => {
-        dispatch(toggleSnackbar(snackbarParams));
-      }, 300)
-    history.push('/login');
-  })
-  .catch(error => {
-    console.log('Error', error);
-    console.log('Error', error.response)
-  })
-}
-
 
 export const connectUserSocket = (params = {}) => (dispatch, getState) => {
   // see link for options to pass to socket:
@@ -204,9 +214,9 @@ export const connectUserSocket = (params = {}) => (dispatch, getState) => {
   const room = `user:${userData.id}`
   let channel = socket.channel(room, {})
   channel.join()
-    .receive('ok', resp => { console.log('Joined room ' + room, resp) })
+    .receive('ok', resp => { console.log('userChannel - joined room ' + room, resp) })
     .receive('error', resp => { 
-      console.log('Unable to join room ' + room);
+      console.log('userChannel - unable to join room ' + room);
       let title, content;
       if (resp.reason === 'unauthorized') {
         title = 'Unauthorized';
@@ -233,7 +243,7 @@ export const connectUserSocket = (params = {}) => (dispatch, getState) => {
 
 
   channel.on('update_user_data', payload => {
-   console.log('user channel - update_user_data', payload)
+   console.log('userChannel - update_user_data', payload)
      const action = {
       type: LOAD_USER_DATA,
       data: payload.user_data,
@@ -256,7 +266,7 @@ export const connectUserSocket = (params = {}) => (dispatch, getState) => {
   })
 
   channel.on('add_invitation', payload => {
-    console.log('user channel - add_invitation', payload)
+    console.log('userChannel - add_invitation', payload)
     const action = {
       type: LOAD_INVITATION,
       invitation: payload.invitation

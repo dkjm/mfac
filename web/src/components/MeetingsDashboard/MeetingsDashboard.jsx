@@ -19,7 +19,10 @@ import {loadMeetings} from '../../services/api';
 class MeetingsDashboard extends Component {
 
 	componentWillMount() {
-		this.props.loadMeetings();
+		// NOTE(MP 2/9): not calling loadMeetings()
+		// as meetings are now being delivered
+		// via user socket
+		//this.props.loadMeetings();
 	}
 
 	handleSelect = (meeting_id) => {
