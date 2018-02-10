@@ -6,6 +6,7 @@ import {withRouter} from 'react-router-dom';
 import RaisedButton from 'material-ui/RaisedButton';
 import Paper from 'material-ui/Paper';
 
+import authProtected from '../AuthProtected';
 import LabelValue from '../LabelValue';
 
 import {COLORS} from '../../constants';
@@ -188,9 +189,10 @@ const mapDispatchToProps = dispatch => {
 }
 
 
-const Connected = connect(
+let Connected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(UserInvitationDetail)
 
-export default withRouter(Connected);
+Connected = withRouter(Connected);
+export default authProtected(Connected);

@@ -121,9 +121,7 @@ class App extends Component {
 
             <Route 
               path="/meetings" 
-              render={props => (
-                <MeetingLayout {...props} />
-              )} 
+              render={props => (<MeetingLayout {...props} />)}
             />
 
             <Redirect to="/login" />

@@ -3,6 +3,7 @@ import './UserInvitations.css';
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 
+import authProtected from '../AuthProtected';
 import UserMeetingInvitationCard from '../UserMeetingInvitationCard';
 import CardListContainer from '../CardListContainer';
 
@@ -78,9 +79,10 @@ const mapDispatchToProps = dispatch => {
 }
 
 
-const Connected = connect(
+let Connected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(UserInvitations)
 
-export default withRouter(Connected);
+Connected = withRouter(Connected);
+export default authProtected(Connected);

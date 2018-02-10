@@ -9,6 +9,7 @@ import FloatingActionButton from 'material-ui/FloatingActionButton';
 import RaisedButton from 'material-ui/RaisedButton';
 import PencilIcon from 'material-ui/svg-icons/editor/mode-edit';
 
+import authProtected from '../AuthProtected';
 import LabelValue from '../LabelValue';
 import UserProfileForm from '../UserProfileForm';
 import UserPasswordForm from '../UserPasswordForm';
@@ -211,9 +212,11 @@ const mapDispatchToProps = (dispatch) => {
 }
 
 
-const Connected = connect(
+let Connected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(UserSettings)
 
-export default withRouter(Connected);
+Connected = withRouter(Connected);
+
+export default authProtected(Connected);

@@ -9,6 +9,7 @@ import Paper from 'material-ui/Paper';
 import MailIcon from 'material-ui/svg-icons/content/mail';
 import GroupIcon from 'material-ui/svg-icons/social/group';
 
+import authProtected from '../AuthProtected';
 import LayoutBanner from '../LayoutBanner/LayoutBanner';
 import CardListContainer from '../CardListContainer/CardListContainer';
 
@@ -126,9 +127,10 @@ const mapDispatchToProps = (dispatch) => {
 	}
 }
 
-const Connected = connect(
+let Connected = connect(
 	mapStateToProps,
 	mapDispatchToProps,
 )(Dashboard)
 
-export default withRouter(Connected);
+Connected = withRouter(Connected);
+export default authProtected(Connected);
