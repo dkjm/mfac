@@ -9,7 +9,7 @@ defmodule MfacWeb.AgendaItemVoteController do
   action_fallback MfacWeb.FallbackController
 
   def index(conn, _params) do
-    agendaitemvotes = Meetings.list_agendaitemvotes()
+    agendaitemvotes = Meetings.list_agenda_item_votes()
     render(conn, "index.json", agendaitemvotes: agendaitemvotes)
   end
 

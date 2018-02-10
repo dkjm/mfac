@@ -5,7 +5,7 @@ import './TopicCard.css';
 import _throttle from 'lodash/throttle';
 import _debounce from 'lodash/debounce';
 
-import {postVote} from '../../services/api'
+//import {postVote} from '../../services/api'
 import {COLORS} from '../../constants';
 
 import {Icon} from 'react-fa';
@@ -58,7 +58,7 @@ class TopicCard extends Component {
     // Might have to do with react creating
     // "synthetic event" on click.
     const handler = _debounce(
-      () => this.props.postVote(topic.id, vote_type),
+      () => console.log('vote'),
       1000,
       {leading: true, trailing: false}
     )
@@ -130,9 +130,9 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    postVote: (topic_id, vote_type) => {
-      return dispatch(postVote(topic_id, vote_type))
-    },
+    // postVote: (topic_id, vote_type) => {
+    //   return dispatch(postVote(topic_id, vote_type))
+    // },
   }
 }
 

@@ -32,6 +32,27 @@ defmodule MfacWeb.MeetingChannel do
     end   
   end
 
+  def handle_in(event, data, socket) do
+    IO.inspect(data, label: "meeting_channel recv: " <> event)
+
+    "meeting:" <> meeting_id = socket.topic
+    meeting_id = String.to_integer(meeting_id)
+    user_id = socket.assigns.current_user
+
+    case event do
+      "update_meeting" ->
+        meeting = Mfac.Meetings.load_meeting_complete(meeting_id, user_id)
+        json = MfacWeb.MeetingView.render("socket_meeting_with_user_vote.json", %{meeting: meeting})
+        push socket, "update_meeting", %{meeting: json}
+        {:noreply, socket}
+
+      _ ->
+        {:noreply, socket}
+    end
+    
+    
+  end
+
 
   def handle_info({:after_join, meeting_id}, socket) do
     push(socket, "presence_state", Presence.list(socket))

@@ -4,13 +4,12 @@ import {bindActionCreators} from 'redux';
 import {Route, Switch, Redirect} from 'react-router';
 import {withRouter} from 'react-router-dom';
 
-import LayoutBanner from '../LayoutBanner';
-import Stack from '../Stack';
+import CheckIcon from 'material-ui/svg-icons/navigation/check';
+
 import MeetingHome from '../MeetingHome';
 import MeetingParticipants from '../MeetingParticipants';
 import MeetingAgenda from '../MeetingAgenda';
 import MeetingResources from '../MeetingResources';
-import TopicForm from '../TopicForm';
 import AgendaItemForm from '../AgendaItemForm';
 import AgendaItemDetail from '../AgendaItemDetail';
 import MeetingTabs from '../MeetingTabs';
@@ -20,8 +19,6 @@ import MeetingForm from '../MeetingForm';
 import MeetingInvitations from '../MeetingInvitations';
 import MeetingInvitationDetail from '../MeetingInvitationDetail';
 import MeetingInvitationForm from '../MeetingInvitationForm';
-
-import CheckIcon from 'material-ui/svg-icons/navigation/check'
 
 import {
 	connectMeetingSocket, 
@@ -49,7 +46,6 @@ class MeetingDetail extends Component {
 
 		return (
 			<div>
-				{/*<LayoutBanner title={m.title} />*/}
 				<MeetingTabs />
 				<Switch>
 					<Route path={`${match.url}/meeting_form/:intent`} render={props => ( <MeetingForm meeting={m} {...props} /> )}

@@ -7,7 +7,7 @@ defmodule MfacWeb.AgendaItemController do
   action_fallback MfacWeb.FallbackController
 
   def index(conn, _params) do
-    agendaitems = Meetings.list_agendaitems()
+    agendaitems = Meetings.list_agenda_items()
     render(conn, "index.json", agendaitems: agendaitems)
   end
 

@@ -50,9 +50,10 @@ export const POST_VOTE = 'POST_VOTE';
 
 
 
-// declare socket var here so it can be used
-// to close a connection later
-let socket = null;
+// declare socket, channel vars here 
+// so they can be used to close a 
+// connection later and push messages elsewhere
+let socket, channel = null;
 
 
 
@@ -88,11 +89,10 @@ export const loadMeetings = (params = {}) => (dispatch, getState) => {
     })
 }
 
+// TODO(MPP - 2/9): not using loadMeeting
+// Rather, getting meeting data from meeting socket
 export const loadMeeting = (params = {}) => (dispatch, getState) => {
 
-  // TODO: don't use default value of 1
-  // Just doing this now for testing
-  // 180128 - MPP
   const {meeting_id} = params;
 	const endpoint = API_ENTRY + `/meetings/${meeting_id}/`;
 
@@ -125,20 +125,6 @@ export const loadMeeting = (params = {}) => (dispatch, getState) => {
       //   participants: response.data.participants,
       // }
       // dispatch(actionLoadMeetingParticipants);
-    })
-}
-
-export const loadTopics = (params = {}) => (dispatch, getState) => {
-
-  const endpoint = API_ENTRY + '/topics/';
-
-  return axios.get(endpoint)
-  .then(response => {
-      const action = {
-        type: LOAD_TOPICS,
-        topics: response.data,
-      }
-      return dispatch(action);
     })
 }
 
@@ -310,12 +296,21 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
     //reconnectAfterMs: 20000,
   }
   let presences = {};
-  socket = new Socket(API_ENTRY_WS, socketOptions)
-  socket.connect()
-  const room = `meeting:${meeting_id}`
-  let channel = socket.channel(room, {})
+  socket = new Socket(API_ENTRY_WS, socketOptions);
+  socket.connect();
+  const room = `meeting:${meeting_id}`;
+  channel = socket.channel(room, {});
   channel.join()
-    .receive('ok', resp => { console.log('meetingChannel - joined room ' + room, resp) })
+    .receive('ok', resp => { 
+      console.log('meetingChannel - joined room ' + room, resp);
+      // On join, request periodic meeting updates
+      setInterval(() => {
+        channel.push("update_meeting", {}, 1000)
+        .receive('ok', ({messages}) => console.log('ok', messages))
+        .receive('error', ({reason}) => console.log('error', reason))
+        //.receive('timeout', () => console.log('timeout'))
+      }, 1000 * 20)
+    })
     .receive('error', resp => { 
       console.log('meetingChannel - unable to join room ' + room);
       let title, content;
