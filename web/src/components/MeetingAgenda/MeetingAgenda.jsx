@@ -81,7 +81,8 @@ class MeetingAgenda extends Component {
     return (
     	<div>
 
-        {openItems.length > 0 && (<Section title="OPEN" items={this.renderItems('OPEN')} />)}
+        {/*{openItems.length > 0 && (<Section title="OPEN" items={this.renderItems('OPEN')} />)}*/}
+        <Section title="OPEN" items={this.renderItems('OPEN')} />
         <Section title="REMAINING" items={this.renderItems('PENDING')} />
         <Section title="CLOSED" items={this.renderItems('CLOSED')} last />
 

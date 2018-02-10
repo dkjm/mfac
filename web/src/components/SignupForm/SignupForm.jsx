@@ -171,7 +171,7 @@ class SignupForm extends Component {
 
           <div style={styles.buttonsContainer}>
             <Button
-              label="Save"
+              label="Submit"
               onClick={handleSubmit(this.handleSubmit)}
             />
             <Button
