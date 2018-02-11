@@ -15,6 +15,7 @@ defmodule Mfac.Meetings.AgendaItem do
     belongs_to :meeting, Mfac.Meetings.Meeting, foreign_key: :meeting_id
     has_many :votes, Mfac.Meetings.AgendaItemVote, on_delete: :delete_all
     has_many :stack_entries, Mfac.Meetings.StackEntry, on_delete: :delete_all
+    has_many :proposals, Mfac.Meetings.Proposal, on_delete: :nothing
     timestamps()
   end
 

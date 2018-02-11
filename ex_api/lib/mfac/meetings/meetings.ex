@@ -645,4 +645,196 @@ defmodule Mfac.Meetings do
   def change_participant(%Participant{} = participant) do
     Participant.changeset(participant, %{})
   end
+
+  alias Mfac.Meetings.Proposal
+
+  @doc """
+  Returns the list of proposals.
+
+  ## Examples
+
+      iex> list_proposals()
+      [%Proposal{}, ...]
+
+  """
+  def list_proposals do
+    Repo.all(Proposal)
+  end
+
+  @doc """
+  Gets a single proposal.
+
+  Raises `Ecto.NoResultsError` if the Proposal does not exist.
+
+  ## Examples
+
+      iex> get_proposal!(123)
+      %Proposal{}
+
+      iex> get_proposal!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_proposal!(id), do: Repo.get!(Proposal, id)
+
+  @doc """
+  Creates a proposal.
+
+  ## Examples
+
+      iex> create_proposal(%{field: value})
+      {:ok, %Proposal{}}
+
+      iex> create_proposal(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_proposal(attrs \\ %{}) do
+    %Proposal{}
+    |> Proposal.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a proposal.
+
+  ## Examples
+
+      iex> update_proposal(proposal, %{field: new_value})
+      {:ok, %Proposal{}}
+
+      iex> update_proposal(proposal, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_proposal(%Proposal{} = proposal, attrs) do
+    proposal
+    |> Proposal.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a Proposal.
+
+  ## Examples
+
+      iex> delete_proposal(proposal)
+      {:ok, %Proposal{}}
+
+      iex> delete_proposal(proposal)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_proposal(%Proposal{} = proposal) do
+    Repo.delete(proposal)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking proposal changes.
+
+  ## Examples
+
+      iex> change_proposal(proposal)
+      %Ecto.Changeset{source: %Proposal{}}
+
+  """
+  def change_proposal(%Proposal{} = proposal) do
+    Proposal.changeset(proposal, %{})
+  end
+
+  alias Mfac.Meetings.Amendment
+
+  @doc """
+  Returns the list of amendments.
+
+  ## Examples
+
+      iex> list_amendments()
+      [%Amendment{}, ...]
+
+  """
+  def list_amendments do
+    Repo.all(Amendment)
+  end
+
+  @doc """
+  Gets a single amendment.
+
+  Raises `Ecto.NoResultsError` if the Amendment does not exist.
+
+  ## Examples
+
+      iex> get_amendment!(123)
+      %Amendment{}
+
+      iex> get_amendment!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_amendment!(id), do: Repo.get!(Amendment, id)
+
+  @doc """
+  Creates a amendment.
+
+  ## Examples
+
+      iex> create_amendment(%{field: value})
+      {:ok, %Amendment{}}
+
+      iex> create_amendment(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_amendment(attrs \\ %{}) do
+    %Amendment{}
+    |> Amendment.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a amendment.
+
+  ## Examples
+
+      iex> update_amendment(amendment, %{field: new_value})
+      {:ok, %Amendment{}}
+
+      iex> update_amendment(amendment, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_amendment(%Amendment{} = amendment, attrs) do
+    amendment
+    |> Amendment.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a Amendment.
+
+  ## Examples
+
+      iex> delete_amendment(amendment)
+      {:ok, %Amendment{}}
+
+      iex> delete_amendment(amendment)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_amendment(%Amendment{} = amendment) do
+    Repo.delete(amendment)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking amendment changes.
+
+  ## Examples
+
+      iex> change_amendment(amendment)
+      %Ecto.Changeset{source: %Amendment{}}
+
+  """
+  def change_amendment(%Amendment{} = amendment) do
+    Amendment.changeset(amendment, %{})
+  end
 end

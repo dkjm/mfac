@@ -34,6 +34,10 @@ defmodule MfacWeb.Router do
 
     post "/agenda_items/:agenda_item_id/stack_entries", StackEntryController, :create
     delete "/agenda_items/:agenda_item_id/stack_entries", StackEntryController, :delete
+
+    resources "/proposals", ProposalController, except: [:new, :edit]
+
+    resources "/amendments", AmendmentController, except: [:new, :edit]
     
   end
 end
