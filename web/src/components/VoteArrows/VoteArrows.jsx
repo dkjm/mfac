@@ -20,7 +20,7 @@ const VoteArrows = (props) => {
 			<Block
 				icon={getVoteIconName('UP')}
 				count={up}
-				active={user_vote === 'UP'}
+				active={user_vote === 'UP' || user_vote === 1}
 				onClick={() => onClickVote('UP')}
 				disabled={disableVoting}
 			/>
@@ -30,7 +30,7 @@ const VoteArrows = (props) => {
 			<Block
 				icon={getVoteIconName('DOWN')}
 				count={down}
-				active={user_vote === 'DOWN'}
+				active={user_vote === 'DOWN' || user_vote === -1}
 				onClick={() => onClickVote('DOWN')}
 				disabled={disableVoting}
 			/>

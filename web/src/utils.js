@@ -7,6 +7,32 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 import {COLORS, muiTheme} from './constants';
 
+
+
+
+export const formatVotes = (votes, user_id) => {
+	const obj = {
+		up: 0,
+		down: 0,
+		meh: 0,
+		user_vote: null,
+	}
+
+	votes.forEach(v => {
+		if (v.value === 1) {obj.up++}
+		else if (v.value === -1) {obj.down++}
+		else if (v.value === 0) {obj.meh++}
+		if (user_id && v.owner.id === user_id) {
+			obj.user_vote = v.value;
+		}
+	})
+
+	return obj;
+}
+
+
+
+
 export const openNotification = (config) => {
 	let c = config;
 	const key = `open${Date.now()}`;

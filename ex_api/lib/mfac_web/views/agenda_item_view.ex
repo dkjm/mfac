@@ -56,7 +56,8 @@ defmodule MfacWeb.AgendaItemView do
       version: agenda_item.version,
       votes: agenda_item.votes,
       owner: render_one(agenda_item.owner, MfacWeb.UserView, "user.json"),
-      stack_entries: render_many(agenda_item.stack_entries, MfacWeb.StackEntryView, "stack_entry.json")
+      stack_entries: render_many(agenda_item.stack_entries, MfacWeb.StackEntryView, "stack_entry.json"),
+      proposals: render_many(agenda_item.proposals, MfacWeb.ProposalView, "proposal_with_votes.json")
     }
   end
 
@@ -69,7 +70,8 @@ defmodule MfacWeb.AgendaItemView do
       version: data.version,
       votes: format_votes(data.votes),
       owner: render_one(data.owner, MfacWeb.UserView, "user.json"),
-      stack_entries: render_many(data.stack_entries, MfacWeb.StackEntryView, "stack_entry.json")
+      stack_entries: render_many(data.stack_entries, MfacWeb.StackEntryView, "stack_entry.json"),
+      proposals: render_many(data.proposals, MfacWeb.ProposalView, "proposal_with_votes.json")
     }
   end
 

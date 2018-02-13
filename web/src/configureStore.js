@@ -14,6 +14,7 @@ import {reducer as formReducer} from 'redux-form';
 import {
   meetingReducer, 
   agendaItemReducer,
+  //proposalReducer,
   meetingInvitationReducer,
   meetingParticipantReducer,
   topicReducer,
@@ -32,6 +33,7 @@ const rootReducer = combineReducers({
   session: sessionReducer,
   meetings: meetingReducer,
   agendaItems: agendaItemReducer,
+  //proposals: proposalReducer,
   meetingInvitations: meetingInvitationReducer,
   meetingParticipants: meetingParticipantReducer,
   topics: topicReducer,

@@ -19,6 +19,8 @@ import MeetingForm from '../MeetingForm';
 import MeetingInvitations from '../MeetingInvitations';
 import MeetingInvitationDetail from '../MeetingInvitationDetail';
 import MeetingInvitationForm from '../MeetingInvitationForm';
+import ProposalForm from '../ProposalForm';
+import ProposalDetail from '../ProposalDetail';
 
 import {
 	connectMeetingSocket, 
@@ -73,7 +75,13 @@ class MeetingDetail extends Component {
 					/>
 					<Route path={`${match.url}/agenda_item_form/:intent`} render={props => ( <AgendaItemForm meeting={m} {...props} /> )}
 					/>
-					<Route path={`${match.url}/agenda_item/:agenda_item_id`} render={props => ( <AgendaItemDetail meeting={m} {...props} /> )}
+					<Route exact path={`${match.url}/agenda_items/:agenda_item_id`} render={props => ( <AgendaItemDetail meeting={m} {...props} /> )}
+					/>
+					<Route exact path={`${match.url}/agenda_items/:agenda_item_id/proposal_form/:intent`} render={props => ( <ProposalForm meeting={m} {...props} /> )}
+					/>
+					<Route exact path={`${match.url}/agenda_items/:agenda_item_id/proposals/:proposal_id/proposal_form/:intent`} render={props => ( <ProposalForm meeting={m} {...props} /> )}
+					/>
+					<Route exact path={`${match.url}/agenda_items/:agenda_item_id/proposals/:proposal_id`} render={props => ( <ProposalDetail meeting={m} {...props} /> )}
 					/>
 					<Redirect from='/' to={`${match.url}/home`} />
 

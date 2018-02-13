@@ -32,6 +32,67 @@ export const getHeader = createSelector(
   header => header,
 )
 
+export const getProposals = createSelector(
+  (state, params = {}) => {
+    const {agenda_item_id} = params;
+    if (!agenda_item_id) {throw new Error('agenda_item_id is required')};
+    const agenda_item = state.agendaItems.cache[agenda_item_id];
+    if (!agenda_item) {return []};
+    const asArray = _values(agenda_item.proposals);
+    const sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
+    return sorted;
+  },
+  proposals => proposals,
+)
+
+export const getProposal = createSelector(
+  (state, params = {}) => {
+    const {agenda_item_id, proposal_id} = params;
+    if (!(agenda_item_id && proposal_id)) {throw new Error('agenda_item_id and proposal_id are required')};
+    const agenda_item = state.agendaItems.cache[agenda_item_id];
+    if (!agenda_item) {return null};
+    const proposal = agenda_item.proposals[proposal_id];
+    return proposal;
+  },
+  proposal => proposal,
+)
+
+export const getAmendments = createSelector(
+  (state, params = {}) => {
+    const {
+      agenda_item_id,
+      proposal_id,
+    } = params;
+    if (!(agenda_item_id && proposal_id)) {throw new Error('agenda_item_id and proposal_id are required')};
+    const agenda_item = state.agendaItems.cache[agenda_item_id];
+    if (!agenda_item) {return []};
+    const proposal = agenda_item.proposals[proposal_id];
+    if (!proposal) {return []};
+    const asArray = _values(proposal.amendments);
+    const sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
+    return sorted;
+  },
+  amendments => amendments,
+)
+
+export const getAmendment = createSelector(
+  (state, params = {}) => {
+    const {
+      agenda_item_id, 
+      proposal_id,
+      amendment_id,
+    } = params;
+    if (!(agenda_item_id && proposal_id && amendment_id)) {throw new Error('agenda_item_id, proposal_id, and amendment_id are required')};
+    const agenda_item = state.agendaItems.cache[agenda_item_id];
+    if (!agenda_item) {return null};
+    const proposal = agenda_item.proposals[proposal_id];
+    if (!proposal) {return null};
+    const amendment = proposal.amendments[amendment_id];
+    return amendment;
+  },
+  amendment => amendment,
+)
+
 export const getMeetingParticipants = createSelector(
   (state, params = {}) => {
     // don't display current user in
@@ -50,7 +111,7 @@ export const getMeetingInvitations = createSelector(
   (state, params = {}) => {
     const items = state.meetingInvitations.cache;
     const asArray = _values(items);
-    const sorted = _orderBy(asArray, ['created_on'], ['asc']);
+    const sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
     return sorted;
   },
   meetingInvitations => meetingInvitations,
@@ -68,7 +129,7 @@ export const getUserMeetingInvitations = createSelector(
   (state, params = {}) => {
     const items = state.session.meetingInvitations;
     const asArray = _values(items);
-    const sorted = _orderBy(asArray, ['created_on'], ['asc']);
+    const sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
     return sorted;
   },
   meetingInvitations => meetingInvitations,
@@ -145,7 +206,7 @@ export const getMeetings = createSelector(
 
     const cache = state.meetings.cache;
     const asArray = _values(cache);
-    const sorted = _orderBy(asArray, ['created_on'], ['asc']);
+    const sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
     return sorted;
   },
   meetings => meetings,
@@ -159,7 +220,7 @@ export const getAgendaItems = createSelector(
     const cache = state.agendaItems.cache;
     const asArray = _values(cache);
 
-    //let sorted = _sortBy(asArray, ['created_on'], ['asc']);
+    //let sorted = _sortBy(asArray, ['inserted_at'], ['asc']);
 
     let sorted = _sortBy(asArray, 
       (item => {
@@ -270,7 +331,7 @@ export const getTopics = createSelector(
       sorted = _orderBy(asArray, (e) => e.votes.up - e.votes.down + 0.25 * e.votes.meh, ['desc'])
     }
     else {
-      sorted = _orderBy(asArray, ['created_on'], ['asc']);
+      sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
     }
     return sorted;
   },

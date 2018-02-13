@@ -22,6 +22,7 @@ export const COLORS = {
   cyan200: '#80DEEA',
   cyan300: '#4DD0E1',
   indigo200: '#9FA8DA',
+  red400: '#EF5350',
 }
 
 // export const API_ENTRY = 'http://localhost:8000/api';

@@ -12,6 +12,7 @@ import ContentRemove from 'material-ui/svg-icons/content/remove';
 import PencilIcon from 'material-ui/svg-icons/editor/mode-edit';
 import RefreshIcon from 'material-ui/svg-icons/action/autorenew';
 import TriangleIcon from 'material-ui/svg-icons/action/change-history';
+import PageIcon from 'material-ui/svg-icons/action/description';
 
 
 import VoteArrows from '../VoteArrows';
@@ -28,6 +29,7 @@ import {
   getAgendaItem, 
   getUserData,
   getIsUserInStack,
+  getProposals,
 } from '../../selectors';
 
 // limit for how many chars of body
@@ -238,7 +240,90 @@ const StackSection = (props) => {
 }
 
 
+const ProposalItem = ({item, onClick}) => {
+  const s = {
+    container: {
+      marginBottom: '10px',
+    },
+    header: {
+
+    },
+  }
+  return (
+    <div style={s.container} onClick={onClick}>
+      <div style={s.header}>
+        {item.title}
+      </div>
+    </div>
+  )
+}
+
+const ProposalsSection = (props) => {
+  const {
+    items, 
+    onRequestAdd,
+    onRequestView, 
+    showButton,
+    iconType, // 'minus' or 'plus'
+  } = props;
+
+  if (!items) {return null};
+
+  const s = {
+    container: {
+      //minHeight: '80px',
+    },
+    top: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginBottom: '10px',
+      minHeight: '50px',
+    },
+    header: {
+      fontSize: '130%',
+      fontWeight: 'bold',
+      paddingTop: '5px',
+    },
+    button: {
+
+    }
+  }
+  let button = null;
+  if (showButton) {
+    button = <AddButton onClick={onRequestAdd} />
+  }
+  return (
+    <div style={s.container}>
+      <div style={s.top}>
+        <div style={s.header}>
+          Proposals
+        </div>
+        <div style={s.button}>
+          {button}
+        </div>
+      </div>
+      <div style={s.list}>
+        {
+          items.map(item => <ProposalItem key={item.id} item={item} onClick={() => onRequestView(item.id)} />)
+        }
+      </div>
+    </div>
+  )
+}
+
 class AgendaItemDetail extends Component {
+
+  handleRequestCreateProposal = () => {
+    const {match, history} = this.props;
+    const path = `${match.url}/proposal_form/create`;
+    history.push(path);
+  }
+
+  handleRequestViewProposal = (proposal_id) => {
+    const {match, history} = this.props;
+    const path = `${match.url}/proposals/${proposal_id}`;
+    history.push(path);
+  }
 
   handleRequestDeleteAgendaItem = () => {
     const {match} = this.props;
@@ -272,7 +357,7 @@ class AgendaItemDetail extends Component {
   handleRequestUpdateAgendaItem = () => {
     const {match, history} = this.props;
     // TODO(MPP):  make more robust routing instead of just doing replace as below
-    const path = match.url.replace('agenda_item', `agenda_item_form/update`);
+    const path = match.url.replace('agenda_items', `agenda_item_form/update`);
     history.push(path);
   }
 
@@ -308,6 +393,11 @@ class AgendaItemDetail extends Component {
             onClick={() => this.handleRequestChangeAgendaItemStatus('CLOSED')}
             icon={<CheckIcon />}
             color={COLORS.indigo200}  
+          />
+          <OpenOrCloseButton 
+            onClick={this.handleRequestCreateProposal}
+            icon={<PageIcon />}
+            color={COLORS.cyan200}  
           />
         </div>
       )
@@ -345,6 +435,7 @@ class AgendaItemDetail extends Component {
       agendaItem,
       userData, 
       isUserInStack,
+      proposals,
     } = this.props;
 
     if (!agendaItem) {return <NotFound />};
@@ -402,6 +493,22 @@ class AgendaItemDetail extends Component {
           <LabelValue 
             label="Status" 
             value={i.status} 
+          />
+        </div>
+
+      </Paper>
+
+      <Paper 
+        style={styles.paper} 
+        zDepth={2}
+      >
+
+        <div style={styles.stackSectionContainer}>
+          <ProposalsSection 
+            onRequestAdd={this.handleRequestCreateProposal}
+            onRequestView={this.handleRequestViewProposal}
+            items={proposals} 
+            showButton={true}
           />
         </div>
 
@@ -533,6 +640,7 @@ const mapStateToProps = (state, ownProps) => {
   const {agenda_item_id} = ownProps.match.params;
   return {
     agendaItem: getAgendaItem(state, {agenda_item_id}),
+    proposals: getProposals(state, {agenda_item_id}),
     userData: getUserData(state),
     isUserInStack: getIsUserInStack(state, {agenda_item_id}),
   }

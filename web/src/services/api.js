@@ -38,6 +38,18 @@ export const ADD_MEETING_PARTICIPANT = 'ADD_MEETING_PARTICIPANT';
 export const REMOVE_MEETING_PARTICIPANT = 'REMOVE_MEETING_PARTICIPANT';
 export const LOAD_MEETING_PARTICIPANTS = 'LOAD_MEETING_PARTICIPANTS';
 
+export const LOAD_PROPOSALS = 'LOAD_PROPOSALS';
+export const SELECT_PROPOSAL = 'SELECT_PROPOSAL';
+export const LOAD_PROPOSAL = 'LOAD_PROPOSAL';
+export const REMOVE_PROPOSAL = 'REMOVE_PROPOSAL';
+export const ADD_PROPOSAL_VOTE = 'ADD_PROPOSAL_VOTE';
+export const UPDATE_PROPOSAL_VOTE = 'UPDATE_PROPOSAL_VOTE';
+export const REMOVE_PROPOSAL_VOTE = 'REMOVE_PROPOSAL_VOTE';
+
+
+export const UPDATE_PROPOSAL_USER_VOTE = 'UPDATE_PROPOSAL_USER_VOTE';
+export const UPDATE_PROPOSAL_VOTE_COUNTS = 'UPDATE_PROPOSAL_VOTE_COUNTS';
+
 // TODO(MP 2/8): remove all action types and
 // action creators not being used
 export const LOAD_TOPICS = 'LOAD_TOPICS';
@@ -460,6 +472,68 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
       type: LOAD_STACK_ENTRIES,
       agenda_item_id: payload.agenda_item_id,
       stack_entries: payload.stack_entries,
+    }
+    dispatch(action);
+  })
+
+  channel.on('add_proposal', payload => {
+    console.log('meetingChannel - add_proposal', payload)
+    const action = {
+      type: LOAD_PROPOSAL,
+      proposal: payload.proposal,
+    }
+    dispatch(action);
+  })
+
+  channel.on('update_proposal', payload => {
+    console.log('meetingChannel - update_proposal', payload)
+    const action = {
+      type: LOAD_PROPOSAL,
+      proposal: payload.proposal,
+    }
+    dispatch(action);
+  })
+
+  channel.on('remove_proposal', payload => {
+    console.log('meetingChannel - remove_proposal', payload)
+    const action = {
+      type: REMOVE_PROPOSAL,
+      agenda_item_id: payload.agenda_item_id,
+      proposal_id: payload.proposal_id,
+      meeting_id: payload.meeting_id,
+    }
+    dispatch(action);
+  })
+
+  channel.on('add_proposal_vote', payload => {
+    console.log('meetingChannel - add_proposal_vote', payload)
+    const action = {
+      type: ADD_PROPOSAL_VOTE,
+      agenda_item_id: payload.agenda_item_id,
+      proposal_id: payload.proposal_id,
+      vote: payload.vote,
+    }
+    dispatch(action);
+  })
+
+  channel.on('update_proposal_vote', payload => {
+    console.log('meetingChannel - update_proposal_vote', payload)
+    const action = {
+      type: UPDATE_PROPOSAL_VOTE,
+      agenda_item_id: payload.agenda_item_id,
+      proposal_id: payload.proposal_id,
+      vote: payload.vote,
+    }
+    dispatch(action);
+  })
+
+  channel.on('remove_proposal_vote', payload => {
+    console.log('meetingChannel - remove_proposal_vote', payload)
+    const action = {
+      type: REMOVE_PROPOSAL_VOTE,
+      agenda_item_id: payload.agenda_item_id,
+      proposal_id: payload.proposal_id,
+      vote_id: payload.vote_id,
     }
     dispatch(action);
   })
@@ -1021,6 +1095,117 @@ export const postAgendaItemVote = (params = {}) => (dispatch, getState) => {
 
 
 
+export const submitProposalForm = (params = {}) => (dispatch, getState) => {
+  const {
+    agenda_item_id,
+    proposal_id,
+    intent,
+    values,
+  } = params
+
+  const data = {
+    ...values,
+    agenda_item_id,
+  }
+  // <intent> will be either "update"
+  // or "create".  Endpoint depends on which
+
+  let method, endpoint, successMessage;
+  if (intent === 'update') {
+    endpoint = API_ENTRY + `/proposals/${proposal_id}/`;
+    method = 'PATCH';
+    successMessage = 'Proposal updated';
+  }
+  else {
+    endpoint = API_ENTRY + `/proposals/`;
+    method = 'POST';
+    successMessage = 'Proposal created';
+  }
+
+  const config = {
+    url: endpoint,
+    method,
+    data: {proposal: data},
+  }
+
+  return axios(config)
+    .then(response => {
+      // if create, navigate to detail view
+      // of new proposal.  Else, goBack() will
+      // return to proposal detail view
+      if (intent === 'create') {
+        const proposal_id = response.data.id;
+        const path = history.location.pathname.replace('proposal_form/create', `proposals/${proposal_id}`);
+        history.replace(path);
+      }
+      else {
+        history.goBack();
+      }
+      const snackbarParams = {
+        open: true,
+        message: successMessage,
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    })
+}
+
+
+export const deleteProposal = (params = {}) => (dispatch, getState) => {
+  const {
+    proposal_id,
+  } = params
+
+  const endpoint = `${API_ENTRY}/proposals/${proposal_id}/`;
+
+  const config = {
+    url: endpoint,
+    method: 'DELETE',
+  }
+
+  return axios(config)
+    .then(response => {
+      history.goBack();
+      const snackbarParams = {
+        open: true,
+        message: 'Proposal deleted',
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    })
+}
+
+export const postProposalVote = (params = {}) => (dispatch, getState) => {
+  const {
+    agenda_item_id, 
+    proposal_id,
+    value,
+  } = params;
+
+  const endpoint = API_ENTRY + `/proposals/${proposal_id}/votes/`;
+
+  const config = {
+    url: endpoint,
+    method: 'POST',
+    data: {value},
+  }
+
+  return axios(config)
+  .then(response => {
+    
+  })
+  .catch(error => {
+    const snackbarParams = {
+      open: true,
+      message: 'Unable to cast vote',
+    }
+    dispatch(toggleSnackbar(snackbarParams));
+  })
+}
+
+
 const initialMeetingState = {
   cache: {},
   selected: null,
@@ -1037,6 +1222,11 @@ const initialMeetingInvitationState = {
 }
 
 const initialMeetingParticipantState = {
+  cache: {},
+  selected: null,
+}
+
+const initialProposalState = {
   cache: {},
   selected: null,
 }
@@ -1262,18 +1452,6 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
       return nextState;
     }
 
-    case (LOAD_AGENDA_ITEMS): {
-      const {agenda_items} = action;
-      const obj = {};
-      agenda_items.forEach(i => obj[i.id] = i);
-
-      const nextState = {
-        ...state,
-        cache: obj,
-      }
-      return nextState;
-    }
-
     case (SELECT_AGENDA_ITEM): {
       const {agenda_item_id} = action;
       const nextState = {
@@ -1286,7 +1464,12 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
     case (LOAD_AGENDA_ITEMS): {
       const {agenda_items} = action;
       const obj = {};
-      agenda_items.forEach(i => obj[i.id] = i);
+      agenda_items.forEach(i => {
+        const formattedProposals = {};
+        i.proposals.forEach(p => formattedProposals[p.id] = p);
+        i.proposals = formattedProposals;
+        obj[i.id] = i;
+      });
 
       const nextState = {
         ...state,
@@ -1296,8 +1479,11 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
     }
 
     case (LOAD_AGENDA_ITEM): {
-      const {agenda_item} = action;
+      let {agenda_item} = action;
       let updatedItem = state.cache[agenda_item.id]
+      const formattedProposals = {};
+      agenda_item.proposals.forEach(p => formattedProposals[p.id] = p);
+      agenda_item.proposals = formattedProposals;
       // if item already in cache,
       // merge objects
       // ** Need to make sure not to
@@ -1359,6 +1545,153 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
         }
       }
       return nextState;      
+    }
+
+    case (LOAD_PROPOSAL): {
+      const {proposal} = action;
+      const agendaItem = state.cache[proposal.agenda_item_id];
+      if (!agendaItem) {return state};
+      const updatedAgendaItem = {
+        ...agendaItem,
+        proposals: {
+          ...agendaItem.proposals,
+          [proposal.id]: proposal,
+        }
+      }
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agendaItem.id]: updatedAgendaItem,
+        }
+      }
+      return nextState;
+    }
+
+    case (REMOVE_PROPOSAL): {
+      const {agenda_item_id, proposal_id} = action;
+      const agendaItem = state.cache[agenda_item_id];
+      if (!agendaItem) {return state};
+      const {proposals} = agendaItem;
+      delete proposals[proposal_id];
+      const updatedAgendaItem = {
+        ...agendaItem,
+        proposals: {...proposals},
+      }
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agendaItem.id]: updatedAgendaItem,
+        }
+      }
+      return nextState;
+    }
+
+    case (ADD_PROPOSAL_VOTE): {
+      const {
+        agenda_item_id, 
+        proposal_id, 
+        vote,
+      } = action;
+      const agendaItem = state.cache[agenda_item_id];
+      if (!agendaItem) {return state};
+      const proposal = agendaItem.proposals[proposal_id];
+      if (!proposal) {return state};
+      const updatedVotes = proposal.votes.map(v => v);
+      updatedVotes.push(vote);
+      const updatedProposal = {
+        ...proposal,
+        votes: updatedVotes,
+      }
+      const updatedAgendaItem = {
+        ...agendaItem,
+        proposals: {
+          ...agendaItem.proposals,
+          [proposal_id]: updatedProposal,
+        }
+      }
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agendaItem.id]: updatedAgendaItem,
+        }
+      }
+      return nextState;
+    }
+
+    case (UPDATE_PROPOSAL_VOTE): {
+      const {
+        agenda_item_id, 
+        proposal_id, 
+        vote,
+      } = action;
+      const agendaItem = state.cache[agenda_item_id];
+      if (!agendaItem) {return state};
+      const proposal = agendaItem.proposals[proposal_id];
+      if (!proposal) {return state};
+      const updatedVotes = proposal.votes.map(v => {
+        if (v.id === vote.id) {
+          return vote;
+        }
+        else {
+          return v;
+        }
+      });
+
+      const updatedProposal = {
+        ...proposal,
+        votes: updatedVotes,
+      }
+      const updatedAgendaItem = {
+        ...agendaItem,
+        proposals: {
+          ...agendaItem.proposals,
+          [proposal_id]: updatedProposal,
+        }
+      }
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agendaItem.id]: updatedAgendaItem,
+        }
+      }
+      return nextState;
+    }
+
+    case (REMOVE_PROPOSAL_VOTE): {
+      const {
+        agenda_item_id, 
+        proposal_id, 
+        vote_id,
+      } = action;
+      const agendaItem = state.cache[agenda_item_id];
+      if (!agendaItem) {return state};
+      const proposal = agendaItem.proposals[proposal_id];
+      if (!proposal) {return state};
+      const updatedVotes = proposal.votes.filter(v => v.id !== vote_id)
+
+      const updatedProposal = {
+        ...proposal,
+        votes: updatedVotes,
+      }
+      const updatedAgendaItem = {
+        ...agendaItem,
+        proposals: {
+          ...agendaItem.proposals,
+          [proposal_id]: updatedProposal,
+        }
+      }
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agendaItem.id]: updatedAgendaItem,
+        }
+      }
+      return nextState;
     }
 
     // case (UPDATE_AGENDA_ITEM_STACK_ENTRIES): {
@@ -1423,6 +1756,125 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
 }
     
 
+
+// export const proposalReducer = (state = initialProposalState, action) => {
+//   switch (action.type) {
+
+
+//     case (UPDATE_PROPOSAL_USER_VOTE): {
+//       const {proposal_id, value} = action;
+//       const proposal = state.cache[proposal_id];
+//       if (!proposal) {return state};
+
+//       const updatedProposal = {
+//         ...proposal,
+//         votes: {
+//           ...proposal.votes,
+//           user_vote: value,
+//         }
+//       }
+//       const nextState = {
+//         ...state,
+//         cache: {
+//           ...state.cache,
+//           [proposal_id]: updatedProposal,
+//         }
+//       }
+//       return nextState;
+//     }
+
+//     case (UPDATE_PROPOSAL_VOTE_COUNTS): {
+//       const {proposal_id, votes} = action;
+//       const proposal = state.cache[proposal_id];
+//       if (!proposal) {return state};
+
+//       const updatedProposal = {
+//         ...proposal,
+//         votes: {
+//           ...proposal.votes,
+//           ...votes,
+//         }
+//       }
+//       const nextState = {
+//         ...state,
+//         cache: {
+//           ...state.cache,
+//           [proposal_id]: updatedProposal,
+//         }
+//       }
+//       return nextState;
+//     }
+
+//     case (SELECT_PROPOSAL): {
+//       const {proposal_id} = action;
+//       const nextState = {
+//         ...state,
+//         selected: proposal_id,
+//       }
+//       return nextState;
+//     }
+
+//     case (LOAD_PROPOSALS): {
+//       const {proposals} = action;
+//       const obj = {};
+//       proposals.forEach(i => obj[i.id] = i);
+
+//       const nextState = {
+//         ...state,
+//         cache: obj,
+//       }
+//       return nextState;
+//     }
+
+//     case (LOAD_PROPOSAL): {
+//       const {proposal} = action;
+//       let updatedItem = state.cache[proposal.id]
+//       // if item already in cache,
+//       // merge objects
+//       // ** Need to make sure not to
+//       // overwrite user_vote key of
+//       // votes key of proposal
+//       if (updatedItem) {
+//         updatedItem = {
+//           ...updatedItem,
+//           ...proposal,
+//           votes: {
+//             ...updatedItem.votes,
+//             ...proposal.votes,
+//           }
+//         }
+//       }
+//       // else add data as it is
+//       else {
+//         updatedItem = proposal;
+//       }
+
+//       const nextState = {
+//         ...state,
+//         cache: {
+//           ...state.cache,
+//           [proposal.id]: updatedItem,
+//         },
+//       }
+//       return nextState;
+//     }
+
+//     case (REMOVE_PROPOSAL): {
+//       const {proposal_id} = action;
+//       const {cache} = state;
+//       delete cache[proposal_id];
+//       const nextState = {
+//         ...state,
+//         cache: {...cache}
+//       }
+//       return nextState;
+//     }
+
+//     default: {
+//       return state;
+//     }
+//   }
+// }
 
 export const topicReducer = (state = initialTopicState, action) => {
   switch (action.type) {

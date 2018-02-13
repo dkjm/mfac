@@ -38,7 +38,7 @@ class MeetingAgenda extends Component {
     // TODO:  make more robust routing instead
     // of just doing replace as below
     //const path = match.path.replace('agenda', `agenda_item_form/update/${agenda_item_id}`);
-    const path = match.path.replace('agenda', `agenda_item/${agenda_item_id}`);
+    const path = match.path.replace('agenda', `agenda_items/${agenda_item_id}`);
     this.props.history.push(path);
   }
 

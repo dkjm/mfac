@@ -12,10 +12,11 @@ defmodule MfacWeb.ProposalController do
   end
 
   def create(conn, %{"proposal" => proposal_params}) do
-    with {:ok, %Proposal{} = proposal} <- Meetings.create_proposal(proposal_params) do
+    user = Mfac.Accounts.Guardian.Plug.current_resource(conn)
+    params = Map.put(proposal_params, "user_id", user.id)
+    with {:ok, %Proposal{} = proposal} <- Meetings.create_proposal(params) do
       conn
       |> put_status(:created)
-      |> put_resp_header("location", proposal_path(conn, :show, proposal))
       |> render("show.json", proposal: proposal)
     end
   end
@@ -29,7 +30,9 @@ defmodule MfacWeb.ProposalController do
     proposal = Meetings.get_proposal!(id)
 
     with {:ok, %Proposal{} = proposal} <- Meetings.update_proposal(proposal, proposal_params) do
-      render(conn, "show.json", proposal: proposal)
+      conn
+      |> put_status(:ok)
+      |> send_resp(:no_content, "")
     end
   end
 
@@ -39,4 +42,5 @@ defmodule MfacWeb.ProposalController do
       send_resp(conn, :no_content, "")
     end
   end
+
 end

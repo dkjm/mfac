@@ -6,14 +6,18 @@ defmodule Mfac.Meetings do
   import Ecto.Query, warn: false
   alias Mfac.Repo
 
-
+  alias Mfac.Accounts.User
   alias Mfac.Meetings.Meeting
   alias Mfac.Meetings.Invitation
   alias Mfac.Meetings.AgendaItem
   alias Mfac.Meetings.AgendaItemVote
   alias Mfac.Meetings.StackEntry
   alias Mfac.Meetings.Participant
-  alias Mfac.Accounts.User
+  alias Mfac.Meetings.Vote
+  alias Mfac.Meetings.Proposal
+  alias Mfac.Meetings.ProposalVote
+  alias Mfac.Meetings.Amendment
+  alias Mfac.Meetings.AmendmentVote
 
 
   defp send_broadcast(event, meeting_id, payload) do
@@ -28,9 +32,123 @@ defmodule Mfac.Meetings do
     Repo.all(Meeting)
   end
 
+
+  defp format_votes(votes) do
+    Enum.reduce(votes, %{up: 0, down: 0, meh: 0}, fn(vote, acc) -> 
+      case vote.vote_type do
+        "UP" -> 
+          Map.put(acc, :up, Map.get(acc, :up) + 1)
+        "DOWN" ->
+          Map.put(acc, :down, Map.get(acc, :down) + 1)
+        "MEH" ->
+          Map.put(acc, :meh, Map.get(acc, :meh) + 1)
+      end  
+    end)
+  end
+
+
+  defp format_votes(votes, user_id) do
+    result = Enum.reduce(votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
+
+      case vote.vote_type do
+        "UP" -> 
+          #IO.puts("IS UP")
+          Map.put(acc, :up, Map.get(acc, :up) + 1)
+        "DOWN" ->
+          #IO.puts("IS DOWN")
+          Map.put(acc, :down, Map.get(acc, :down) + 1)
+        "MEH" ->
+          #IO.puts("IS MEH")
+          Map.put(acc, :meh, Map.get(acc, :meh) + 1)
+      end 
+    end)
+    filtered = Enum.filter(votes, fn v -> v.user_id == user_id end)
+    if List.first(filtered) != nil do
+      item = List.first(filtered)
+      result = Map.put(result, :user_vote, item.vote_type)
+    end
+    #IO.inspect(result, label: "RESULT")
+    result
+  end
+
+  @doc """
+    Accepts agenda_item or agenda_items with preloaded votes as and argument
+    and returns the same struct or structs with the votes key set to the
+    formatted votes accumulation needed by the client side application.
+  """
+  def get_formatted_agenda_item_votes(agenda_item) when is_list(agenda_item) do
+    Enum.map(agenda_item, fn item -> 
+      Map.put(item, :votes, format_votes(item.votes))
+    end)
+  end
+
+  def get_formatted_agenda_item_votes(agenda_item) when is_map(agenda_item) do
+    Map.put(agenda_item, :votes, format_votes(agenda_item.votes))
+  end
+
+  def get_formatted_agenda_item_votes(agenda_item, user_id) when is_list(agenda_item) do
+    Enum.map(agenda_item, fn item -> 
+      Map.put(item, :votes, format_votes(item.votes, user_id))
+    end)
+  end
+
+  def format_proposal_votes(votes) do
+    result = Enum.reduce(votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
+
+      case vote.value do
+        1 -> 
+          #IO.puts("IS UP")
+          Map.put(acc, :up, Map.get(acc, :up) + 1)
+        -1 ->
+          #IO.puts("IS DOWN")
+          Map.put(acc, :down, Map.get(acc, :down) + 1)
+        0 ->
+          #IO.puts("IS MEH")
+          Map.put(acc, :meh, Map.get(acc, :meh) + 1)
+      end 
+    end)
+
+    # filtered = Enum.filter(votes, fn v -> v.user_id == user_id end)
+    # if List.first(filtered) != nil do
+    #   item = List.first(filtered)
+    #   result = Map.put(result, :user_vote, item.vote_type)
+    # end
+    IO.inspect(result, label: "RESULT")
+    result
+  end
+
   def load_meeting_complete(meeting_id, user_id) do
     id = meeting_id
-    time = NaiveDateTime.utc_now  
+    # query = 
+    #   from m in Meeting,
+    #   left_join: o in User, on: o.id == m.user_id,
+    #   left_join: i in Invitation, on: i.meeting_id == ^id,
+    #   left_join: inviter in User, on: inviter.id == i.inviter_id,
+    #   left_join: invitee in User, on: invitee.id == i.invitee_id,
+    #   left_join: p in Participant, on: p.meeting_id == ^id,
+    #   left_join: a in AgendaItem, on: a.meeting_id == ^id,
+    #   left_join: v in AgendaItemVote, on: v.agenda_item_id == a.id,
+    #   left_join: s in StackEntry, on: s.agenda_item_id == a.id,
+    #   left_join: su in User, on: su.id == s.user_id,
+    #   left_join: u in User, on: u.id == a.user_id,
+    #   where: m.id == ^id,
+    #   preload: [
+    #     owner: o, 
+    #     participants: p, 
+    #     agenda_items: {a, [
+    #       votes: v, 
+    #       stack_entries: {s, [
+    #         owner: su,
+    #       ]}, 
+    #       owner: u
+    #     ]},
+    #     invitations: {i, [
+    #       inviter: inviter,
+    #       invitee: invitee,
+    #       meeting: m,
+    #     ]},
+    #   ]
+
     query = 
       from m in Meeting,
       left_join: o in User, on: o.id == m.user_id,
@@ -39,6 +157,12 @@ defmodule Mfac.Meetings do
       left_join: invitee in User, on: invitee.id == i.invitee_id,
       left_join: p in Participant, on: p.meeting_id == ^id,
       left_join: a in AgendaItem, on: a.meeting_id == ^id,
+      left_join: proposal in Proposal, on: proposal.agenda_item_id == a.id,
+      #where: is_nil(proposal.deleted_at),
+      left_join: proposal_owner in User, on: proposal.user_id == proposal_owner.id,
+      left_join: proposal_vote in ProposalVote, on: proposal_vote.proposal_id == proposal.id,
+      left_join: proposal_vote_vote in Vote, on: proposal_vote_vote.id == proposal_vote.vote_id,
+      left_join: proposal_vote_vote_owner in User, on: proposal_vote_vote.user_id == proposal_vote_vote_owner.id,
       left_join: v in AgendaItemVote, on: v.agenda_item_id == a.id,
       left_join: s in StackEntry, on: s.agenda_item_id == a.id,
       left_join: su in User, on: su.id == s.user_id,
@@ -52,6 +176,12 @@ defmodule Mfac.Meetings do
           stack_entries: {s, [
             owner: su,
           ]}, 
+          proposals: {proposal, [
+            owner: proposal_owner,
+            votes: {proposal_vote_vote, [
+              owner: proposal_vote_vote_owner
+            ]}
+          ]},
           owner: u
         ]},
         invitations: {i, [
@@ -217,6 +347,11 @@ defmodule Mfac.Meetings do
     {status, agenda_item} = result
     query = from a in AgendaItem,
       left_join: u in User, on: u.id == a.user_id,
+      left_join: p in Proposal, on: p.agenda_item_id == a.id,
+      left_join: po in User, on: po.id == p.user_id,
+      left_join: pv in ProposalVote, on: pv.proposal_id == p.id,
+      left_join: pvv in Vote, on: pvv.id == pv.vote_id,
+      left_join: pvvo in User, on: pvvo.id == pvv.user_id,
       left_join: v in AgendaItemVote, on: v.agenda_item_id == a.id,
       left_join: s in StackEntry, on: s.agenda_item_id == a.id,
       left_join: so in User, on: so.id == s.user_id,
@@ -226,6 +361,12 @@ defmodule Mfac.Meetings do
         votes: v,
         stack_entries: {s, [
           owner: so,  
+        ]},
+        proposals: {p, [
+          owner: po,
+          votes: {pvv, [
+            owner: pvvo
+          ]}
         ]},
       ]
     agenda_item = List.first(Repo.all(query))
@@ -266,63 +407,63 @@ defmodule Mfac.Meetings do
   # (and not to a specific user), returned
   # data should not have a "user_vote" key.
   # Client is set up to handle this.
-  defp format_votes(votes) do
-    Enum.reduce(votes, %{up: 0, down: 0, meh: 0}, fn(vote, acc) -> 
-      case vote.vote_type do
-        "UP" -> 
-          Map.put(acc, :up, Map.get(acc, :up) + 1)
-        "DOWN" ->
-          Map.put(acc, :down, Map.get(acc, :down) + 1)
-        "MEH" ->
-          Map.put(acc, :meh, Map.get(acc, :meh) + 1)
-      end  
-    end)
-  end
+  # defp format_votes(votes) do
+  #   Enum.reduce(votes, %{up: 0, down: 0, meh: 0}, fn(vote, acc) -> 
+  #     case vote.vote_type do
+  #       "UP" -> 
+  #         Map.put(acc, :up, Map.get(acc, :up) + 1)
+  #       "DOWN" ->
+  #         Map.put(acc, :down, Map.get(acc, :down) + 1)
+  #       "MEH" ->
+  #         Map.put(acc, :meh, Map.get(acc, :meh) + 1)
+  #     end  
+  #   end)
+  # end
 
-  defp format_votes(votes, user_id) do
-    result = Enum.reduce(votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
+  # defp format_votes(votes, user_id) do
+  #   result = Enum.reduce(votes, %{up: 0, down: 0, meh: 0, user_vote: nil}, fn(vote, acc) -> 
 
-      case vote.vote_type do
-        "UP" -> 
-          #IO.puts("IS UP")
-          Map.put(acc, :up, Map.get(acc, :up) + 1)
-        "DOWN" ->
-          #IO.puts("IS DOWN")
-          Map.put(acc, :down, Map.get(acc, :down) + 1)
-        "MEH" ->
-          #IO.puts("IS MEH")
-          Map.put(acc, :meh, Map.get(acc, :meh) + 1)
-      end 
-    end)
-    filtered = Enum.filter(votes, fn v -> v.user_id == user_id end)
-    if List.first(filtered) != nil do
-      item = List.first(filtered)
-      result = Map.put(result, :user_vote, item.vote_type)
-    end
-    #IO.inspect(result, label: "RESULT")
-    result
-  end
+  #     case vote.vote_type do
+  #       "UP" -> 
+  #         #IO.puts("IS UP")
+  #         Map.put(acc, :up, Map.get(acc, :up) + 1)
+  #       "DOWN" ->
+  #         #IO.puts("IS DOWN")
+  #         Map.put(acc, :down, Map.get(acc, :down) + 1)
+  #       "MEH" ->
+  #         #IO.puts("IS MEH")
+  #         Map.put(acc, :meh, Map.get(acc, :meh) + 1)
+  #     end 
+  #   end)
+  #   filtered = Enum.filter(votes, fn v -> v.user_id == user_id end)
+  #   if List.first(filtered) != nil do
+  #     item = List.first(filtered)
+  #     result = Map.put(result, :user_vote, item.vote_type)
+  #   end
+  #   #IO.inspect(result, label: "RESULT")
+  #   result
+  # end
 
-  @doc """
-    Accepts agenda_item or agenda_items with preloaded votes as and argument
-    and returns the same struct or structs with the votes key set to the
-    formatted votes accumulation needed by the client side application.
-  """
-  def get_formatted_agenda_item_votes(agenda_item) when is_list(agenda_item) do
-    Enum.map(agenda_item, fn item -> 
-      Map.put(item, :votes, format_votes(item.votes))
-    end)
-  end
+  # @doc """
+  #   Accepts agenda_item or agenda_items with preloaded votes as and argument
+  #   and returns the same struct or structs with the votes key set to the
+  #   formatted votes accumulation needed by the client side application.
+  # """
+  # def get_formatted_agenda_item_votes(agenda_item) when is_list(agenda_item) do
+  #   Enum.map(agenda_item, fn item -> 
+  #     Map.put(item, :votes, format_votes(item.votes))
+  #   end)
+  # end
 
-  def get_formatted_agenda_item_votes(agenda_item) when is_map(agenda_item) do
-    Map.put(agenda_item, :votes, format_votes(agenda_item.votes))
-  end
+  # def get_formatted_agenda_item_votes(agenda_item) when is_map(agenda_item) do
+  #   Map.put(agenda_item, :votes, format_votes(agenda_item.votes))
+  # end
 
-  def get_formatted_agenda_item_votes(agenda_item, user_id) when is_list(agenda_item) do
-    Enum.map(agenda_item, fn item -> 
-      Map.put(item, :votes, format_votes(item.votes, user_id))
-    end)
-  end
+  # def get_formatted_agenda_item_votes(agenda_item, user_id) when is_list(agenda_item) do
+  #   Enum.map(agenda_item, fn item -> 
+  #     Map.put(item, :votes, format_votes(item.votes, user_id))
+  #   end)
+  # end
 
 
 
@@ -646,15 +787,10 @@ defmodule Mfac.Meetings do
     Participant.changeset(participant, %{})
   end
 
-  alias Mfac.Meetings.Proposal
+
 
   @doc """
   Returns the list of proposals.
-
-  ## Examples
-
-      iex> list_proposals()
-      [%Proposal{}, ...]
 
   """
   def list_proposals do
@@ -664,85 +800,160 @@ defmodule Mfac.Meetings do
   @doc """
   Gets a single proposal.
 
-  Raises `Ecto.NoResultsError` if the Proposal does not exist.
-
-  ## Examples
-
-      iex> get_proposal!(123)
-      %Proposal{}
-
-      iex> get_proposal!(456)
-      ** (Ecto.NoResultsError)
-
   """
   def get_proposal!(id), do: Repo.get!(Proposal, id)
 
   @doc """
   Creates a proposal.
 
-  ## Examples
-
-      iex> create_proposal(%{field: value})
-      {:ok, %Proposal{}}
-
-      iex> create_proposal(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def create_proposal(attrs \\ %{}) do
-    %Proposal{}
-    |> Proposal.changeset(attrs)
-    |> Repo.insert()
+    result = 
+      %Proposal{}
+      |> Proposal.changeset(attrs)
+      |> Repo.insert()
+    {status, proposal} = result
+    proposal = Repo.get(Proposal, proposal.id) |> Repo.preload([:owner, :agenda_item, votes: [:owner]])
+    json = MfacWeb.ProposalView.render("proposal_with_votes.json", %{proposal: proposal})
+    send_broadcast("add_proposal", proposal.agenda_item.meeting_id, %{proposal: json})
+    result
   end
+
 
   @doc """
   Updates a proposal.
 
-  ## Examples
-
-      iex> update_proposal(proposal, %{field: new_value})
-      {:ok, %Proposal{}}
-
-      iex> update_proposal(proposal, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def update_proposal(%Proposal{} = proposal, attrs) do
-    proposal
-    |> Proposal.changeset(attrs)
-    |> Repo.update()
+    result = 
+      proposal
+      |> Proposal.changeset(attrs)
+      |> Repo.update()
+    {status, proposal} = result
+    proposal = Repo.get(Proposal, proposal.id) |> Repo.preload([:owner, :agenda_item, votes: [:owner]])
+    json = MfacWeb.ProposalView.render("proposal_with_votes.json", %{proposal: proposal})
+    send_broadcast("update_proposal", proposal.agenda_item.meeting_id, %{proposal: json})
+    result 
   end
 
   @doc """
   Deletes a Proposal.
 
-  ## Examples
-
-      iex> delete_proposal(proposal)
-      {:ok, %Proposal{}}
-
-      iex> delete_proposal(proposal)
-      {:error, %Ecto.Changeset{}}
 
   """
+  # TODO(MP 2/12): implement soft delete for
+  # proposal.  Tried to do so in func below
+  # but then couldn't get the load_meeting_complete/2
+  # to work by using where clause is_nil(proposal.deleted_at)
   def delete_proposal(%Proposal{} = proposal) do
-    Repo.delete(proposal)
+    # load agenda_item so we can get meeting_id,
+    # needed for broadcast
+    agenda_item = Repo.get(AgendaItem, proposal.agenda_item_id)
+    result = Repo.delete(proposal)
+    send_broadcast("remove_proposal", agenda_item.meeting_id, %{proposal_id: proposal.id, agenda_item_id: proposal.agenda_item_id, meeting_id: agenda_item.meeting_id})
+    result
   end
+
+  # def delete_proposal(%Proposal{} = proposal) do
+  #   # load agenda_item so we can get meeting_id,
+  #   # needed for broadcast
+  #   agenda_item = Repo.get(AgendaItem, proposal.agenda_item_id)
+  #   params = %{deleted_at: Timex.now}
+  #   result = 
+  #     proposal
+  #     |> Proposal.changeset(params)
+  #     |> Repo.update()
+  #   send_broadcast("remove_proposal", agenda_item.meeting_id, %{proposal_id: proposal.id, agenda_item_id: proposal.agenda_item_id, meeting_id: agenda_item.meeting_id})
+  #   result
+  # end
+
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking proposal changes.
-
-  ## Examples
-
-      iex> change_proposal(proposal)
-      %Ecto.Changeset{source: %Proposal{}}
 
   """
   def change_proposal(%Proposal{} = proposal) do
     Proposal.changeset(proposal, %{})
   end
 
-  alias Mfac.Meetings.Amendment
+  
+
+  def create_proposal_vote(attrs \\ %{}) do
+    vote_result = 
+      %Vote{}
+      |> Vote.changeset(attrs)
+      |> Repo.insert()
+    {status, vote} = vote_result
+
+    params = %{
+      vote_id: vote.id, 
+      proposal_id: attrs.proposal_id
+    }
+
+    pv_result = 
+      %ProposalVote{}
+      |> ProposalVote.changeset(params)
+      |> Repo.insert()
+
+    {status, proposal_vote} = pv_result
+
+    vote = Repo.get(Vote, vote.id) |> Repo.preload([:owner])
+
+    proposal = Repo.get(Proposal, attrs.proposal_id) |> Repo.preload([:agenda_item])
+
+    json = MfacWeb.VoteView.render("vote_with_owner.json", %{vote: vote})
+    payload = %{
+      vote: json,
+      proposal_id: proposal.id,
+      agenda_item_id: proposal.agenda_item_id,
+    }
+    send_broadcast("add_proposal_vote", proposal.agenda_item.meeting_id, payload)
+
+    pv_result
+  end
+
+  def update_proposal_vote(%ProposalVote{} = proposal_vote, attrs) do
+    vote_result = 
+      proposal_vote.vote
+      |> Vote.changeset(attrs)
+      |> Repo.update()
+    {status, vote} = vote_result
+
+    pv_result = 
+      proposal_vote
+      |> ProposalVote.changeset(%{})
+      |> Repo.update()
+
+    vote = Repo.get(Vote, vote.id) |> Repo.preload([:owner])
+
+    proposal = Repo.get(Proposal, proposal_vote.proposal_id) |> Repo.preload([:agenda_item])
+
+    json = MfacWeb.VoteView.render("vote_with_owner.json", %{vote: vote})
+    payload = %{
+      vote: json,
+      proposal_id: proposal.id,
+      agenda_item_id: proposal.agenda_item_id,
+    }
+    send_broadcast("update_proposal_vote", proposal.agenda_item.meeting_id, payload)
+
+    pv_result
+  end
+
+  def delete_proposal_vote(%ProposalVote{} = proposal_vote) do
+    # load proposal and agenda_item so we can get meeting_id,
+    # needed for broadcast
+    proposal = Repo.get(Proposal, proposal_vote.proposal_id) |> Repo.preload([:agenda_item])
+    pv_result = Repo.delete(proposal_vote)
+    vote_result = Repo.delete(proposal_vote.vote)
+    payload = %{
+      agenda_item_id: proposal.agenda_item_id,
+      proposal_id: proposal.id,
+      vote_id: proposal_vote.vote.id,
+    }
+    send_broadcast("remove_proposal_vote", proposal.agenda_item.meeting_id, payload)
+    pv_result
+  end
+
 
   @doc """
   Returns the list of amendments.
