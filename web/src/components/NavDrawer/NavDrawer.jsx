@@ -33,7 +33,11 @@ import FlagIcon from 'material-ui/svg-icons/image/assistant-photo';
 
 import {toggleNavDrawer} from '../../services/ui';
 import {logout} from '../../services/session';
-import {getNavDrawer, getIsUserLoggedIn} from '../../selectors';
+import {
+	getNavDrawer, 
+	getIsUserLoggedIn,
+	getUserData,
+} from '../../selectors';
 
 import {
 	NAV_DRAWER_WIDTH,
@@ -99,35 +103,35 @@ class NavDrawer extends Component {
 		  {
 		    primaryText: 'Contacts',
 		    leftIcon: <ContactsIcon />,
-		    onClick: () => this.handleSelectItem('/contacts'),
+		    onClick: () => this.handleSelectItem('/meetings/dashboard'),
 		    widget: ListItem,
 		    value: 3,
 		  },
 		  {
 		    primaryText: 'Compose',
 		    leftIcon: <PencilIcon />,
-		    onClick: () => this.handleSelectItem('/compose'),
+		    onClick: () => this.handleSelectItem('/meetings/dashboard'),
 		    widget: ListItem,
 		    value: 4,
 		  },
 		  {
 		    primaryText: 'Notes',
 		    leftIcon: <AssignmentIcon />,
-		    onClick: () => this.handleSelectItem('/notes'),
+		    onClick: () => this.handleSelectItem('/meetings/dashboard'),
 		    widget: ListItem,
 		    value: 5,
 		  },
 		  {
 		    primaryText: 'Files',
 		    leftIcon: <PermMedia />,
-		    onClick: () => this.handleSelectItem('/files'),
+		    onClick: () => this.handleSelectItem('/meetings/dashboard'),
 		    widget: ListItem,
 		    value: 6,
 		  },
 		  {
 		    primaryText: 'More',
 		    leftIcon: <FlagIcon />,
-		    onClick: () => this.handleSelectItem('/more'),
+		    onClick: () => this.handleSelectItem('/meetings/dashboard'),
 		    widget: ListItem,
 		    value: 7,
 		  },
@@ -181,9 +185,6 @@ class NavDrawer extends Component {
 
 
 	renderHeader = () => {
-		// ** 180127 - MPP - Currently not using 
-		// this method (i.e. no header is rendered)
-		// inside NavDrawer comp
 		const CloseButton = (
 			<IconButton onClick={this.handleToggleNavDrawer}>
 				<NavClose />
@@ -191,15 +192,16 @@ class NavDrawer extends Component {
 		)
 
 		const barProps = {
-			title: COMPANY_NAME,
+			//title: COMPANY_NAME,
   		iconElementLeft: CloseButton,
   		style: {
   			//backgroundColor: COLORS.navy,
   			backgroundColor: COLORS.blackGray,
+  			//backgroundColor: COLORS.reactBlue,
   		},
   	}
 
-		//return <AppBar {...barProps} />
+		return <AppBar {...barProps} />
 	}
 
 
@@ -239,6 +241,7 @@ const mapStateToProps = (state, ownProps) => {
   return {
     navDrawer: getNavDrawer(state),
     isLoggedIn: getIsUserLoggedIn(state),
+    //userData: getUserData(state),
   }
 }
 
@@ -253,7 +256,9 @@ const mapDispatchToProps = (dispatch) => {
   }
 }
 
-export default connect(
+const Connected = connect(
   mapStateToProps,
   mapDispatchToProps,
 )(NavDrawer)
+
+export default Connected;

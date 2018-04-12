@@ -1,16 +1,27 @@
 import axios from 'axios';
-
+// const {Socket} = require('phoenix-channels');
+import {Socket, Presence} from 'phoenix-channels';
+import _values from 'lodash/values';
 import * as selectors from '../selectors';
 import {toggleSnackbar} from '../services/ui';
 import * as utils from '../utils';
 import history from '../history';
+import { isEmpty } from 'lodash';
 import {API_ENTRY, API_ENTRY_WS} from '../constants';
 
+import {LOAD_USER_DATA} from './session';
+
+export const LOAD_MEETINGS = 'LOAD_MEETINGS';
+export const LOAD_MEETING = 'LOAD_MEETING';
+export const REMOVE_MEETING = 'REMOVE_MEETING';
 export const SELECT_MEETING = 'SELECT_MEETING';
+
 export const SELECT_AGENDA_ITEM = 'SELECT_AGENDA_ITEM';
 export const LOAD_AGENDA_ITEMS = 'LOAD_AGENDA_ITEMS';
 // not sure if using below...
 export const LOAD_AGENDA_ITEM = 'LOAD_AGENDA_ITEM';
+export const REMOVE_AGENDA_ITEM = 'REMOVE_AGENDA_ITEM';
+
 export const LOAD_MEETING_INVITATIONS = 'LOAD_MEETING_INVITATIONS';
 // not sure if using below...
 export const LOAD_MEETING_INVITATION = 'LOAD_MEETING_INVITATION';
@@ -18,11 +29,29 @@ export const REMOVE_MEETING_INVITATION = 'REMOVE_MEETING_INVITATION';
 
 export const UPDATE_AGENDA_ITEM_USER_VOTE_TYPE = 'UPDATE_AGENDA_ITEM_USER_VOTE_TYPE';
 export const UPDATE_AGENDA_ITEM_VOTE_COUNTS = 'UPDATE_AGENDA_ITEM_VOTE_COUNTS';
+
+export const LOAD_STACK_ENTRIES = 'LOAD_STACK_ENTRIES';
 export const LOAD_AGENDA_ITEM_STACK_ENTRY = 'LOAD_AGENDA_ITEM_STACK_ENTRY';
 export const UPDATE_AGENDA_ITEM_STACK_ENTRIES = 'UPDATE_AGENDA_ITEM_STACK_ENTRIES';
-export const LOAD_MEETINGS = 'LOAD_MEETINGS';
-export const LOAD_MEETING = 'LOAD_MEETING';
-export const UPDATE_MEETING_DETAIL = 'UPDATE_MEETING_DETAIL';
+
+export const ADD_MEETING_PARTICIPANT = 'ADD_MEETING_PARTICIPANT';
+export const REMOVE_MEETING_PARTICIPANT = 'REMOVE_MEETING_PARTICIPANT';
+export const LOAD_MEETING_PARTICIPANTS = 'LOAD_MEETING_PARTICIPANTS';
+
+export const LOAD_PROPOSALS = 'LOAD_PROPOSALS';
+export const SELECT_PROPOSAL = 'SELECT_PROPOSAL';
+export const LOAD_PROPOSAL = 'LOAD_PROPOSAL';
+export const REMOVE_PROPOSAL = 'REMOVE_PROPOSAL';
+export const ADD_PROPOSAL_VOTE = 'ADD_PROPOSAL_VOTE';
+export const UPDATE_PROPOSAL_VOTE = 'UPDATE_PROPOSAL_VOTE';
+export const REMOVE_PROPOSAL_VOTE = 'REMOVE_PROPOSAL_VOTE';
+
+
+export const UPDATE_PROPOSAL_USER_VOTE = 'UPDATE_PROPOSAL_USER_VOTE';
+export const UPDATE_PROPOSAL_VOTE_COUNTS = 'UPDATE_PROPOSAL_VOTE_COUNTS';
+
+// TODO(MP 2/8): remove all action types and
+// action creators not being used
 export const LOAD_TOPICS = 'LOAD_TOPICS';
 export const UPDATE_TOPIC = 'UPDATE_TOPIC';
 export const POST_TOPIC = 'POST_TOPIC';
@@ -30,14 +59,13 @@ export const RECEIVE_TOPIC = 'RECEIVE_TOPIC';
 export const UPDATE_VOTE_COUNTS = 'UPDATE_VOTE_COUNTS';
 export const POST_VOTE = 'POST_VOTE';
 
-export const ADD_MEETING_PARTICIPANT = 'ADD_MEETING_PARTICIPANT';
-export const REMOVE_MEETING_PARTICIPANT = 'REMOVE_MEETING_PARTICIPANT';
-export const LOAD_MEETING_PARTICIPANTS = 'LOAD_MEETING_PARTICIPANTS';
 
 
-// declare socket var here so it can be used
-// to close a connection later
-let socket = null;
+
+// declare socket, channel vars here 
+// so they can be used to close a 
+// connection later and push messages elsewhere
+let socket, channel = null;
 
 
 
@@ -73,11 +101,10 @@ export const loadMeetings = (params = {}) => (dispatch, getState) => {
     })
 }
 
+// TODO(MPP - 2/9): not using loadMeeting
+// Rather, getting meeting data from meeting socket
 export const loadMeeting = (params = {}) => (dispatch, getState) => {
 
-  // TODO: don't use default value of 1
-  // Just doing this now for testing
-  // 180128 - MPP
   const {meeting_id} = params;
 	const endpoint = API_ENTRY + `/meetings/${meeting_id}/`;
 
@@ -113,20 +140,6 @@ export const loadMeeting = (params = {}) => (dispatch, getState) => {
     })
 }
 
-export const loadTopics = (params = {}) => (dispatch, getState) => {
-
-  const endpoint = API_ENTRY + '/topics/';
-
-  return axios.get(endpoint)
-  .then(response => {
-      const action = {
-        type: LOAD_TOPICS,
-        topics: response.data,
-      }
-      return dispatch(action);
-    })
-}
-
 
 export const submitMeetingForm = (params = {}) => (dispatch, getState) => {
   const {
@@ -150,16 +163,25 @@ export const submitMeetingForm = (params = {}) => (dispatch, getState) => {
   const config = {
     url: endpoint,
     method,
-    data: values,
+    data: {meeting: values},
   }
 
   return axios(config)
     .then(response => {
-      const action = {
-        type: LOAD_MEETING,
-        meeting: response.data,
-      }
-      dispatch(action);
+      // TODO(mp 2/7): explicitly not dispatching
+      // LOAD_MEETING action type because the returned
+      // data will not have all the necessary vals,
+      // e.g. owner, etc.  This will throw an error when
+      // rendering MeetingDetail component, because meeting
+      // is not null in state, but it doesn't have the expected
+      // props.  Rather than use the returned response, just
+      // using meeting_id and pushing to correct url, then let
+      // connectMeetingSocket provide necessary data
+      // const action = {
+      //   type: LOAD_MEETING,
+      //   meeting: response.data,
+      // }
+      // dispatch(action);
       if (intent === 'update') {
         history.goBack();
       }
@@ -169,6 +191,32 @@ export const submitMeetingForm = (params = {}) => (dispatch, getState) => {
       const snackbarParams = {
         open: true,
         message: successMessage,
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    })
+}
+
+
+export const deleteMeeting = (params = {}) => (dispatch, getState) => {
+  const {
+    meeting_id,
+  } = params
+
+  const endpoint = `${API_ENTRY}/meetings/${meeting_id}/`;
+
+  const config = {
+    url: endpoint,
+    method: 'DELETE',
+  }
+
+  return axios(config)
+    .then(response => {
+      history.push('/meetings/dashboard');
+      const snackbarParams = {
+        open: true,
+        message: 'Meeting deleted.',
       }
       setTimeout(() => {
         dispatch(toggleSnackbar(snackbarParams));
@@ -187,12 +235,12 @@ export const submitMeetingInvitationForm = (params = {}) => (dispatch, getState)
 
   let endpoint, method, successMessage;
   if (intent === 'update') {
-    endpoint = API_ENTRY + `/meeting_invitations/${meeting_invitation_id}/`;
+    endpoint = API_ENTRY + `/invitations/${meeting_invitation_id}/`;
     method = 'PATCH';
     successMessage = 'Invitation updated successfully.';
   }
   else {
-    endpoint = API_ENTRY + `/meeting_invitations/`;
+    endpoint = API_ENTRY + `/invitations/`;
     method = 'POST';
     successMessage = 'Invitation sent.';
   }
@@ -227,7 +275,7 @@ export const deleteMeetingInvitation = (params = {}) => (dispatch, getState) => 
     meeting_invitation_id,
   } = params
 
-  const endpoint = `${API_ENTRY}/meeting_invitations/${meeting_invitation_id}/`;
+  const endpoint = `${API_ENTRY}/invitations/${meeting_invitation_id}/`;
 
   const config = {
     url: endpoint,
@@ -248,22 +296,249 @@ export const deleteMeetingInvitation = (params = {}) => (dispatch, getState) => 
 }
 
 export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
-  const { Socket } = require('phoenix-channels')
+  // see link for options to pass to socket:
+  // https://hexdocs.pm/phoenix/js/
   const {meeting_id} = params;
-
-
-
-  let socket = new Socket("ws://localhost:4000/socket")
-
-  socket.connect()
-
-  // Now that you are connected, you can join channels with a topic:
-  let channel = socket.channel("room:meeting/${meeting_id}", {})
+  const socketOptions = {
+    params: {
+      token: localStorage.getItem('token'),
+    },
+    //timeout: 10000,
+    //heartbeatIntervalMs: 10000, 
+    //reconnectAfterMs: 20000,
+  }
+  let presences = {};
+  socket = new Socket(API_ENTRY_WS, socketOptions);
+  socket.connect();
+  const room = `meeting:${meeting_id}`;
+  channel = socket.channel(room, {});
   channel.join()
-    .receive("ok", resp => { console.log("Joined successfully", resp) })
-    .receive("error", resp => { console.log("Unable to join", resp) })
+    .receive('ok', resp => { 
+      console.log('meetingChannel - joined room ' + room, resp);
+      // On join, request periodic meeting updates
+      setInterval(() => {
+        channel.push("update_meeting", {}, 1000)
+        .receive('ok', ({messages}) => console.log('ok', messages))
+        .receive('error', ({reason}) => console.log('error', reason))
+        //.receive('timeout', () => console.log('timeout'))
+      }, 1000 * 20)
+    })
+    .receive('error', resp => { 
+      console.log('meetingChannel - unable to join room ' + room);
+      let title, content;
+      if (resp.reason === 'unauthorized') {
+        title = 'Unauthorized';
+        content = "You don't have permissions to view this meeting";
+      }
+      else if (resp.reason === 'meeting_does_not_exist') {
+        title = 'Meeting not found';
+        content = "The requested meeting does not exist.";
+      }
+      const onOk = () => {
+        history.push('/meetings/dashboard');
+      }
+      utils.openModal({
+        title,
+        content,
+        onOk,
+      })
+    })
+
+  channel.on('presence_state', state => {
+    console.log('meetingChannel - presence_state', state);
+    presences = Presence.syncState(presences, state)
+  })
+
+  channel.on('presence_diff', diff => {
+    console.log('meetingChannel - presence_diff', diff);
+    presences = Presence.syncDiff(presences, diff)
+    const participants = _values(presences).map(item => item.user)
+    const action = {
+      type: LOAD_MEETING_PARTICIPANTS,
+      participants,
+    }
+    dispatch(action);
+  })
 
 
+  channel.on('update_meeting', payload => {
+   console.log('meetingChannel - update_meeting', payload)
+
+     const actionLoadMeeting = {
+      type: LOAD_MEETING,
+      meeting: payload.meeting
+     }
+     dispatch(actionLoadMeeting);
+
+    const actionLoadAgendaItems = {
+      type: LOAD_AGENDA_ITEMS,
+      agenda_items: payload.meeting.agenda_items,
+    }
+    dispatch(actionLoadAgendaItems)
+
+    const actionLoadMeetingInvitations = {
+      type: LOAD_MEETING_INVITATIONS,
+      meeting_invitations: payload.meeting.invitations,
+    }
+    dispatch(actionLoadMeetingInvitations);
+  })
+
+  channel.on('update_meeting_details', payload => {
+   console.log('meetingChannel - update_meeting_details', payload)
+     const action = {
+      type: LOAD_MEETING,
+      meeting: payload.meeting
+     }
+     dispatch(action);
+  })
+
+  channel.on('remove_meeting', payload => {
+   console.log('meetingChannel - remove_meeting', payload)
+     const action = {
+      type: REMOVE_MEETING,
+      meeting_id: payload.meeting_id,
+     }
+     dispatch(action);
+     history.push('/meetings/dashboard');
+  })
+
+  channel.on('add_agenda_item', payload => {
+    console.log('meetingChannel - add_agenda_item', payload)
+    const action = {
+      type: LOAD_AGENDA_ITEM,
+      agenda_item: payload.agenda_item,
+    }
+    dispatch(action);
+  })
+
+  channel.on('update_agenda_item', payload => {
+    console.log('meetingChannel - update_agenda_item', payload)
+    const action = {
+      type: LOAD_AGENDA_ITEM,
+      agenda_item: payload.agenda_item,
+    }
+    dispatch(action);
+  })
+
+  channel.on('remove_agenda_item', payload => {
+    console.log('meetingChannel - remove_agenda_item', payload)
+    const action = {
+      type: REMOVE_AGENDA_ITEM,
+      agenda_item_id: payload.agenda_item_id,
+    }
+    dispatch(action);
+  })
+
+  channel.on('update_agenda_item_votes', payload => {
+    console.log('meetingChannel - update_agenda_item_votes', payload)
+    const action = {
+      type: UPDATE_AGENDA_ITEM_VOTE_COUNTS,
+      agenda_item_id: payload.agenda_item_id,
+      votes: payload.votes,
+    }
+    dispatch(action);
+  })
+
+  channel.on('add_invitation', payload => {
+    console.log('meetingChannel - add_invitation', payload)
+    const action = {
+      type: LOAD_MEETING_INVITATION,
+      invitation: payload.invitation,
+    }
+    dispatch(action);
+  })
+
+  channel.on('update_invitation', payload => {
+    console.log('meetingChannel - update_invitation', payload)
+    const action = {
+      type: LOAD_MEETING_INVITATION,
+      invitation: payload.invitation,
+    }
+    dispatch(action);
+  })
+
+  channel.on('remove_invitation', payload => {
+    console.log('meetingChannel - remove_invitation', payload)
+    const action = {
+      type: REMOVE_MEETING_INVITATION,
+      invitation_id: payload.invitation_id,
+    }
+    dispatch(action);
+  })
+
+  channel.on('update_stack_entries', payload => {
+    console.log('meetingChannel - update_stack_entries', payload)
+    const action = {
+      type: LOAD_STACK_ENTRIES,
+      agenda_item_id: payload.agenda_item_id,
+      stack_entries: payload.stack_entries,
+    }
+    dispatch(action);
+  })
+
+  channel.on('add_proposal', payload => {
+    console.log('meetingChannel - add_proposal', payload)
+    const action = {
+      type: LOAD_PROPOSAL,
+      proposal: payload.proposal,
+    }
+    dispatch(action);
+  })
+
+  channel.on('update_proposal', payload => {
+    console.log('meetingChannel - update_proposal', payload)
+    const action = {
+      type: LOAD_PROPOSAL,
+      proposal: payload.proposal,
+    }
+    dispatch(action);
+  })
+
+  channel.on('remove_proposal', payload => {
+    console.log('meetingChannel - remove_proposal', payload)
+    const action = {
+      type: REMOVE_PROPOSAL,
+      agenda_item_id: payload.agenda_item_id,
+      proposal_id: payload.proposal_id,
+      meeting_id: payload.meeting_id,
+    }
+    dispatch(action);
+  })
+
+  channel.on('add_proposal_vote', payload => {
+    console.log('meetingChannel - add_proposal_vote', payload)
+    const action = {
+      type: ADD_PROPOSAL_VOTE,
+      agenda_item_id: payload.agenda_item_id,
+      proposal_id: payload.proposal_id,
+      vote: payload.vote,
+    }
+    dispatch(action);
+  })
+
+  channel.on('update_proposal_vote', payload => {
+    console.log('meetingChannel - update_proposal_vote', payload)
+    const action = {
+      type: UPDATE_PROPOSAL_VOTE,
+      agenda_item_id: payload.agenda_item_id,
+      proposal_id: payload.proposal_id,
+      vote: payload.vote,
+    }
+    dispatch(action);
+  })
+
+  channel.on('remove_proposal_vote', payload => {
+    console.log('meetingChannel - remove_proposal_vote', payload)
+    const action = {
+      type: REMOVE_PROPOSAL_VOTE,
+      agenda_item_id: payload.agenda_item_id,
+      proposal_id: payload.proposal_id,
+      vote_id: payload.vote_id,
+    }
+    dispatch(action);
+  })
+
+  //     
 
   // const {meeting_id} = params;
   // const token = localStorage.getItem('token');
@@ -328,6 +603,8 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
   //     }
   //     dispatch(action);
   //   }
+
+// ======================== Above is Done =====================
 
   //   else if (data.event === 'update_agenda_item_stack_entries') {
   //     const action = {
@@ -422,7 +699,8 @@ export const connectMeetingSocket = (params = {}) => (dispatch, getState) => {
 
 export const disconnectMeetingSocket = (params = {}) => (dispatch, getState) => {
   if (socket) {
-    socket.close();
+    //socket.close();
+    socket.disconnect();
   }
 }
 
@@ -532,7 +810,6 @@ export const submitTopicForm = (params = {}) => (dispatch, getState) => {
 
 
 
-// TODO: implement submitAgendaItemForm
 export const submitAgendaItemForm = (params = {}) => (dispatch, getState) => {
   const {
     agenda_item_id,
@@ -548,39 +825,94 @@ export const submitAgendaItemForm = (params = {}) => (dispatch, getState) => {
   // <intent> will be either "update"
   // or "create".  Endpoint depends on which
 
-  // TODO: enpdoint urls need to be fixed
-  // to work with Django url scheme.  
-  // Notice that 'update' url has no trailing slash,
-  // but 'create' does.  Django will complain
-  // if you don't send requests like this,
-  // mainly because the current routing setup
-  // for handling params is fucked up.
-  // see in Django project st/urls.py
-  const endpoint = intent === 'update'
-    ? API_ENTRY + `/agenda_items/${agenda_item_id}/`
-    : API_ENTRY + '/agenda_items/'
+  let method, endpoint, successMessage;
+  if (intent === 'update') {
+    endpoint = API_ENTRY + `/agenda_items/${agenda_item_id}/`;
+    method = 'PATCH';
+    successMessage = 'Agenda item updated successfully.';
+  }
+  else {
+    endpoint = API_ENTRY + `/agenda_items/`;
+    method = 'POST';
+    successMessage = 'Agenda item created successfully.';
+  }
 
-  const successMessage = intent === 'update'
-    ? 'Agenda item updated successfully.'
-    : 'Agenda item created successfully.'
+  const config = {
+    url: endpoint,
+    method,
+    data: {agenda_item: data},
+  }
 
-  return axios.post(endpoint, data)
+  return axios(config)
     .then(response => {
-        // ** currently not handling response
-        // here (i.e. not adding topic from
-        // response to store).  New data
-        // comes in via websocket as 
-        // RECEIVE_TOPIC action
         history.goBack();
         const snackbarParams = {
           open: true,
           message: successMessage,
         }
-        // opening snackbar in timeout
-        // because it looks alittle smoother 
-        // and prevents some jank when
-        // navigating back to previous screen
-        // after form submit
+        setTimeout(() => {
+          dispatch(toggleSnackbar(snackbarParams));
+        }, 300)
+      })
+}
+
+
+export const deleteAgendaItem = (params = {}) => (dispatch, getState) => {
+  const {
+    agenda_item_id,
+  } = params
+
+  const endpoint = `${API_ENTRY}/agenda_items/${agenda_item_id}/`;
+
+  const config = {
+    url: endpoint,
+    method: 'DELETE',
+  }
+
+  return axios(config)
+    .then(response => {
+      history.goBack();
+      const snackbarParams = {
+        open: true,
+        message: 'Agenda item deleted.',
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    })
+}
+
+export const changeAgendaItemStatus = (params = {}) => (dispatch, getState) => {
+  const {
+    agenda_item_id,
+    status,
+  } = params
+
+  const endpoint = API_ENTRY + `/agenda_items/${agenda_item_id}/`;
+
+  let successMessage;
+  if (status === 'OPEN') {
+    successMessage = 'Agenda item opened.';
+  }
+  else if (status === 'CLOSED') {
+    successMessage = 'Agenda item closed.';
+  }
+  else if (status === 'PENDING') {
+    successMessage = 'Agenda item reactivated.';
+  }
+
+  const config = {
+    url: endpoint,
+    method: 'PATCH',
+    data: {agenda_item: {status}},
+  }
+
+  return axios(config)
+    .then(response => {
+        const snackbarParams = {
+          open: true,
+          message: successMessage,
+        }
         setTimeout(() => {
           dispatch(toggleSnackbar(snackbarParams));
         }, 300)
@@ -592,54 +924,35 @@ export const submitAgendaItemForm = (params = {}) => (dispatch, getState) => {
 // "add" button in stack section of comp
 // AgendaItemDetail.  Need to implement form
 // with fields for requested time, etc.?
-export const submitAgendaItemStackEntryForm = (params = {}) => (dispatch, getState) => {
+export const addOrRemoveStackEntry = (params = {}) => (dispatch, getState) => {
   const {
     agenda_item_id,
+    action,
   } = params
 
-  const data = {
-    agenda_item_id,
+  const endpoint = `${API_ENTRY}/agenda_items/${agenda_item_id}/stack_entries`;
+  let method, successMessage;
+  if (action === 'add') {
+    method = 'POST';
+    successMessage = 'You have been added to the stack.';
+  }
+  else {
+    method = 'DELETE';
+    successMessage = 'You have been removed from the stack.';
   }
 
-  let user_id = 2;
-
-  // check if user already in stack
-  const state = getState();
-  const agendaItem = selectors.getAgendaItem(state, {agenda_item_id});
-  // if agendaItem does not exist, return
-  if (!agendaItem) {return};
-
-  if (utils.isUserInStack(user_id, agendaItem.stack_entries)) {
-    //return;
+  const config = {
+    url: endpoint,
+    method,
   }
 
-  const endpoint =  API_ENTRY + `/agenda_item_stack_entries/`;
-  const successMessage = 'You have been added to the stack.'
-
-  return axios.post(endpoint, data)
+  return axios(config)
     .then(response => {
-        // ** currently not handling response
-        // here (i.e. not adding topic from
-        // response to store).  New data
-        // comes in via websocket as 
-        // RECEIVE_TOPIC action
-        //history.goBack();
         const snackbarParams = {
           open: true,
           message: successMessage,
         }
-        // opening snackbar in timeout
-        // because it looks alittle smoother 
-        // and prevents some jank when
-        // navigating back to previous screen
-        // after form submit
-        // ** not setting timeout because this
-        // is currently not causing navigation 
-        // changes
         dispatch(toggleSnackbar(snackbarParams));
-        // setTimeout(() => {
-        //   dispatch(toggleSnackbar(snackbarParams));
-        // }, 300)
       })
     .catch(error => {
       // not handling error right now
@@ -702,57 +1015,195 @@ export const postAgendaItemVote = (params = {}) => (dispatch, getState) => {
   // in case for whatever reason agendaItem is null
   if (!agendaItem) {return};
 
-  let vote_action;
-
+  // if new user_vote is same as current,
+  // user is "un-voting".  Set user_vote to
+  // null on successfull request
+  let updated_user_vote;
   if (agendaItem.votes.user_vote === vote_type) {
-    vote_action = 'delete_vote';
+    updated_user_vote = null;
   }
   else {
-    vote_action = 'post_vote';
+    updated_user_vote = vote_type;
   }
 
-  if (vote_action === 'delete_vote') {
-    return axios.delete(endpoint)
-    .then(response => {
-      // if successful, update state with
-      // new user vote_type
-      const action = {
-        type: UPDATE_AGENDA_ITEM_USER_VOTE_TYPE,
-        agenda_item_id,
-        vote_type: null,
-      }
-      dispatch(action);
-    })
-    .catch(error => {
-      const params_ = {
-        open: true,
-        message: 'Unable to post vote.',
-      }
-      dispatch(toggleSnackbar(params_));
-    })
+  const config = {
+    url: endpoint,
+    method: 'POST',
+    data: {vote_type},
   }
 
-  else {
-    return axios.post(endpoint, {vote_type})
-    .then(response => {
-      const action = {
-        type: UPDATE_AGENDA_ITEM_USER_VOTE_TYPE,
-        agenda_item_id,
-        vote_type,
-      }
-      dispatch(action);
-    })
-    .catch(error => {
-      const params_ = {
-        open: true,
-        message: 'Unable to post vote.',
-      }
-      dispatch(toggleSnackbar(params_));
-    })
-  }
+  return axios(config)
+  .then(response => {
+    const action = {
+      type: UPDATE_AGENDA_ITEM_USER_VOTE_TYPE,
+      agenda_item_id,
+      vote_type: updated_user_vote,
+    }
+    dispatch(action);
+  })
+
+  // let vote_action;
+
+  // if (agendaItem.votes.user_vote === vote_type) {
+  //   vote_action = 'delete_vote';
+  // }
+  // else {
+  //   vote_action = 'post_vote';
+  // }
+
+  // if (vote_action === 'delete_vote') {
+  //   return axios.delete(endpoint)
+  //   .then(response => {
+  //     // if successful, update state with
+  //     // new user vote_type
+  //     const action = {
+  //       type: UPDATE_AGENDA_ITEM_USER_VOTE_TYPE,
+  //       agenda_item_id,
+  //       vote_type: null,
+  //     }
+  //     dispatch(action);
+  //   })
+  //   .catch(error => {
+  //     const params_ = {
+  //       open: true,
+  //       message: 'Unable to post vote.',
+  //     }
+  //     dispatch(toggleSnackbar(params_));
+  //   })
+  // }
+
+  // else {
+  //   return axios.post(endpoint, {vote_type})
+  //   .then(response => {
+  //     const action = {
+  //       type: UPDATE_AGENDA_ITEM_USER_VOTE_TYPE,
+  //       agenda_item_id,
+  //       vote_type,
+  //     }
+  //     dispatch(action);
+  //   })
+  //   .catch(error => {
+  //     const params_ = {
+  //       open: true,
+  //       message: 'Unable to post vote.',
+  //     }
+  //     dispatch(toggleSnackbar(params_));
+  //   })
+  // }
 
 }
 
+
+
+export const submitProposalForm = (params = {}) => (dispatch, getState) => {
+  const {
+    agenda_item_id,
+    proposal_id,
+    intent,
+    values,
+  } = params
+
+  const data = {
+    ...values,
+    agenda_item_id,
+  }
+  // <intent> will be either "update"
+  // or "create".  Endpoint depends on which
+
+  let method, endpoint, successMessage;
+  if (intent === 'update') {
+    endpoint = API_ENTRY + `/proposals/${proposal_id}/`;
+    method = 'PATCH';
+    successMessage = 'Proposal updated';
+  }
+  else {
+    endpoint = API_ENTRY + `/proposals/`;
+    method = 'POST';
+    successMessage = 'Proposal created';
+  }
+
+  const config = {
+    url: endpoint,
+    method,
+    data: {proposal: data},
+  }
+
+  return axios(config)
+    .then(response => {
+      // if create, navigate to detail view
+      // of new proposal.  Else, goBack() will
+      // return to proposal detail view
+      if (intent === 'create') {
+        const proposal_id = response.data.id;
+        const path = history.location.pathname.replace('proposal_form/create', `proposals/${proposal_id}`);
+        history.replace(path);
+      }
+      else {
+        history.goBack();
+      }
+      const snackbarParams = {
+        open: true,
+        message: successMessage,
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    })
+}
+
+
+export const deleteProposal = (params = {}) => (dispatch, getState) => {
+  const {
+    proposal_id,
+  } = params
+
+  const endpoint = `${API_ENTRY}/proposals/${proposal_id}/`;
+
+  const config = {
+    url: endpoint,
+    method: 'DELETE',
+  }
+
+  return axios(config)
+    .then(response => {
+      history.goBack();
+      const snackbarParams = {
+        open: true,
+        message: 'Proposal deleted',
+      }
+      setTimeout(() => {
+        dispatch(toggleSnackbar(snackbarParams));
+      }, 300)
+    })
+}
+
+export const postProposalVote = (params = {}) => (dispatch, getState) => {
+  const {
+    agenda_item_id, 
+    proposal_id,
+    value,
+  } = params;
+
+  const endpoint = API_ENTRY + `/proposals/${proposal_id}/votes/`;
+
+  const config = {
+    url: endpoint,
+    method: 'POST',
+    data: {value},
+  }
+
+  return axios(config)
+  .then(response => {
+    
+  })
+  .catch(error => {
+    const snackbarParams = {
+      open: true,
+      message: 'Unable to cast vote',
+    }
+    dispatch(toggleSnackbar(snackbarParams));
+  })
+}
 
 
 const initialMeetingState = {
@@ -771,6 +1222,11 @@ const initialMeetingInvitationState = {
 }
 
 const initialMeetingParticipantState = {
+  cache: {},
+  selected: null,
+}
+
+const initialProposalState = {
   cache: {},
   selected: null,
 }
@@ -795,35 +1251,35 @@ export const meetingInvitationReducer = (state = initialMeetingInvitationState, 
     }
 
     case (LOAD_MEETING_INVITATION): {
-      const {meeting_invitation} = action;
-      let updatedMeetingInvitation = state.cache[meeting_invitation.id]
+      const {invitation} = action;
+      let updatedInvitation = state.cache[invitation.id]
       // if meeting_invitation already in cache,
       // merge objects
-      if (updatedMeetingInvitation) {
-        updatedMeetingInvitation = {
-          ...updatedMeetingInvitation,
-          ...meeting_invitation,
+      if (updatedInvitation) {
+        updatedInvitation = {
+          ...updatedInvitation,
+          ...invitation,
         }
       }
       // else add data as it is
       else {
-        updatedMeetingInvitation = meeting_invitation;
+        updatedInvitation = invitation;
       }
 
       const nextState = {
         ...state,
         cache: {
           ...state.cache,
-          [meeting_invitation.id]: updatedMeetingInvitation,
+          [invitation.id]: updatedInvitation,
         },
       }
       return nextState;
     }
 
     case (REMOVE_MEETING_INVITATION): {
-      const {meeting_invitation_id} = action.data;
+      const {invitation_id} = action;
       const {cache} = state;
-      delete cache[meeting_invitation_id];
+      delete cache[invitation_id];
       const nextState = {
         ...state,
         cache: {...cache},
@@ -882,6 +1338,18 @@ export const meetingParticipantReducer = (state = initialMeetingParticipantState
 
 export const meetingReducer = (state = initialMeetingState, action) => {
   switch (action.type) {
+
+    case (LOAD_USER_DATA): {
+      const {meetings} = action.data;
+      const obj = {};
+      meetings.forEach(m => obj[m.id] = m);
+
+      const nextState = {
+        ...state,
+        cache: obj,
+      }
+      return nextState;
+    }
 
     case (SELECT_MEETING): {
       const {meeting_id} = action;
@@ -963,7 +1431,7 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
     }
 
     case (UPDATE_AGENDA_ITEM_VOTE_COUNTS): {
-      const {agenda_item_id, votes} = action.data;
+      const {agenda_item_id, votes} = action;
       const agendaItem = state.cache[agenda_item_id];
       if (!agendaItem) {return state};
 
@@ -984,18 +1452,6 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
       return nextState;
     }
 
-    case (LOAD_AGENDA_ITEMS): {
-      const {agenda_items} = action;
-      const obj = {};
-      agenda_items.forEach(i => obj[i.id] = i);
-
-      const nextState = {
-        ...state,
-        cache: obj,
-      }
-      return nextState;
-    }
-
     case (SELECT_AGENDA_ITEM): {
       const {agenda_item_id} = action;
       const nextState = {
@@ -1008,7 +1464,12 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
     case (LOAD_AGENDA_ITEMS): {
       const {agenda_items} = action;
       const obj = {};
-      agenda_items.forEach(i => obj[i.id] = i);
+      agenda_items.forEach(i => {
+        const formattedProposals = {};
+        i.proposals.forEach(p => formattedProposals[p.id] = p);
+        i.proposals = formattedProposals;
+        obj[i.id] = i;
+      });
 
       const nextState = {
         ...state,
@@ -1018,14 +1479,24 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
     }
 
     case (LOAD_AGENDA_ITEM): {
-      const {agenda_item} = action;
+      let {agenda_item} = action;
       let updatedItem = state.cache[agenda_item.id]
+      const formattedProposals = {};
+      agenda_item.proposals.forEach(p => formattedProposals[p.id] = p);
+      agenda_item.proposals = formattedProposals;
       // if item already in cache,
       // merge objects
+      // ** Need to make sure not to
+      // overwrite user_vote key of
+      // votes key of agenda_item
       if (updatedItem) {
         updatedItem = {
           ...updatedItem,
           ...agenda_item,
+          votes: {
+            ...updatedItem.votes,
+            ...agenda_item.votes,
+          }
         }
       }
       // else add data as it is
@@ -1043,59 +1514,240 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
       return nextState;
     }
 
-    case (UPDATE_AGENDA_ITEM_STACK_ENTRIES): {
+    case (REMOVE_AGENDA_ITEM): {
+      const {agenda_item_id} = action;
+      const {cache} = state;
+      delete cache[agenda_item_id];
+      const nextState = {
+        ...state,
+        cache: {...cache}
+      }
+      return nextState;
+    }
+
+    case (LOAD_STACK_ENTRIES): {
       const {
         agenda_item_id,
-        agenda_item_stack_entries,
+        stack_entries,
       } = action;
 
       const agendaItem = state.cache[agenda_item_id];
       if (!agendaItem) {return state};
 
-      const updatedAgendaItem = {
-        ...agendaItem,
-        stack_entries: agenda_item_stack_entries,
-      }
-      
       const nextState = {
         ...state,
         cache: {
           ...state.cache,
-          [agenda_item_id]: updatedAgendaItem,
-        },
+          [agenda_item_id]: {
+            ...agendaItem,
+            stack_entries: stack_entries,
+          }
+        }
       }
-      return nextState;   
+      return nextState;      
     }
 
-    case (LOAD_AGENDA_ITEM_STACK_ENTRY): {
-      const {agenda_item_stack_entry} = action;
-      const {agenda_item_id} = agenda_item_stack_entry;
-      const agendaItem = state.cache[agenda_item_id];
-      // check to make sure agendaItem exists.
-      // I suppose it's possible for the data to be
-      // come unsynced.
-      if (agendaItem) {
-        let updatedAgendaItemStackEntries = agendaItem.stack_entries.map(se => se);
-        updatedAgendaItemStackEntries.push(agenda_item_stack_entry);
-        const updatedAgendaItem = {
-          ...agendaItem,
-          stack_entries: updatedAgendaItemStackEntries,
+    case (LOAD_PROPOSAL): {
+      const {proposal} = action;
+      const agendaItem = state.cache[proposal.agenda_item_id];
+      if (!agendaItem) {return state};
+      const updatedAgendaItem = {
+        ...agendaItem,
+        proposals: {
+          ...agendaItem.proposals,
+          [proposal.id]: proposal,
         }
-        const nextState = {
-          ...state,
-          cache: {
-            ...state.cache,
-            [agenda_item_id]: updatedAgendaItem,
-          },
+      }
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agendaItem.id]: updatedAgendaItem,
         }
-        return nextState; 
       }
-      // if agendaItem not in state, ignore
-      else {
-        return state;
-      }
-      
+      return nextState;
     }
+
+    case (REMOVE_PROPOSAL): {
+      const {agenda_item_id, proposal_id} = action;
+      const agendaItem = state.cache[agenda_item_id];
+      if (!agendaItem) {return state};
+      const {proposals} = agendaItem;
+      delete proposals[proposal_id];
+      const updatedAgendaItem = {
+        ...agendaItem,
+        proposals: {...proposals},
+      }
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agendaItem.id]: updatedAgendaItem,
+        }
+      }
+      return nextState;
+    }
+
+    case (ADD_PROPOSAL_VOTE): {
+      const {
+        agenda_item_id, 
+        proposal_id, 
+        vote,
+      } = action;
+      const agendaItem = state.cache[agenda_item_id];
+      if (!agendaItem) {return state};
+      const proposal = agendaItem.proposals[proposal_id];
+      if (!proposal) {return state};
+      const updatedVotes = proposal.votes.map(v => v);
+      updatedVotes.push(vote);
+      const updatedProposal = {
+        ...proposal,
+        votes: updatedVotes,
+      }
+      const updatedAgendaItem = {
+        ...agendaItem,
+        proposals: {
+          ...agendaItem.proposals,
+          [proposal_id]: updatedProposal,
+        }
+      }
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agendaItem.id]: updatedAgendaItem,
+        }
+      }
+      return nextState;
+    }
+
+    case (UPDATE_PROPOSAL_VOTE): {
+      const {
+        agenda_item_id, 
+        proposal_id, 
+        vote,
+      } = action;
+      const agendaItem = state.cache[agenda_item_id];
+      if (!agendaItem) {return state};
+      const proposal = agendaItem.proposals[proposal_id];
+      if (!proposal) {return state};
+      const updatedVotes = proposal.votes.map(v => {
+        if (v.id === vote.id) {
+          return vote;
+        }
+        else {
+          return v;
+        }
+      });
+
+      const updatedProposal = {
+        ...proposal,
+        votes: updatedVotes,
+      }
+      const updatedAgendaItem = {
+        ...agendaItem,
+        proposals: {
+          ...agendaItem.proposals,
+          [proposal_id]: updatedProposal,
+        }
+      }
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agendaItem.id]: updatedAgendaItem,
+        }
+      }
+      return nextState;
+    }
+
+    case (REMOVE_PROPOSAL_VOTE): {
+      const {
+        agenda_item_id, 
+        proposal_id, 
+        vote_id,
+      } = action;
+      const agendaItem = state.cache[agenda_item_id];
+      if (!agendaItem) {return state};
+      const proposal = agendaItem.proposals[proposal_id];
+      if (!proposal) {return state};
+      const updatedVotes = proposal.votes.filter(v => v.id !== vote_id)
+
+      const updatedProposal = {
+        ...proposal,
+        votes: updatedVotes,
+      }
+      const updatedAgendaItem = {
+        ...agendaItem,
+        proposals: {
+          ...agendaItem.proposals,
+          [proposal_id]: updatedProposal,
+        }
+      }
+      const nextState = {
+        ...state,
+        cache: {
+          ...state.cache,
+          [agendaItem.id]: updatedAgendaItem,
+        }
+      }
+      return nextState;
+    }
+
+    // case (UPDATE_AGENDA_ITEM_STACK_ENTRIES): {
+    //   const {
+    //     agenda_item_id,
+    //     agenda_item_stack_entries,
+    //   } = action;
+
+    //   const agendaItem = state.cache[agenda_item_id];
+    //   if (!agendaItem) {return state};
+
+    //   const updatedAgendaItem = {
+    //     ...agendaItem,
+    //     stack_entries: agenda_item_stack_entries,
+    //   }
+      
+    //   const nextState = {
+    //     ...state,
+    //     cache: {
+    //       ...state.cache,
+    //       [agenda_item_id]: updatedAgendaItem,
+    //     },
+    //   }
+    //   return nextState;   
+    // }
+
+
+    // case (LOAD_AGENDA_ITEM_STACK_ENTRY): {
+    //   const {agenda_item_stack_entry} = action;
+    //   const {agenda_item_id} = agenda_item_stack_entry;
+    //   const agendaItem = state.cache[agenda_item_id];
+    //   // check to make sure agendaItem exists.
+    //   // I suppose it's possible for the data to be
+    //   // come unsynced.
+    //   if (agendaItem) {
+    //     let updatedAgendaItemStackEntries = agendaItem.stack_entries.map(se => se);
+    //     updatedAgendaItemStackEntries.push(agenda_item_stack_entry);
+    //     const updatedAgendaItem = {
+    //       ...agendaItem,
+    //       stack_entries: updatedAgendaItemStackEntries,
+    //     }
+    //     const nextState = {
+    //       ...state,
+    //       cache: {
+    //         ...state.cache,
+    //         [agenda_item_id]: updatedAgendaItem,
+    //       },
+    //     }
+    //     return nextState; 
+    //   }
+    //   // if agendaItem not in state, ignore
+    //   else {
+    //     return state;
+    //   }
+      
+    // }
 
     default: {
       return state;
@@ -1104,6 +1756,125 @@ export const agendaItemReducer = (state = initialMeetingState, action) => {
 }
     
 
+
+// export const proposalReducer = (state = initialProposalState, action) => {
+//   switch (action.type) {
+
+
+//     case (UPDATE_PROPOSAL_USER_VOTE): {
+//       const {proposal_id, value} = action;
+//       const proposal = state.cache[proposal_id];
+//       if (!proposal) {return state};
+
+//       const updatedProposal = {
+//         ...proposal,
+//         votes: {
+//           ...proposal.votes,
+//           user_vote: value,
+//         }
+//       }
+//       const nextState = {
+//         ...state,
+//         cache: {
+//           ...state.cache,
+//           [proposal_id]: updatedProposal,
+//         }
+//       }
+//       return nextState;
+//     }
+
+//     case (UPDATE_PROPOSAL_VOTE_COUNTS): {
+//       const {proposal_id, votes} = action;
+//       const proposal = state.cache[proposal_id];
+//       if (!proposal) {return state};
+
+//       const updatedProposal = {
+//         ...proposal,
+//         votes: {
+//           ...proposal.votes,
+//           ...votes,
+//         }
+//       }
+//       const nextState = {
+//         ...state,
+//         cache: {
+//           ...state.cache,
+//           [proposal_id]: updatedProposal,
+//         }
+//       }
+//       return nextState;
+//     }
+
+//     case (SELECT_PROPOSAL): {
+//       const {proposal_id} = action;
+//       const nextState = {
+//         ...state,
+//         selected: proposal_id,
+//       }
+//       return nextState;
+//     }
+
+//     case (LOAD_PROPOSALS): {
+//       const {proposals} = action;
+//       const obj = {};
+//       proposals.forEach(i => obj[i.id] = i);
+
+//       const nextState = {
+//         ...state,
+//         cache: obj,
+//       }
+//       return nextState;
+//     }
+
+//     case (LOAD_PROPOSAL): {
+//       const {proposal} = action;
+//       let updatedItem = state.cache[proposal.id]
+//       // if item already in cache,
+//       // merge objects
+//       // ** Need to make sure not to
+//       // overwrite user_vote key of
+//       // votes key of proposal
+//       if (updatedItem) {
+//         updatedItem = {
+//           ...updatedItem,
+//           ...proposal,
+//           votes: {
+//             ...updatedItem.votes,
+//             ...proposal.votes,
+//           }
+//         }
+//       }
+//       // else add data as it is
+//       else {
+//         updatedItem = proposal;
+//       }
+
+//       const nextState = {
+//         ...state,
+//         cache: {
+//           ...state.cache,
+//           [proposal.id]: updatedItem,
+//         },
+//       }
+//       return nextState;
+//     }
+
+//     case (REMOVE_PROPOSAL): {
+//       const {proposal_id} = action;
+//       const {cache} = state;
+//       delete cache[proposal_id];
+//       const nextState = {
+//         ...state,
+//         cache: {...cache}
+//       }
+//       return nextState;
+//     }
+
+//     default: {
+//       return state;
+//     }
+//   }
+// }
 
 export const topicReducer = (state = initialTopicState, action) => {
   switch (action.type) {

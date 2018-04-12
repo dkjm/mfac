@@ -3,7 +3,8 @@ defmodule MfacWeb.UserSocket do
 
   ## Channels
   # channel "room:*", MfacWeb.RoomChannel
-  channel "room:meeting", MfacWeb.MeetingChannel
+  channel "meeting:*", MfacWeb.MeetingChannel
+  channel "user:*", MfacWeb.UserChannel
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
   # transport :longpoll, Phoenix.Transports.LongPoll
@@ -19,8 +20,16 @@ defmodule MfacWeb.UserSocket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
-  def connect(_params, socket) do
-    {:ok, socket}
+  def connect(%{"token" => token}, socket) do
+    # IO.inspect(token, label: "TOKEN CONNECT")
+    # IO.inspect(socket, label: "SOCKET CONNECT")
+    # here resource refers to user associated with
+    # jwt token
+    {:ok, resource, claims} = Mfac.Accounts.Guardian.resource_from_token(token)
+    # IO.inspect(resource, label: "RESOURCE")
+    # IO.inspect(claims, label: "CLAIMS")
+    {:ok, assign(socket, :current_user, resource.id)}
+    #{:ok, socket}
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:

@@ -7,17 +7,8 @@ defmodule MfacWeb.AgendaItemController do
   action_fallback MfacWeb.FallbackController
 
   def index(conn, _params) do
-    agendaitems = Meetings.list_agendaitems()
+    agendaitems = Meetings.list_agenda_items()
     render(conn, "index.json", agendaitems: agendaitems)
-  end
-
-  def create(conn, %{"agenda_item" => agenda_item_params}) do
-    with {:ok, %AgendaItem{} = agenda_item} <- Meetings.create_agenda_item(agenda_item_params) do
-      conn
-      |> put_status(:created)
-      |> put_resp_header("location", agenda_item_path(conn, :show, agenda_item))
-      |> render("show.json", agenda_item: agenda_item)
-    end
   end
 
   def show(conn, %{"id" => id}) do
@@ -25,11 +16,27 @@ defmodule MfacWeb.AgendaItemController do
     render(conn, "show.json", agenda_item: agenda_item)
   end
 
+  # NOTE(MP 2/7): Response is just 201, no data.
+  # Data is sent in channel.  
+  # See Meetings.create_agenda_item for details
+  def create(conn, %{"agenda_item" => agenda_item_params}) do
+    user = Mfac.Accounts.Guardian.Plug.current_resource(conn)
+    with {:ok, %AgendaItem{} = agenda_item} <- Meetings.create_agenda_item(Map.put(agenda_item_params, "user_id", user.id)) do
+      conn
+      |> put_status(:created)
+      |> send_resp(:no_content, "")
+    end
+  end
+
+  # NOTE(MP 2/7): Response is just 200, no data.
+  # Data is sent in channel.  
+  # See Meetings.update_agenda_item for details
   def update(conn, %{"id" => id, "agenda_item" => agenda_item_params}) do
     agenda_item = Meetings.get_agenda_item!(id)
-
     with {:ok, %AgendaItem{} = agenda_item} <- Meetings.update_agenda_item(agenda_item, agenda_item_params) do
-      render(conn, "show.json", agenda_item: agenda_item)
+      conn
+      |> put_status(:ok)
+      |> send_resp(:no_content, "")
     end
   end
 

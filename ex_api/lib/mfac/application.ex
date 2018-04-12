@@ -12,6 +12,8 @@ defmodule Mfac.Application do
       supervisor(Mfac.Repo, []),
       # Start the endpoint when the application starts
       supervisor(MfacWeb.Endpoint, []),
+      # Presence
+      supervisor(MfacWeb.Presence, []),
       # Start your own worker by calling: Mfac.Worker.start_link(arg1, arg2, arg3)
       # worker(Mfac.Worker, [arg1, arg2, arg3]),
     ]

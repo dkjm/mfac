@@ -3,6 +3,7 @@ import './UserInvitations.css';
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 
+import authProtected from '../AuthProtected';
 import UserMeetingInvitationCard from '../UserMeetingInvitationCard';
 import CardListContainer from '../CardListContainer';
 
@@ -19,7 +20,7 @@ class UserInvitations extends Component {
 
   renderInvitations = () => {
     const invitations = this.props.meetingInvitations;
-    if (!invitations) {return null};
+    if (!invitations.length) {return <NoItems />};
     const renderedItems = invitations.map(i => 
       <UserMeetingInvitationCard 
             key={i.id} 
@@ -31,11 +32,9 @@ class UserInvitations extends Component {
   }
 
   render() {
+    const invitations = this.props.meetingInvitations;
     return(
       <div style={styles.container}>
-        <div style={styles.header}>
-          Invitations
-        </div>
         <CardListContainer>
           {this.renderInvitations()}
         </CardListContainer>
@@ -43,6 +42,12 @@ class UserInvitations extends Component {
     )
   }
 }
+
+const NoItems = () => (
+  <div style={styles.noItems}>
+    You don't have any invitations
+  </div>
+)
 
 const styles = {
   container: {
@@ -52,6 +57,11 @@ const styles = {
     marginBottom: '20px',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  noItems: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: '100px',
   },
 }
 
@@ -69,9 +79,10 @@ const mapDispatchToProps = dispatch => {
 }
 
 
-const Connected = connect(
+let Connected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(UserInvitations)
 
-export default withRouter(Connected);
+Connected = withRouter(Connected);
+export default authProtected(Connected);

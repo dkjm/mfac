@@ -19,25 +19,26 @@ import {loadMeetings} from '../../services/api';
 class MeetingsDashboard extends Component {
 
 	componentWillMount() {
-		this.props.loadMeetings();
+		// NOTE(MP 2/9): not calling loadMeetings()
+		// as meetings are now being delivered
+		// via user socket
+		//this.props.loadMeetings();
 	}
 
 	handleSelect = (meeting_id) => {
-		const path = `/meetings/${meeting_id}/agenda`;
-		this.context.router.history.push(path);
+		const path = `/meetings/${meeting_id}/home`;
+		this.props.history.push(path);
 	}
 
 	handleRequestAddMeeting = () => {
     const {match, history} = this.props;
-    // TODO:  make more robust routing instead
-    // of just doing replace as below
     const path = '/meetings/meeting_form/create';
     history.push(path);
   }
 
 	renderItems() {
 		const {meetings} = this.props;
-
+		if (!meetings.length) {return <NoItems />};
 		const renderedItems = meetings.map((m, index) => {
 			return (
 				<MeetingCard 
@@ -47,15 +48,15 @@ class MeetingsDashboard extends Component {
 				/>
 			)
 		})
-
 		return renderedItems;
 	}
 	
 	render() {
+		const {meetings} = this.props;
 
 		return (
 			<div style={styles.container}>
-				{/*<LayoutBanner title="Meetings" />*/}
+								
 				<CardListContainer>
 					{this.renderItems()}
 				</CardListContainer>
@@ -72,21 +73,33 @@ class MeetingsDashboard extends Component {
 	}
 }
 
+const NoItems = () => (
+  <div style={styles.noItems}>
+    No meetings
+  </div>
+)
+
 const styles = {
 	container: {
 		margin: '15px 0',
 	},
-	 fab: {
+	header: {
+    marginBottom: '20px',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+	fab: {
     position: 'fixed',
     bottom: '20px',
     right: '20px',
     zIndex: '10',
   },
+  noItems: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: '100px',
+  },
 }
-
-MeetingsDashboard.contextTypes = {
-  router: PropTypes.object,
-};
 
 
 const mapStateToProps = (state, ownProps) => {

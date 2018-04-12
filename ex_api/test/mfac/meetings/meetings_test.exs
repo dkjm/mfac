@@ -584,4 +584,146 @@ defmodule Mfac.MeetingsTest do
       assert %Ecto.Changeset{} = Meetings.change_participant(participant)
     end
   end
+
+  describe "proposals" do
+    alias Mfac.Meetings.Proposal
+
+    @valid_attrs %{decided_at: "2010-04-17 14:00:00.000000Z", description: "some description", meeting_action: "some meeting_action", status: "some status", title: "some title", version: 42}
+    @update_attrs %{decided_at: "2011-05-18 15:01:01.000000Z", description: "some updated description", meeting_action: "some updated meeting_action", status: "some updated status", title: "some updated title", version: 43}
+    @invalid_attrs %{decided_at: nil, description: nil, meeting_action: nil, status: nil, title: nil, version: nil}
+
+    def proposal_fixture(attrs \\ %{}) do
+      {:ok, proposal} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Meetings.create_proposal()
+
+      proposal
+    end
+
+    test "list_proposals/0 returns all proposals" do
+      proposal = proposal_fixture()
+      assert Meetings.list_proposals() == [proposal]
+    end
+
+    test "get_proposal!/1 returns the proposal with given id" do
+      proposal = proposal_fixture()
+      assert Meetings.get_proposal!(proposal.id) == proposal
+    end
+
+    test "create_proposal/1 with valid data creates a proposal" do
+      assert {:ok, %Proposal{} = proposal} = Meetings.create_proposal(@valid_attrs)
+      assert proposal.decided_at == DateTime.from_naive!(~N[2010-04-17 14:00:00.000000Z], "Etc/UTC")
+      assert proposal.description == "some description"
+      assert proposal.meeting_action == "some meeting_action"
+      assert proposal.status == "some status"
+      assert proposal.title == "some title"
+      assert proposal.version == 42
+    end
+
+    test "create_proposal/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Meetings.create_proposal(@invalid_attrs)
+    end
+
+    test "update_proposal/2 with valid data updates the proposal" do
+      proposal = proposal_fixture()
+      assert {:ok, proposal} = Meetings.update_proposal(proposal, @update_attrs)
+      assert %Proposal{} = proposal
+      assert proposal.decided_at == DateTime.from_naive!(~N[2011-05-18 15:01:01.000000Z], "Etc/UTC")
+      assert proposal.description == "some updated description"
+      assert proposal.meeting_action == "some updated meeting_action"
+      assert proposal.status == "some updated status"
+      assert proposal.title == "some updated title"
+      assert proposal.version == 43
+    end
+
+    test "update_proposal/2 with invalid data returns error changeset" do
+      proposal = proposal_fixture()
+      assert {:error, %Ecto.Changeset{}} = Meetings.update_proposal(proposal, @invalid_attrs)
+      assert proposal == Meetings.get_proposal!(proposal.id)
+    end
+
+    test "delete_proposal/1 deletes the proposal" do
+      proposal = proposal_fixture()
+      assert {:ok, %Proposal{}} = Meetings.delete_proposal(proposal)
+      assert_raise Ecto.NoResultsError, fn -> Meetings.get_proposal!(proposal.id) end
+    end
+
+    test "change_proposal/1 returns a proposal changeset" do
+      proposal = proposal_fixture()
+      assert %Ecto.Changeset{} = Meetings.change_proposal(proposal)
+    end
+  end
+
+  describe "amendments" do
+    alias Mfac.Meetings.Amendment
+
+    @valid_attrs %{decided_at: "2010-04-17 14:00:00.000000Z", deleted_at: "2010-04-17 14:00:00.000000Z", description: "some description", meeting_action: "some meeting_action", status: "some status", title: "some title", version: 42}
+    @update_attrs %{decided_at: "2011-05-18 15:01:01.000000Z", deleted_at: "2011-05-18 15:01:01.000000Z", description: "some updated description", meeting_action: "some updated meeting_action", status: "some updated status", title: "some updated title", version: 43}
+    @invalid_attrs %{decided_at: nil, deleted_at: nil, description: nil, meeting_action: nil, status: nil, title: nil, version: nil}
+
+    def amendment_fixture(attrs \\ %{}) do
+      {:ok, amendment} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> Meetings.create_amendment()
+
+      amendment
+    end
+
+    test "list_amendments/0 returns all amendments" do
+      amendment = amendment_fixture()
+      assert Meetings.list_amendments() == [amendment]
+    end
+
+    test "get_amendment!/1 returns the amendment with given id" do
+      amendment = amendment_fixture()
+      assert Meetings.get_amendment!(amendment.id) == amendment
+    end
+
+    test "create_amendment/1 with valid data creates a amendment" do
+      assert {:ok, %Amendment{} = amendment} = Meetings.create_amendment(@valid_attrs)
+      assert amendment.decided_at == DateTime.from_naive!(~N[2010-04-17 14:00:00.000000Z], "Etc/UTC")
+      assert amendment.deleted_at == DateTime.from_naive!(~N[2010-04-17 14:00:00.000000Z], "Etc/UTC")
+      assert amendment.description == "some description"
+      assert amendment.meeting_action == "some meeting_action"
+      assert amendment.status == "some status"
+      assert amendment.title == "some title"
+      assert amendment.version == 42
+    end
+
+    test "create_amendment/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Meetings.create_amendment(@invalid_attrs)
+    end
+
+    test "update_amendment/2 with valid data updates the amendment" do
+      amendment = amendment_fixture()
+      assert {:ok, amendment} = Meetings.update_amendment(amendment, @update_attrs)
+      assert %Amendment{} = amendment
+      assert amendment.decided_at == DateTime.from_naive!(~N[2011-05-18 15:01:01.000000Z], "Etc/UTC")
+      assert amendment.deleted_at == DateTime.from_naive!(~N[2011-05-18 15:01:01.000000Z], "Etc/UTC")
+      assert amendment.description == "some updated description"
+      assert amendment.meeting_action == "some updated meeting_action"
+      assert amendment.status == "some updated status"
+      assert amendment.title == "some updated title"
+      assert amendment.version == 43
+    end
+
+    test "update_amendment/2 with invalid data returns error changeset" do
+      amendment = amendment_fixture()
+      assert {:error, %Ecto.Changeset{}} = Meetings.update_amendment(amendment, @invalid_attrs)
+      assert amendment == Meetings.get_amendment!(amendment.id)
+    end
+
+    test "delete_amendment/1 deletes the amendment" do
+      amendment = amendment_fixture()
+      assert {:ok, %Amendment{}} = Meetings.delete_amendment(amendment)
+      assert_raise Ecto.NoResultsError, fn -> Meetings.get_amendment!(amendment.id) end
+    end
+
+    test "change_amendment/1 returns a amendment changeset" do
+      amendment = amendment_fixture()
+      assert %Ecto.Changeset{} = Meetings.change_amendment(amendment)
+    end
+  end
 end

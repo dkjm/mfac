@@ -9,9 +9,9 @@ import {TextField} from 'redux-form-material-ui';
 import RaisedButton from 'material-ui/RaisedButton';
 
 import {COLORS} from '../../constants';
-import {submitLoginForm} from '../../services/session';
+import {submitLoginForm, logout} from '../../services/session';
 import history from '../../history';
-import {getAgendaItem} from '../../selectors';
+import {getIsUserLoggedIn} from '../../selectors';
 import {required} from '../../validation';
 
 // InputContainer is just a simple
@@ -36,7 +36,7 @@ const InputContainer = ({children}) => {
 const Button = (props) => {
   const styles = {
     container: {
-      maxWidth: '150px',
+      //maxWidth: '150px',
       flexGrow: '1',
     },
     root: {
@@ -76,6 +76,14 @@ class LoginForm extends Component {
     this.props.submitLoginForm(values);
   }
 
+  handleRequestSignup = () => {
+    this.props.history.push('/signup');
+  }
+
+  handleLogout = () => {
+    this.props.logout();
+  }
+
   render() {
 
     const { 
@@ -85,15 +93,33 @@ class LoginForm extends Component {
       reset, 
       submitting,
       match,
+      isUserLoggedIn,
     } = this.props
+
+    if (isUserLoggedIn) {
+      return (
+        <div style={styles.loggedInContainer}>
+          <div style={styles.loggedInTitle}>
+            You are logged in.
+          </div>
+          
+          <div style={styles.buttonsContainer}>
+            <Button
+              label="Log out"
+              onClick={this.handleLogout}
+            />
+          </div>
+        </div>
+      )
+    }
 
     return (
       <form>
         <div style={styles.container}>
 
-          <div style={styles.title}>
+          {/*<div style={styles.title}>
             Login
-          </div>
+          </div>*/}
 
           <div style={styles.inputsContainer}>
             <InputContainer>
@@ -115,8 +141,8 @@ class LoginForm extends Component {
                 name="password" 
                 component={TextField}
                 floatingLabelText="Password"
-                multiLine={true} 
                 validate={required}
+                type="password"
               />
             </InputContainer>
 
@@ -127,10 +153,26 @@ class LoginForm extends Component {
               label="Submit"
               onClick={handleSubmit(this.handleSubmit)}
             />
-            <Button
+            {/*<Button
               label="Forgot"
               onClick={this.handleForgot}
-            />
+            />*/}
+          </div>
+
+          <div style={styles.bottomButtonsContainer}>
+
+            <div
+              onClick={this.handleForgot}
+              style={styles.bottomButton}>
+              Forgot
+            </div>
+
+            <div
+              onClick={this.handleRequestSignup}
+              style={styles.bottomButton}>
+              Signup
+            </div>
+            
           </div>
 
         </div>
@@ -159,18 +201,38 @@ const styles = {
     minWidth: '60px',
     textAlign: 'left',
   },
-
+  bottomButtonsContainer: {
+    marginTop: '100px',
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  bottomButton: {
+    margin: '0px 20px',
+    border: 'solid',
+    padding: '10px',
+    minWidth: '100px',
+    textAlign: 'center',
+  },
+  loggedInContainer: {
+    textAlign: 'center',
+    padding: '15px',
+  },
+  loggedInTitle: {
+    padding: '70px',
+    fontStyle: 'italic',
+  },
 }
 
 
 const mapStateToProps = (state, ownProps) => { 
   return {
-
+    isUserLoggedIn: getIsUserLoggedIn(state),
   }
 }
 
 const mapDispatchToProps = (dispatch)  => ({
   submitLoginForm: (params) => dispatch(submitLoginForm(params)),
+  logout: (params) => dispatch(logout(params)),
 })
 
 let Connected = reduxForm({

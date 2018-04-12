@@ -1,16 +1,15 @@
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
+import React, {Component} from 'react';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 import {Route, Switch, Redirect} from 'react-router';
-import {withRouter} from 'react-router-dom' 
+import {withRouter} from 'react-router-dom';
 
-import LayoutBanner from '../LayoutBanner';
-import Stack from '../Stack';
+import CheckIcon from 'material-ui/svg-icons/navigation/check';
+
 import MeetingHome from '../MeetingHome';
 import MeetingParticipants from '../MeetingParticipants';
 import MeetingAgenda from '../MeetingAgenda';
 import MeetingResources from '../MeetingResources';
-import TopicForm from '../TopicForm';
 import AgendaItemForm from '../AgendaItemForm';
 import AgendaItemDetail from '../AgendaItemDetail';
 import MeetingTabs from '../MeetingTabs';
@@ -20,9 +19,8 @@ import MeetingForm from '../MeetingForm';
 import MeetingInvitations from '../MeetingInvitations';
 import MeetingInvitationDetail from '../MeetingInvitationDetail';
 import MeetingInvitationForm from '../MeetingInvitationForm';
-
-import CheckIcon from 'material-ui/svg-icons/navigation/check'
-
+import ProposalForm from '../ProposalForm';
+import ProposalDetail from '../ProposalDetail';
 
 import {
 	connectMeetingSocket, 
@@ -50,7 +48,6 @@ class MeetingDetail extends Component {
 
 		return (
 			<div>
-				{/*<LayoutBanner title={m.title} />*/}
 				<MeetingTabs />
 				<Switch>
 					<Route path={`${match.url}/meeting_form/:intent`} render={props => ( <MeetingForm meeting={m} {...props} /> )}
@@ -78,10 +75,14 @@ class MeetingDetail extends Component {
 					/>
 					<Route path={`${match.url}/agenda_item_form/:intent`} render={props => ( <AgendaItemForm meeting={m} {...props} /> )}
 					/>
-					<Route path={`${match.url}/agenda_item/:agenda_item_id`} render={props => ( <AgendaItemDetail meeting={m} {...props} /> )}
+					<Route exact path={`${match.url}/agenda_items/:agenda_item_id`} render={props => ( <AgendaItemDetail meeting={m} {...props} /> )}
 					/>
-					{/*<Route path='/' render={props => ( <MeetingHome meeting={m} {...props} /> )}
-					/>*/}
+					<Route exact path={`${match.url}/agenda_items/:agenda_item_id/proposal_form/:intent`} render={props => ( <ProposalForm meeting={m} {...props} /> )}
+					/>
+					<Route exact path={`${match.url}/agenda_items/:agenda_item_id/proposals/:proposal_id/proposal_form/:intent`} render={props => ( <ProposalForm meeting={m} {...props} /> )}
+					/>
+					<Route exact path={`${match.url}/agenda_items/:agenda_item_id/proposals/:proposal_id`} render={props => ( <ProposalDetail meeting={m} {...props} /> )}
+					/>
 					<Redirect from='/' to={`${match.url}/home`} />
 
 				</Switch>

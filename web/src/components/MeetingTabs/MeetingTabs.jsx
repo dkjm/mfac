@@ -11,60 +11,43 @@ import {COLORS} from '../../constants';
 class MeetingTabs extends Component {
 
 	navigateToPath = (path) => {
-		const {location, match} = this.props;
-		this.context.router.history.push(`${match.url}/${path}`);
+		const {
+			location, 
+			match, 
+			history,
+		} = this.props;
+		
+		history.push(`${match.url}/${path}`);
 	}
 
 	render() {
 		const {location, match} = this.props;
-		const pieces = location.pathname.split('/');
-		// last piece is part of path we are
-		// interested in
-		const activeTab = pieces[pieces.length - 1];
-		// TODO: above won't work for nested routes
-		// where last part of path might be different
-		
-		// don't really need any of the flex props
-		// below.  was just trying them out
-		const style = {
-			container: {
-				margin: '10px 10px',
-				// textAlign: 'center',
-				// display: 'flex',
-				// flexDirection: 'column',
-				// justifyContent: 'center',
-			},
-			buttonsContainer: {
-				textAlign: 'center',
-				display: 'flex',
-				justifyContent: 'center',
-				flexWrap: 'wrap',
-			},
-		}
-		return (
-			<div style={style.container}>
+		const path = location.pathname;
 
-				<div style={style.buttonsContainer}>
+		return (
+			<div style={styles.container}>
+
+				<div style={styles.buttonsContainer}>
 
 					<Button
 						title='Home' 
 						onClick={() => this.navigateToPath('home')} 
-						active={activeTab === 'home'}
+						active={path.includes('home')}
 					/>
 					<Button
 						title='Agenda' 
 						onClick={() => this.navigateToPath('agenda')} 
-						active={activeTab === 'agenda'}
+						active={path.includes('agenda')}
 					/>
 					<Button
 						title='People' 
 						onClick={() => this.navigateToPath('participants')} 
-						active={activeTab === 'participants'}
+						active={path.includes('participants')}
 					/>
 					<Button
 						title='Invitations' 
 						onClick={() => this.navigateToPath('invitations')} 
-						active={activeTab === 'invitations'}
+						active={path.includes('invitations')}
 					/>
 				</div>
 
@@ -78,34 +61,57 @@ class MeetingTabs extends Component {
 
 	
 const Button = (props) => {
-	const style = {
-		padding: '10px',
-		textAlign: 'center',
-		backgroundColor: props.color || COLORS.blackGray,
-		borderRadius: '2px',
-		minWidth: props.width || '70px',
-		boxShadow: '5px 5px 5px gray',
-		margin: '5px',
-		color: 'white',
-		flexGrow: '1',
-		maxWidth: '100px',
+	const styles = {
+		container: {
+			padding: '10px',
+			textAlign: 'center',
+			backgroundColor: props.color || COLORS.blackGray,
+			borderRadius: '2px',
+			minWidth: props.width || '70px',
+			boxShadow: '5px 5px 5px gray',
+			margin: '5px',
+			color: 'white',
+			flexGrow: '1',
+			maxWidth: '100px',
+		},
+		titleContainer: {
+			display: 'flex',
+		},
+		title: {
+			paddingBottom: '2px',
+			margin: 'auto',
+		},
 	}
 
 	if (props.active) {
-		style.boxShadow = '1px 1px 1px ' + COLORS.darkGray;
+		//style.boxShadow = '1px 1px 1px ' + COLORS.darkGray;
+		styles.title.borderBottom = 'solid 1px ' + COLORS.reactBlue;
 	}
 
 	return (
-		<div style={style} onClick={props.onClick}>
-			{props.title}
+		<div style={styles.container} onClick={props.onClick}>
+			<div style={styles.titleContainer}>
+				<div style={styles.title}>
+					{props.title}
+				</div>
+			</div>
 		</div>
 	)
 }
 
+const styles = {
+	container: {
+		margin: '10px 10px',
+	},
+	buttonsContainer: {
+		textAlign: 'center',
+		display: 'flex',
+		justifyContent: 'center',
+		flexWrap: 'wrap',
+	},
+}
 
-MeetingTabs.contextTypes = {
-  router: PropTypes.object,
-};
+
 
 const mapStateToProps = (state, ownProps) => {
 	return {

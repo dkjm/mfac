@@ -13,7 +13,7 @@ import {SelectField} from 'redux-form-material-ui';
 import {COLORS} from '../../constants';
 import {submitMeetingInvitationForm} from '../../services/api';
 import history from '../../history';
-import {getUserContacts} from '../../selectors';
+import {getUserContacts, getUninvitedContacts} from '../../selectors';
 import {required} from '../../validation';
 
 // InputContainer is just a simple
@@ -87,8 +87,9 @@ class MeetingInvitationForm extends Component {
   }
 
   renderInvitees() {
-    const {contacts} = this.props;
-    const renderedItems = contacts.map((i, index) => (
+    //const {contacts} = this.props;
+    const {uninvitedContacts} = this.props;
+    const renderedItems = uninvitedContacts.map((i, index) => (
       <MenuItem 
         key={i.id} 
         value={i.id} 
@@ -186,6 +187,7 @@ const mapStateToProps = (state, ownProps) => {
   return {
     initialValues,
     contacts: getUserContacts(state),
+    uninvitedContacts: getUninvitedContacts(state),
   }
 }
 

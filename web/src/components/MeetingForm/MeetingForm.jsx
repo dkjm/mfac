@@ -160,23 +160,24 @@ class MeetingForm extends Component {
 
 const styles = {
   container: {
-    padding: '15px 0',
+    padding: '15px',
   },
   title: {
-    fontSize: '130%',
     textAlign: 'center',
+    fontStyle: 'italic',
   },
   inputsContainer: {
-    marginBottom: '25px',
-  },
-  input: {
-    minWidth: '60px',
-    textAlign: 'left',
+    marginBottom: '20px',
   },
   buttonsContainer: {
     display: 'flex',
     justifyContent: 'space-evenly',
   },
+  input: {
+    minWidth: '60px',
+    textAlign: 'left',
+  },
+
 }
   
 

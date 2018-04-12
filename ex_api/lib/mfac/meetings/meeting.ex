@@ -11,7 +11,9 @@ defmodule Mfac.Meetings.Meeting do
     field :version, :integer
     field :ended_at, :utc_datetime
     belongs_to :owner, Mfac.Accounts.User, foreign_key: :user_id
-
+    has_many :agenda_items, Mfac.Meetings.AgendaItem, on_delete: :delete_all
+    has_many :invitations, Mfac.Meetings.Invitation, on_delete: :delete_all
+    has_many :participants, Mfac.Meetings.Participant, on_delete: :delete_all
     timestamps()
   end
 
@@ -20,5 +22,12 @@ defmodule Mfac.Meetings.Meeting do
     meeting
     |> cast(attrs, [:title, :description, :allotted_duration, :version, :user_id, :ended_at])
     |> validate_required([:title, :description, :allotted_duration, :version])
+  end
+
+  @doc false
+  def creation_changeset(%Meeting{} = meeting, attrs) do
+    meeting
+    |> cast(attrs, [:title, :description, :allotted_duration, :user_id])
+    |> validate_required([:title, :description, :user_id])
   end
 end

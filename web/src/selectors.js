@@ -32,6 +32,67 @@ export const getHeader = createSelector(
   header => header,
 )
 
+export const getProposals = createSelector(
+  (state, params = {}) => {
+    const {agenda_item_id} = params;
+    if (!agenda_item_id) {throw new Error('agenda_item_id is required')};
+    const agenda_item = state.agendaItems.cache[agenda_item_id];
+    if (!agenda_item) {return []};
+    const asArray = _values(agenda_item.proposals);
+    const sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
+    return sorted;
+  },
+  proposals => proposals,
+)
+
+export const getProposal = createSelector(
+  (state, params = {}) => {
+    const {agenda_item_id, proposal_id} = params;
+    if (!(agenda_item_id && proposal_id)) {throw new Error('agenda_item_id and proposal_id are required')};
+    const agenda_item = state.agendaItems.cache[agenda_item_id];
+    if (!agenda_item) {return null};
+    const proposal = agenda_item.proposals[proposal_id];
+    return proposal;
+  },
+  proposal => proposal,
+)
+
+export const getAmendments = createSelector(
+  (state, params = {}) => {
+    const {
+      agenda_item_id,
+      proposal_id,
+    } = params;
+    if (!(agenda_item_id && proposal_id)) {throw new Error('agenda_item_id and proposal_id are required')};
+    const agenda_item = state.agendaItems.cache[agenda_item_id];
+    if (!agenda_item) {return []};
+    const proposal = agenda_item.proposals[proposal_id];
+    if (!proposal) {return []};
+    const asArray = _values(proposal.amendments);
+    const sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
+    return sorted;
+  },
+  amendments => amendments,
+)
+
+export const getAmendment = createSelector(
+  (state, params = {}) => {
+    const {
+      agenda_item_id, 
+      proposal_id,
+      amendment_id,
+    } = params;
+    if (!(agenda_item_id && proposal_id && amendment_id)) {throw new Error('agenda_item_id, proposal_id, and amendment_id are required')};
+    const agenda_item = state.agendaItems.cache[agenda_item_id];
+    if (!agenda_item) {return null};
+    const proposal = agenda_item.proposals[proposal_id];
+    if (!proposal) {return null};
+    const amendment = proposal.amendments[amendment_id];
+    return amendment;
+  },
+  amendment => amendment,
+)
+
 export const getMeetingParticipants = createSelector(
   (state, params = {}) => {
     // don't display current user in
@@ -50,7 +111,7 @@ export const getMeetingInvitations = createSelector(
   (state, params = {}) => {
     const items = state.meetingInvitations.cache;
     const asArray = _values(items);
-    const sorted = _orderBy(asArray, ['created_on'], ['asc']);
+    const sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
     return sorted;
   },
   meetingInvitations => meetingInvitations,
@@ -68,7 +129,7 @@ export const getUserMeetingInvitations = createSelector(
   (state, params = {}) => {
     const items = state.session.meetingInvitations;
     const asArray = _values(items);
-    const sorted = _orderBy(asArray, ['created_on'], ['asc']);
+    const sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
     return sorted;
   },
   meetingInvitations => meetingInvitations,
@@ -105,6 +166,21 @@ export const getUserContacts = createSelector(
   contacts => contacts,
 )
 
+export const getUninvitedContacts = createSelector(
+  getUserContacts,
+  getMeetingInvitations,
+  (contacts, invitations) => {
+    const result = contacts.filter(c => {
+      for (let i = 0; i < invitations.length; i++) {
+        if (invitations[i].invitee.id === c.id) {
+          return false;
+        }
+      }
+      return true;
+    })
+    return result;
+  },
+)
 
 export const getMeeting = createSelector(
   (state, params = {}) => {
@@ -130,7 +206,7 @@ export const getMeetings = createSelector(
 
     const cache = state.meetings.cache;
     const asArray = _values(cache);
-    const sorted = _orderBy(asArray, ['created_on'], ['asc']);
+    const sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
     return sorted;
   },
   meetings => meetings,
@@ -144,9 +220,36 @@ export const getAgendaItems = createSelector(
     const cache = state.agendaItems.cache;
     const asArray = _values(cache);
 
-    //let sorted = _sortBy(asArray, ['created_on'], ['asc']);
+    //let sorted = _sortBy(asArray, ['inserted_at'], ['asc']);
 
     let sorted = _sortBy(asArray, 
+      (item => {
+        const {up, down} = item.votes;
+        const net_total = up - down;
+        return net_total;
+      })
+    );
+    // reverse array so that items are
+    // in desc order (I don't believe this
+    // can be accomplished in _sortBy.  It
+    // can be accomplished with _orderBy,
+    // but I don't think you can pass a func
+    // to orderBy like you can with sortBy)
+    sorted.reverse();
+    return sorted; 
+  },
+  agendaItems => agendaItems,
+)
+
+export const getFilteredAgendaItems = createSelector(
+  (state, params = {}) => {
+    const {status} = params;
+    const cache = state.agendaItems.cache;
+    const asArray = _values(cache);
+
+    const items = asArray.filter(a => a.status === status);
+
+    let sorted = _sortBy(items, 
       (item => {
         const {up, down} = item.votes;
         const net_total = up - down;
@@ -193,7 +296,7 @@ export const getIsUserInStack = createSelector(
     const ses = agendaItem.stack_entries;
     for (var i = 0; i < ses.length; i++) {
       const se = ses[i];
-      if (se.owner_id === userData.id) {
+      if (se.owner.id === userData.id) {
         return true;
       }
     }
@@ -228,7 +331,7 @@ export const getTopics = createSelector(
       sorted = _orderBy(asArray, (e) => e.votes.up - e.votes.down + 0.25 * e.votes.meh, ['desc'])
     }
     else {
-      sorted = _orderBy(asArray, ['created_on'], ['asc']);
+      sorted = _orderBy(asArray, ['inserted_at'], ['asc']);
     }
     return sorted;
   },

@@ -3,6 +3,8 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {Route, Switch, Redirect} from 'react-router';
 import {withRouter} from 'react-router-dom' 
+
+import authProtected from '../AuthProtected';
 import MeetingsDashboard from '../MeetingsDashboard/MeetingsDashboard';
 import MeetingDetail from '../MeetingDetail/MeetingDetail';
 import MeetingForm from '../MeetingForm/MeetingForm';
@@ -11,8 +13,6 @@ import MeetingForm from '../MeetingForm/MeetingForm';
 
 class MeetingLayout extends Component {
 
-
-	
 	render() {
 		const {match, location} = this.props
 
@@ -40,5 +40,6 @@ class MeetingLayout extends Component {
 	}
 }
 
-//export default MeetingLayout
-export default withRouter(MeetingLayout);
+
+let Connected = withRouter(MeetingLayout);
+export default authProtected(Connected);

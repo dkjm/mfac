@@ -6,18 +6,13 @@ defmodule MfacWeb.MeetingController do
 
   action_fallback MfacWeb.FallbackController
 
+  # NOTE(MP - 2/9): Currently not using
+  # index controller, as meetings are being
+  # delivered to client via their user socket
   def index(conn, _params) do
-    meetings = Meetings.list_meetings()
+    user = Mfac.Accounts.Guardian.Plug.current_resource(conn)
+    meetings = Meetings.list_user_meetings(user.id)
     render(conn, "index.json", meetings: meetings)
-  end
-
-  def create(conn, %{"meeting" => meeting_params}) do
-    with {:ok, %Meeting{} = meeting} <- Meetings.create_meeting(meeting_params) do
-      conn
-      |> put_status(:created)
-      |> put_resp_header("location", meeting_path(conn, :show, meeting))
-      |> render("show.json", meeting: meeting)
-    end
   end
 
   def show(conn, %{"id" => id}) do
@@ -25,11 +20,29 @@ defmodule MfacWeb.MeetingController do
     render(conn, "show.json", meeting: meeting)
   end
 
+  # Must return response with meeting_id
+  # from this endpoint, so that client
+  # can navigate to correct url.  But
+  # complete data is actually sent via
+  # socket connection and not in this response
+  def create(conn, %{"meeting" => meeting_params}) do
+    # get user from conn and merge params
+    user = Mfac.Accounts.Guardian.Plug.current_resource(conn)
+    params = Map.put(meeting_params, "user_id", user.id)
+    with {:ok, %Meeting{} = meeting} <- Meetings.create_meeting(params) do
+      conn
+      |> put_status(:created)
+      |> render(MfacWeb.MeetingView, "show.json", %{meeting: meeting})
+    end
+  end
+
   def update(conn, %{"id" => id, "meeting" => meeting_params}) do
     meeting = Meetings.get_meeting!(id)
 
     with {:ok, %Meeting{} = meeting} <- Meetings.update_meeting(meeting, meeting_params) do
-      render(conn, "show.json", meeting: meeting)
+      conn
+      |> put_status(:ok)
+      |> send_resp(:no_content, "")
     end
   end
 

@@ -22,6 +22,11 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+config :mfac, Mfac.Accounts.Guardian,
+       issuer: "mfac",
+       serializer: Mfac.Accounts.Guardian,
+       secret_key: "XHX1lVl+3gdEAjABvx0+hdUwKCjZ49p9zk4KFaFo4tdQE1GHY0A7sJAvkAnA9Uwa"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env}.exs"

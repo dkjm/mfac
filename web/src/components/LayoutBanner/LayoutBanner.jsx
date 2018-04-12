@@ -33,12 +33,15 @@ class LayoutBanner extends Component {
 
 const styles = {
   container: {
+    padding: '50px',
+    textAlign: 'center',
   },
   header: {
 
   },
   logo: {
-
+    maxWidth: '60px',
+    margin: 'auto',
   },
   title: {
 

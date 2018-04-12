@@ -14,7 +14,6 @@ import RaisedButton from 'material-ui/RaisedButton';
 
 import {COLORS} from '../../constants';
 import {submitAgendaItemForm} from '../../services/api';
-import history from '../../history';
 import {getAgendaItem} from '../../selectors';
 import {required} from '../../validation';
 
@@ -72,11 +71,7 @@ const Button = (props) => {
 class AgendaItemForm extends Component {
 
 	handleCancel = (event) => {
-		// TODO: prob should get history object
-		// from component props, rather than
-		// from imported module.  Did it like this
-		// just to test that it works.
-		history.goBack();
+		this.props.history.goBack();
 	}
 
 	handleSubmit = (values) => {
@@ -115,7 +110,7 @@ class AgendaItemForm extends Component {
 
 	  const formTitle = intent === 'update'
 	  	? 'Update Agenda Item'
-	  	: 'Create Agenda Item'
+	  	: 'New Agenda Item'
 
 		return (
 	    <form>

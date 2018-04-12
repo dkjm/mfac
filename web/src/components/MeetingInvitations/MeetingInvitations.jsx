@@ -29,7 +29,7 @@ class MeetingInvitations extends Component {
 
   renderInvitations = () => {
     const {meetingInvitations} = this.props;
-    if (!meetingInvitations) {return null};
+    if (!meetingInvitations.length) {return <NoItems />};
     const renderedItems = meetingInvitations.map(i => 
       <MeetingInvitationCard 
             key={i.id} 
@@ -63,9 +63,15 @@ class MeetingInvitations extends Component {
   }
 }
 
+const NoItems = () => (
+  <div style={styles.noItems}>
+    No invitations
+  </div>
+)
+
 const styles = {
   container: {
-    padding: '15px 0',
+    //padding: '15px 0',
   },
   header: {
     textAlign: 'center',
@@ -77,6 +83,11 @@ const styles = {
     bottom: '20px',
     right: '20px',
     zIndex: '10',
+  },
+  noItems: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: '100px',
   },
 }
 

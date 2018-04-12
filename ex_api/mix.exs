@@ -27,7 +27,7 @@ defmodule Mfac.Mixfile do
   def application do
     [
       mod: {Mfac.Application, []},
-      extra_applications: [:logger, :runtime_tools, :faker, :comeonin]
+      extra_applications: [:logger, :runtime_tools, :faker, :comeonin, :timex]
     ]
   end
 
@@ -49,7 +49,9 @@ defmodule Mfac.Mixfile do
       {:faker, "~> 0.9"},
       {:comeonin, "~> 4.0"},
       {:bcrypt_elixir, "~> 1.0"},
-      {:cors_plug, "~> 1.2"}
+      {:cors_plug, "~> 1.2"},
+      {:guardian, "~> 1.0"},
+      {:timex, "~> 3.1"}
     ]
   end
 

@@ -6,6 +6,7 @@ import {withRouter} from 'react-router-dom';
 import RaisedButton from 'material-ui/RaisedButton';
 import Paper from 'material-ui/Paper';
 
+import authProtected from '../AuthProtected';
 import LabelValue from '../LabelValue';
 
 import {COLORS} from '../../constants';
@@ -30,7 +31,7 @@ class UserInvitationDetail extends Component {
     history.push(path);
   }
 
-  handleAction = (action) => {
+  handleAction = (status) => {
     const {
       match,
       acceptOrDeclineMeetingInvitation,
@@ -39,7 +40,7 @@ class UserInvitationDetail extends Component {
     const {meeting_invitation_id} = match.params;
     const params = {
       meeting_invitation_id,
-      action,
+      status,
     }
     acceptOrDeclineMeetingInvitation(params);
   }
@@ -51,11 +52,11 @@ class UserInvitationDetail extends Component {
         <div style={styles.buttonsContainer}>
           <Button
             label="Accept"
-            onClick={() => this.handleAction('accept')}
+            onClick={() => this.handleAction('ACCEPTED')}
           />
           <Button
             label="Decline"
-            onClick={() => this.handleAction('decline')}
+            onClick={() => this.handleAction('DECLINED')}
           />
         </div>
       )
@@ -69,7 +70,7 @@ class UserInvitationDetail extends Component {
           />
           <Button
             label="Decline"
-            onClick={() => this.handleAction('decline')}
+            onClick={() => this.handleAction('DECLINED')}
           />
         </div>
       )
@@ -79,7 +80,7 @@ class UserInvitationDetail extends Component {
         <div style={styles.buttonsContainer}>
           <Button
             label="Accept"
-            onClick={() => this.handleAction('accept')}
+            onClick={() => this.handleAction('ACCEPTED')}
           />
         </div>
       )
@@ -100,7 +101,7 @@ class UserInvitationDetail extends Component {
           <div style={styles.fieldsContainer}>
             <LabelValue label="Meeting" value={mi.meeting.title} />
             <LabelValue label="Inviter" value={mi.inviter.full_name} />
-            <LabelValue label="Sent on" value={mi.created_on} />
+            <LabelValue label="Sent on" value={mi.inserted_at} />
             <LabelValue label="Status" value={mi.status} />
           </div>
       
@@ -145,7 +146,7 @@ const Button = (props) => {
 
 const NotFound = () => (
   <div style={styles.notFound}>
-    Inivitation not found
+    Invitation not found
   </div>
 )
 
@@ -188,9 +189,10 @@ const mapDispatchToProps = dispatch => {
 }
 
 
-const Connected = connect(
+let Connected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(UserInvitationDetail)
 
-export default withRouter(Connected);
+Connected = withRouter(Connected);
+export default authProtected(Connected);

@@ -42,20 +42,20 @@ class ParticipantCard extends Component {
 const styles = {
 	paper: {
     marginBottom: '20px',
-    padding: '10px',
+    padding: '15px 10px',
     textAlign: 'left',
     //display: 'flex',
   },
   title: {
   	width: '90%',
   	fontSize: '110%',
-  	marginBottom: '10px',
+  	//marginBottom: '10px',
   	//fontWeight: 'bold',
   },
   subtitle: {
   	width: '90%',
   	fontSize: '90%',
-  	marginBottom: '10px',
+  	//marginBottom: '10px',
   	//fontWeight: 'bold',
   },
 }

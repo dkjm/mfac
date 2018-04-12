@@ -7,6 +7,8 @@ defmodule Mfac.Accounts do
   alias Mfac.Repo
 
   alias Mfac.Accounts.User
+  alias MfacWeb.UserChannel
+  alias MfacWeb.UserView
 
   @doc """
   Returns the list of users.
@@ -40,36 +42,37 @@ defmodule Mfac.Accounts do
   @doc """
   Creates a user.
 
-  ## Examples
-
-      iex> create_user(%{field: value})
-      {:ok, %User{}}
-
-      iex> create_user(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def create_user(attrs \\ %{}) do
     %User{}
-    |> User.changeset(attrs)
+    |> User.registration_changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
   Updates a user.
 
-  ## Examples
-
-      iex> update_user(user, %{field: new_value})
-      {:ok, %User{}}
-
-      iex> update_user(user, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def update_user(%User{} = user, attrs) do
+    result = 
+      user
+      |> User.changeset(attrs)
+      |> Repo.update()
+    {status, user} = result
+    UserChannel.broadcast_event("update_user_profile", user.id, UserView.render("user.json", %{user: user}))
+    result
+  end
+
+
+  @doc """
+  Updates user password.
+
+  """
+  # TODO(MP 2/9): if validation or update
+  # fails, should not return :ok
+  def update_user_password(%User{} = user, attrs) do
     user
-    |> User.changeset(attrs)
+    |> User.password_changeset(attrs)
     |> Repo.update()
   end
 
@@ -88,6 +91,7 @@ defmodule Mfac.Accounts do
   def delete_user(%User{} = user) do
     Repo.delete(user)
   end
+
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.

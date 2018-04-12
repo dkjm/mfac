@@ -1,11 +1,37 @@
 import _sortBy from 'lodash/sortBy';
 import _orderBy from 'lodash/orderBy';
 import React from 'react';
-import {Button, notification} from 'antd';
+import {Button, Modal, notification} from 'antd';
 import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 import {COLORS, muiTheme} from './constants';
+
+
+
+
+export const formatVotes = (votes, user_id) => {
+	const obj = {
+		up: 0,
+		down: 0,
+		meh: 0,
+		user_vote: null,
+	}
+
+	votes.forEach(v => {
+		if (v.value === 1) {obj.up++}
+		else if (v.value === -1) {obj.down++}
+		else if (v.value === 0) {obj.meh++}
+		if (user_id && v.owner.id === user_id) {
+			obj.user_vote = v.value;
+		}
+	})
+
+	return obj;
+}
+
+
+
 
 export const openNotification = (config) => {
 	let c = config;
@@ -50,6 +76,18 @@ export const openNotification = (config) => {
     placement: c.placement || 'topRight',
     style: c.style || {},
   })
+}
+
+
+
+// info, success, error, warning
+export const openModal = (config = {}) => {
+	const c = config;
+	Modal.error({
+		title: c.title,
+		content: c.content,
+		onOk: c.onOk,
+	})
 }
 
 

@@ -59,7 +59,7 @@ const styles = {
   subtitle: {
   	width: '90%',
   	fontSize: '90%',
-  	marginBottom: '10px',
+  	//marginBottom: '10px',
   	//fontWeight: 'bold',
   },
 }

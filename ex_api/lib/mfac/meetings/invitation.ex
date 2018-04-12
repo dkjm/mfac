@@ -7,7 +7,7 @@ defmodule Mfac.Meetings.Invitation do
   schema "invitations" do
     field :accepted_at, :utc_datetime
     field :declined_at, :utc_datetime
-    field :status, :string
+    field :status, :string, default: "PENDING"
     field :version, :integer, default: 0
     belongs_to :inviter, Mfac.Accounts.User, foreign_key: :inviter_id
     belongs_to :invitee, Mfac.Accounts.User, foreign_key: :invitee_id
@@ -20,6 +20,6 @@ defmodule Mfac.Meetings.Invitation do
   def changeset(%Invitation{} = invitation, attrs) do
     invitation
     |> cast(attrs, [:status, :accepted_at, :declined_at, :version, :inviter_id, :invitee_id, :meeting_id])
-    |> validate_required([:status, :accepted_at, :declined_at, :verion])
+    |> validate_required([:meeting_id, :inviter_id, :invitee_id, :status, :version])
   end
 end

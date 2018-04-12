@@ -5,7 +5,7 @@ defmodule Mfac.Meetings.AgendaItemVote do
 
 
   schema "agenda_item_votes" do
-    field :version, :integer
+    field :version, :integer, default: 0
     field :vote_type, :string
     belongs_to :owner, Mfac.Accounts.User, foreign_key: :user_id
     belongs_to :agenda_item, Mfac.Meetings.AgendaItem, foreign_key: :agenda_item_id
@@ -16,7 +16,7 @@ defmodule Mfac.Meetings.AgendaItemVote do
   @doc false
   def changeset(%AgendaItemVote{} = agenda_item_vote, attrs) do
     agenda_item_vote
-    |> cast(attrs, [:vote_type, :version, :user_id, :agenda_item_id])
-    |> validate_required([:vote_type, :version])
+    |> cast(attrs, [:vote_type, :user_id, :agenda_item_id])
+    |> validate_required([:vote_type, :user_id, :agenda_item_id])
   end
 end

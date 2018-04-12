@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {connect} from 'react-redux'
+import {connect} from 'react-redux';
 import './App.css';
 import {Route, Switch, Redirect} from 'react-router';
 import {withRouter} from 'react-router-dom';
@@ -16,16 +16,16 @@ import NavDrawer from '../NavDrawer';
 import Dashboard from '../Dashboard';
 import MeetingLayout from '../MeetingLayout';
 import LoginForm from '../LoginForm';
+import SignupForm from '../SignupForm';
 import UserInvitations from '../UserInvitations';
 import UserInvitationDetail from '../UserInvitationDetail';
+import UserSettings from '../UserSettings';
+import LayoutBanner from '../LayoutBanner';
 
 import {COLORS, muiTheme} from '../../constants';
 import {toggleSnackbar} from '../../services/ui';
 import * as selectors from '../../selectors';
 import {connectUserSocket, loadUserData} from '../../services/session';
-
-import { Button, Select, notification } from 'antd';
-
 
 
 //import injectTapEventPlugin from 'react-tap-event-plugin';
@@ -41,9 +41,28 @@ import { Button, Select, notification } from 'antd';
 class App extends Component {
 
   componentWillMount() {
-    const {isUserLoggedIn, loadUserData, connectUserSocket} = this.props;
+    const {
+      isUserLoggedIn, 
+      loadUserData, 
+      connectUserSocket,
+    } = this.props;
+
     if (isUserLoggedIn) {
-      loadUserData();
+      //loadUserData();
+      connectUserSocket();
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    const {
+      isUserLoggedIn, 
+      loadUserData, 
+      connectUserSocket,
+    } = this.props;
+
+    // if user wasn't logged in and now is, loadData
+    if (!prevProps.isUserLoggedIn && isUserLoggedIn) {
+      //loadUserData();
       connectUserSocket();
     }
   }
@@ -67,8 +86,20 @@ class App extends Component {
           <Switch>
 
             <Route 
+              exact
               path="/login"
               render={props => (<LoginForm {...props} />)}
+            />
+
+            <Route 
+              exact
+              path="/signup"
+              render={props => (<SignupForm {...props} />)}
+            />
+
+            <Route 
+              path="/settings"
+              render={props => (<UserSettings {...props} />)}
             />
 
             <Route 
@@ -90,9 +121,7 @@ class App extends Component {
 
             <Route 
               path="/meetings" 
-              render={props => (
-                <MeetingLayout {...props} />
-              )} 
+              render={props => (<MeetingLayout {...props} />)}
             />
 
             <Redirect to="/login" />
@@ -100,7 +129,7 @@ class App extends Component {
             {/* 180127 - MPP - NoMatch will never
               be called with current routing setup  
             */}
-            <Route component={NoMatch} />
+            <Route render={props => (<LayoutBanner title="Path not found" />)} />
             
           </Switch>
 
@@ -109,6 +138,7 @@ class App extends Component {
             message={this.props.snackbar.message}
             autoHideDuration={4000}
             onRequestClose={this.handleRequestCloseSnackbar}
+            style={{textAlign: 'center'}}
           />
             
         </div>
@@ -117,16 +147,6 @@ class App extends Component {
   }
 }
 
-const NoMatch = () => {
-  return (
-    <div>
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <h1 className="App-title">No matching route found.</h1>
-      </header>
-    </div>
-  )
-}
 
 
 const mapStateToProps = (state) => {

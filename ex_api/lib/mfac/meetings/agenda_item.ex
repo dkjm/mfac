@@ -7,13 +7,15 @@ defmodule Mfac.Meetings.AgendaItem do
   schema "agenda_items" do
     field :allotted_duration, :integer
     field :body, :string
-    field :status, :string
+    field :status, :string, default: "PENDING"
     field :title, :string
     field :version, :integer, default: 0
     field :closed_at, :utc_datetime
     belongs_to :owner, Mfac.Accounts.User, foreign_key: :user_id
     belongs_to :meeting, Mfac.Meetings.Meeting, foreign_key: :meeting_id
-
+    has_many :votes, Mfac.Meetings.AgendaItemVote, on_delete: :delete_all
+    has_many :stack_entries, Mfac.Meetings.StackEntry, on_delete: :delete_all
+    has_many :proposals, Mfac.Meetings.Proposal, on_delete: :nothing
     timestamps()
   end
 
@@ -21,6 +23,6 @@ defmodule Mfac.Meetings.AgendaItem do
   def changeset(%AgendaItem{} = agenda_item, attrs) do
     agenda_item
     |> cast(attrs, [:title, :body, :status, :allotted_duration, :version, :user_id, :meeting_id])
-    |> validate_required([:title, :body, :status, :allotted_duration, :version])
+    |> validate_required([:title, :body, :version])
   end
 end
